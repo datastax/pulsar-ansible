@@ -6,7 +6,7 @@
   any_errors_fatal: true
   # serial: 1
   roles:
-    - { role: broker_stopSvc }
+    - { role: pulsar_broker_stopSvc }
 
 # Stop bookies 
 - hosts: bookkeeper
@@ -15,7 +15,7 @@
   any_errors_fatal: true
   # serial: 1
   roles:
-    - { role: bookie_stopSvc }
+    - { role: pulsar_bookie_stopSvc }
   post_tasks:
     - name: If requested, clean-up bookkeeper data directories
       shell: rm -rf {{ item }}/*
@@ -32,7 +32,7 @@
   any_errors_fatal: true
   # serial: 1
   roles:
-    - { role: zk_stopSvc }
+    - { role: pulsar_zk_stopSvc }
   post_tasks:
     - name: If requested, clean-up zookeeper data directories
       shell: rm -rf {{ zk_data_dir }}/*
