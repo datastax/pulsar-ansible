@@ -1,0 +1,33 @@
+---
+#########################
+# PreWork
+# -----------------------
+# - Get broker list in deseried formats and save them in variables
+#   They are needed in later steps for Pulsar configurations
+- hosts: broker
+  gather_facts: true
+  run_once: true
+  roles: 
+    - { role: _pre_brokerListVar }
+
+
+#########################
+# AdminConsole Related
+# -----------------------
+# - 
+- hosts: adminConsole
+  become: true
+  become_method: sudo
+  any_errors_fatal: true
+  roles: 
+    - { role: __misc_inst_njs }
+    - { role: __misc_inst_nginx }
+    - { role: adminConsole_inst_binary }
+    - { role: adminConsole_config }
+  post_tasks:
+    - name: Start Pulsar AdminConsole
+      shell: cd {{ tgt_adminConsole_inst_dir }}/server/; nohup npm start 2>&1 &
+    - name: Start Nginx Server
+      service:
+        name: nginx
+        state: started

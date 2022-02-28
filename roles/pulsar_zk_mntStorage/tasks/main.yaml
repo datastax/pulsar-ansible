@@ -1,0 +1,14 @@
+- name: Format disks
+  filesystem:
+    fstype: "{{ zk_disk_fs_type }}"
+    dev: '{{ item }}'
+  with_items:
+    - "{{ zk_storage_blk_device }}"
+
+- name: Mount disks
+  mount:
+    path: "{{ zk_storage_mnt_path }}"
+    src: "{{ zk_storage_blk_device }}"
+    fstype: "{{ zk_disk_fs_type }}"
+    opts: defaults,noatime,nodiscard
+    state: mounted

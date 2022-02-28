@@ -1,0 +1,66 @@
+---
+- name: Modify zookeeper config for customized settings
+  lineinfile:
+    path: "{{ zk_conf_file }}"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { regexp: '^dataDir=', line: 'dataDir={{ zk_data_dir }}' }
+    - { regexp: '^clientPort=', line: 'clientPort={{ zk_clnt_port }}' }
+    - { regexp: '^admin.enableServer=', line: 'admin.enableServer={{ zk_admin_srv_enable|lower}}' }
+    - { regexp: '^admin.serverPort=', line: 'admin.serverPort={{ zk_admin_srv_port }}' }
+
+# Optional: to make it easy for running zookeeper commands
+- name: Modify zookeeper config to add 4lw words whitelist
+  lineinfile:
+    path: "{{ zk_conf_file }}"
+    line: "4lw.commands.whitelist={{ zk_cmd_white_list }}"
+  when: zk_enable_4lw_cmd|bool
+
+#####
+#  - When starting Zookeeper and bookie on the same node, by default they both use port 8000 to
+#    expose prometheus metrics. Therefore, zookeeper needs to start on a different metrics port 
+#    other than 8000.
+#  - In Apache 2.7.x, the way to start a different zookeeper metrics port is through JVM option
+#    PULSAR_EXTRA_OPTS="-Dstats_server_port=<custom_port>"
+#  - In Apache 2.8.0, the way to start metrics port (default 8000) is different, which is to set
+#    config. parameter "metricsProvider.httpPort" in zookeeper.conf
+#    In Apache 2.8.0, the JVM option for custom zookeeper metrics port is ignored. You can still 
+#    start the zookeeper with it, but it has no effect.
+- name: Set "metricsProvider.httpPort" (version 2.8.0+ only)
+  lineinfile:
+    path: "{{ zk_conf_file }}"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { regexp: '^metricsProvider.httpPort=', line: 'metricsProvider.httpPort={{ zk_stats_port }}' }
+  when: pulsarLS_ver_signifant is version('2.8', '>=')
+
+- name: Modify zookeeper config fiile to add zookeeper node list
+  lineinfile:
+    path: "{{ zk_conf_file }}"
+    line: "server.{{ item.0 + 1 }}={{ item.1 }}"
+  with_indexed_items:  
+    - "{{ zkArrVar }}"
+
+- name: Create zookeeper data folder - "{{ zk_data_dir }}"
+  file:
+    path: "{{ zk_data_dir }}"
+    state: directory
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user }}"
+
+- name: Get zookeeper server ID
+  shell: grep {{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }} {{ zk_conf_file }} | awk -F'=' '{print $1}' | awk -F'.' '{print $2}'
+  register: cmdoutput
+
+- name: Set fact of zookeeper server ID
+  set_fact: myid={{ cmdoutput.stdout }}
+
+- name: Define myid file for each zookeeper server
+  copy:
+    dest: "{{ zk_data_dir }}/myid"
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user }}"
+    content: |
+      {{ myid }}

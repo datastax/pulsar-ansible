@@ -1,0 +1,5 @@
+{% set brokerSvcTlsList = [] %}
+{% for node in groups['broker'] %}
+{%   set ignored = brokerSvcTlsList.append(hostvars[node].private_ip ~ ':' ~ broker_svc_port_tls) %}
+{% endfor %}
+{{ brokerSvcTlsList|join(',') }}

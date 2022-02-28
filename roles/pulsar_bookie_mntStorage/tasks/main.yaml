@@ -1,0 +1,17 @@
+- name: Format disks
+  filesystem:
+    fstype: "{{ bookie_disk_fs_type }}"
+    dev: '{{ item }}'
+  with_items:
+    - "{{ bookie_storage_blk_devices }}"
+
+- name: Mount disks
+  mount:
+    path: "{{ bookie_storage_mnt_paths[index] }}"
+    src: "{{ item }}"
+    fstype: "{{ bookie_disk_fs_type }}"
+    opts: defaults,noatime,nodiscard
+    state: mounted
+  loop: "{{ bookie_storage_blk_devices|flatten(levels=1) }}"
+  loop_control:
+    index_var: index

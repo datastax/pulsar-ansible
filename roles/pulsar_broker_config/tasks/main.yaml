@@ -1,0 +1,37 @@
+---
+- name: For each cluster, get bookie node count into a temporary file "/tmp/bookieCnt"
+  template: src=bookie_node_cnt.j2 dest=/tmp/bookieCnt mode=0664
+
+- name: Load tempoarary "/tmp/bookieCnt" file
+  shell: cat /tmp/bookieCnt
+  register: bookieCnt_cmdcat
+
+- name: Set bookie node count into a variable
+  set_fact: 
+    bookieCnt={{ bookieCnt_cmdcat.stdout}}
+- debug: msg="{{ bookieCnt }}"
+  when: show_debug_msg|bool
+
+- name: Set ensemble size, write, and ack quorum count
+  set_fact:
+    ensemble_size: "{% if bookieCnt|int > 3 %}3{% else %}{{ bookieCnt|int }}{% endif %}"
+    write_quorum_cnt: "{% if bookieCnt|int > 3 %}3{% else %}{{ bookieCnt|int }}{% endif %}"
+    ack_quorum_cnt: "{% if bookieCnt|int < 2 %}1{% else %}{{ bookieCnt|int - 1 }}{% endif %}"
+
+- name: Modify Pulsar broker config file - {{ broker_conf_file }}
+  lineinfile:
+    path: "{{ broker_conf_file }}"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { regexp: '^zookeeperServers=', line: "zookeeperServers={{ zkListStrVar }}" }
+    - { regexp: '^configurationStoreServers=', line: "configurationStoreServers={{ zkListStrVar }}" }
+    - { regexp: '^clusterName=', line: 'clusterName={{ cluster_name }}' }
+    - { regexp: '^brokerServicePort=', line: 'brokerServicePort={{ broker_svc_port }}' }
+    - { regexp: '^webServicePort=', line: 'webServicePort={{ web_svc_port }}' }
+    - { regexp: '^managedLedgerDefaultEnsembleSize=', line: 'managedLedgerDefaultEnsembleSize={{ ensemble_size }}'}
+    - { regexp: '^managedLedgerDefaultWriteQuorum=', line: 'managedLedgerDefaultWriteQuorum={{ write_quorum_cnt }}' }
+    - { regexp: '^managedLedgerDefaultAckQuorum=', line: 'managedLedgerDefaultAckQuorum={{ write_quorum_cnt }}' }
+    # - { regexp: '^forceDeleteTenantAllowed=', line: 'forceDeleteTenantAllowed=true' }
+    # - { regexp: '^forceDeleteNamespaceAllowed=', line: 'forceDeleteNamespaceAllowed=true' }
+    # - { regexp: '^brokerDeleteInactiveTopicsEnabled=', line: 'brokerDeleteInactiveTopicsEnabled=false' }

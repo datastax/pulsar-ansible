@@ -1,0 +1,19 @@
+---
+- name: Check if zookeeper server is already running
+  stat:
+    path: "{{ tgt_pulsar_inst_dir }}/bin/pulsar-zookeeper.pid"
+  register: stat_result
+
+- name: Start zookeeper server, if it is not running yet
+  become: true
+  become_method: sudo
+  become_user: "{{ pulsar_user }}"
+  shell: "{{ zk_jvm_options|trim }} {{ tgt_pulsar_inst_dir }}/bin/pulsar-daemon start zookeeper"
+  when: not stat_result.stat.exists
+
+- name: Wait until zookeeper listeneing port {{ zk_clnt_port }} is ready
+  wait_for:
+    host: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}"
+    port: "{{ zk_clnt_port }}"
+    delay: 2
+    timeout: 120

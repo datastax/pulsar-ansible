@@ -1,0 +1,28 @@
+---
+- name: Check if Pulsar broker is already running
+  stat:
+    path: "{{ tgt_pulsar_inst_dir }}/bin/pulsar-broker.pid"
+  register: stat_result
+  
+- name: Stop Pulsar broker server if it is running
+  shell: "{{ tgt_pulsar_inst_dir }}/bin/pulsar-daemon stop broker"
+  when: stat_result.stat.exists
+
+- name: Wait until broker service and web service ports are gone
+  wait_for:
+    host: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}"
+    port: "{{ item }}"
+    state: stopped
+    delay: 2
+    timeout: 120
+  with_items:
+    - "{{ broker_svc_port }}"
+    - "{{ web_svc_port }}"
+    - "{{ broker_svc_port_tls }}"
+    - "{{ web_svc_port_tls }}"
+
+- name: Delete broker process ID file
+  file:
+    path: "{{ tgt_pulsar_inst_dir }}/bin/pulsar-broker.pid"
+    state: absent
+  when: stat_result.stat.exists

@@ -1,0 +1,10 @@
+---
+# Ubuntu/APT installation
+- name: Install OpenJDK Java
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  with_items:
+    - python-apt
+    - openjdk-{{ openjdk_ver }}-jdk

@@ -1,0 +1,57 @@
+---
+# Stop brokers 
+- hosts: broker
+  become: true
+  become_method: sudo
+  any_errors_fatal: true
+  # serial: 1
+  roles:
+    - { role: broker_stopSvc }
+
+# Stop bookies 
+- hosts: bookkeeper
+  become: true
+  become_method: sudo
+  any_errors_fatal: true
+  # serial: 1
+  roles:
+    - { role: bookie_stopSvc }
+  post_tasks:
+    - name: If requested, clean-up bookkeeper data directories
+      shell: rm -rf {{ item }}/*
+      args:
+        warn: no
+      with_items:
+        - "{{ bookie_storage_mnt_paths }}"
+      when: purge_pulsar is defined and purge_pulsar|bool
+
+# Stop zookeepers 
+- hosts: zookeeper
+  become: true
+  become_method: sudo
+  any_errors_fatal: true
+  # serial: 1
+  roles:
+    - { role: zk_stopSvc }
+  post_tasks:
+    - name: If requested, clean-up zookeeper data directories
+      shell: rm -rf {{ zk_data_dir }}/*
+      args:
+        warn: no
+      when: purge_pulsar is defined and purge_pulsar|bool  
+
+# Clean up old logs
+- hosts: pulsarServer
+  become: true
+  become_method: sudo
+  any_errors_fatal: true
+  tasks:
+  - name: If requested, clean-up pulsar binaries and logs
+    file:
+      path: "{{ item }}"
+      state: absent
+    with_items:
+      - "{{ tgt_pulsar_inst_dir }}"
+      - "{{ tgt_pulsar_log_homedir }}"
+      # - "{{ tgt_pkg_dir }}"
+    when: purge_pulsar is defined and purge_pulsar|bool

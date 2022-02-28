@@ -1,0 +1,12 @@
+---
+#########################
+- hosts: heartBeat
+  become: true
+  become_method: sudo
+  any_errors_fatal: true
+  roles: 
+    - { role: heartBeat_inst_binary }
+    - { role: heartBeat_config }
+  post_tasks:
+    - name: Start Pulsar HeartBeat
+      shell: cd {{ tgt_heartBeat_inst_dir }}; nohup PULSAR_OPS_MONITOR_CFG=./run_time.yaml {{ heartBeat_bin_name.split('.gz')[0] }} 2>&1 &

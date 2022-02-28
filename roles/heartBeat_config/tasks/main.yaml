@@ -1,0 +1,16 @@
+---
+- name: Copy Pulsar HeartBeat runtime config (runtime.yaml) template
+  template:
+    src: templates/hb_runtime.yaml.tmp.nosec
+    dest: "{{ tgt_heartBeat_inst_dir }}/runtime.yaml"
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user }}"
+    mode: '0644'
+
+# - name: Replace Pulsar HeartBeat config setting placeholders with cluster specific information
+#   replace:
+#       path: "{{ tgt_heartBeat_inst_dir }}/runtime.yaml"
+#       regexp: "{{ item.regexp }}"
+#       replace: "{{ item.line }}"
+#   with_items:
+#     - { regexp: '<<home_cluster>>', line: "{{ cluster_name }}" }

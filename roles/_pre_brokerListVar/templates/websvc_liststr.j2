@@ -1,0 +1,5 @@
+{% set webSvcList = [] %}
+{% for node in groups['broker'] %}
+{%   set ignored = webSvcList.append(hostvars[node].private_ip ~ ':' ~ web_svc_port) %}
+{% endfor %}
+{{ webSvcList|join(',') }}

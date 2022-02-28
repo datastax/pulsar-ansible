@@ -1,0 +1,14 @@
+---
+- name: Initalize cluster metadata
+  become: true
+  become_method: sudo
+  become_user: "{{ pulsar_user }}"
+  shell: |
+    {{ tgt_pulsar_inst_dir }}/bin/pulsar initialize-cluster-metadata \
+    --cluster {{ cluster_name }} \
+    --zookeeper {{ zkListStrVar }} \
+    --configuration-store {{ zkListStrVar }} \
+    --web-service-url http://{{ webSvcListStr }} \
+    --broker-service-url pulsar://{{ brokerSvcListStr }} \
+    --web-service-url-tls https://{{ webSvcTlsListStr }} \
+    --broker-service-url-tls pulsar+ssl://{{ brokerSvcTlsListStr }} 

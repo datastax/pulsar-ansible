@@ -1,0 +1,33 @@
+---
+- name: Copy Pulsar AdminConsole dashboard config (config.js) template
+  template:
+    src: templates/ac_config.js.tmp.nosec
+    dest: "{{ tgt_adminConsole_inst_dir }}/dashboard/dist/config.js"
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user }}"
+    mode: '0644'
+
+- name: Replace Pulsar AdminConsole config setting placeholders with cluster specific information
+  replace:
+      path: "{{ tgt_adminConsole_inst_dir }}/dashboard/dist/config.js"
+      regexp: "{{ item.regexp }}"
+      replace: "{{ item.line }}"
+  with_items:
+    - { regexp: '<<home_cluster>>', line: "{{ cluster_name }}" }
+    - { regexp: '<<api_version>>', line: "{{ pulsarLS_ver_main }}" }
+    - { regexp: '<<pulsar_broker_svc_url>>', line: "{{ brokerSvcListStr }}" }
+    - { regexp: '<<pulsar_web_svc_url>>', line: "{{ webSvcListStr }}" }
+    
+- name: Copy Nginx Web Server config (nginx.conf) template
+  template:
+    src: templates/ac_nginx.conf.tmp
+    dest: "/etc/nginx/nginx.conf"
+    mode: '0644'
+
+- name: Replace Nginx config setting placeholders with cluster specific information
+  replace:
+      path: "/etc/nginx/nginx.conf"
+      regexp: "{{ item.regexp }}"
+      replace: "{{ item.line }}"
+  with_items:
+    - { regexp: '<<pulsar_cluster_name>>', line: "{{ cluster_name }}" }

@@ -1,0 +1,129 @@
+---
+#########################
+# PreWork
+# -----------------------
+- hosts: LSCluster
+  become: true
+  become_method: sudo
+  any_errors_fatal: true
+  roles: 
+    - { role: __misc_inst_openjdk }
+
+# - Get zookeeper list in deseried formats and save them in variables
+#   They are needed in later steps for Pulsar configurations
+- hosts: zookeeper
+  gather_facts: true
+  run_once: true
+  roles: 
+    - { role: _pre_zkListVar }
+
+# - Get broker list in deseried formats and save them in variables
+#   They are needed in later steps for Pulsar configurations
+- hosts: broker
+  gather_facts: true
+  run_once: true
+  roles: 
+    - { role: _pre_brokerListVar }
+
+
+#########################
+# Pulsar server binary
+# -----------------------
+- hosts: pulsarClient
+  become: true
+  become_method: sudo
+  any_errors_fatal: true
+  roles: 
+    - { role: pulsar_inst_binary }
+
+
+#########################
+# Zookeeper Related
+# -----------------------
+# - Configure and start zookeepers
+- hosts: zookeeper
+  become: true
+  become_method: sudo
+  any_errors_fatal: true
+  roles: 
+    # Mount dedicated storage space to zookeepers
+    - { role: pulsar_zk_mntStorage, when: not skip_zk_block_device_setup|bool }
+    # Config zookeepers 
+    - { role: pulsar_zk_config }
+    # Start zookepers
+    - { role: pulsar_zk_startSvc }
+
+# - Initialzie Pulsar cluster metadata after zookeepers are up and running
+- hosts: zookeeper
+  any_errors_fatal: true
+  run_once: true
+  roles: 
+    - { role: pulsar_zk_initMetadata }
+
+
+#########################
+# Bookkeeper Related
+# -----------------------
+# - Configure and start bookkeepers
+- hosts: bookkeeper
+  become: true
+  become_method: sudo
+  any_errors_fatal: true
+  roles: 
+    # Mount dedicated storage space to bookkeepers
+    - { role: pulsar_bookie_mntStorage, when: not skip_bookie_block_device_setup|bool }
+    # Config bookies 
+    - { role: pulsar_bookie_config }
+    # Start bookies
+    - { role: pulsar_bookie_startSvc }
+
+# - Sanity test of whether bookies are up and running properly
+- hosts: bookkeeper
+  run_once: true
+  roles:
+    - { role: pulsar_bookie_sanityCheck }
+
+
+#########################
+# Broker Related
+# -----------------------
+# - Configure and start brokers
+- hosts: broker
+  become: true
+  become_method: sudo
+  any_errors_fatal: true
+  roles: 
+    # Config brokers
+    - { role: pulsar_broker_config }
+    # Start brokers
+    - { role: pulsar_broker_startSvc }
+
+
+#########################
+# Configure Pular clients
+# -----------------------
+# - 
+- hosts: pulsarClient
+  become: true
+  become_method: sudo
+  any_errors_fatal: true
+  roles:
+    # Config bookies 
+    - { role: pulsar_client_config }
+
+
+#########################
+# PostWork
+# -----------------------
+# - Update .profile for all hosts in cluster
+- hosts: pulsarServer:pulsarClient
+  tasks:
+  - name: Add Pulsar executeables in $PATH system variable
+    lineinfile:
+      # dest: ~/.bash_profile
+      dest: ~/.profile
+      state: present
+      line: "{{ item }}"
+    with_items:
+      - export PULSAR_HOME=/opt/pulsar
+      - export PATH="$PULSAR_HOME/bin:$PATH"
