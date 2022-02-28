@@ -17,24 +17,24 @@ bookkeeper
 broker
 
 [zookeeper]
-<zk_ip1>
-<zk_ip2>
-<zk_ip3>
+<public_zk_ip1> private_ip=<private_zk_ip1>
+<public_zk_ip2> private_ip=<private_zk_ip2>
+<public_zk_ip3> private_ip=<private_zk_ip3>
 
 [bookkeeper]
-<bookie_ip1>
-<bookie_ip2>
-<bookie_ip3>
+<public_bookie_ip1> private_ip=<private_bookie_ip1>
+<public_bookie_ip2> private_ip=<private_bookie_ip2>
+<public_bookie_ip3> private_ip=<private_bookie_ip3>
 
 [broker]
-<broker_ip1>
-<broker_ip2>
-<broker_ip3>
+<public_broker_ip1> private_ip=<private_broker_ip1>
+<public_broker_ip2> private_ip=<private_broker_ip2>
+<public_broker_ip3> private_ip=<private_broker_ip3>
 
 [adminConsole]
-<adminConsole_ip>
+<public_adminConsole_ip> private_ip=<private_adminConsole_ip>
 
 [heartBeat]
-<heartBeat_ip>
+<public_heartBeat_ip> private_ip=<private_heartBeat_ip>
 
 [pulsarStandAloneClient]
