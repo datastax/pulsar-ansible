@@ -15,7 +15,7 @@
         line: "webServiceUrl={% if enable_tls is defined and enable_tls|bool %}https://{{ webSvcTlsListStr }}{% else %}http://{{ webSvcListStr }}{% endif %}" }
     - { regexp: '^brokerServiceUrl=', 
         line: "brokerServiceUrl={% if enable_tls is defined and enable_tls|bool %}pulsar+ssl://{{ brokerSvcTlsListStr }}{% else %}pulsar://{{ brokerSvcListStr }}{% endif %}" }
-    - { regexp: '^tlsEnableHostnameVerification=', 
-        line: "tlsEnableHostnameVerification=true" }
+    # - { regexp: '^tlsEnableHostnameVerification=', 
+    #     line: "tlsEnableHostnameVerification=true" }
     - { regexp: '^tlsTrustCertsFilePath=', 
         line: "tlsTrustCertsFilePath={% if enable_tls is defined and enable_tls|bool %}{{ tgt_tls_dest_homedir }}/rootca/{{ public_cert_name }}{% else %} {% endif %}" }    
