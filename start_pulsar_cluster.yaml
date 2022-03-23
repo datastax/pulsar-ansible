@@ -1,48 +1,31 @@
-###
-# this is the playbook that is used to start a pulsar instance that has 2 clusters
-###
 ---
-# Start global zookeeper servers, one by one
-- hosts: global_zk
+# Start Zookeeper servers
+- hosts: zookeeper
   any_errors_fatal: true
   become: true
   become_method: sudo
-  serial: 1
   roles: 
-    - { role: start_svc_zookeeper_global }
-
-# Start Zookeeper servers, one by one
-- hosts: cluster_srv
-  any_errors_fatal: true
-  become: true
-  become_method: sudo
-  serial: 1
-  roles: 
-    - { role: start_svc_zookeeper, when: srv_type|regex_search('zk') }
+    - { role: pulsar/zookeeper/zkpr_startSvc }
 
 # Start Bookkeeper nodes, one by one
-- hosts: cluster_srv
+- hosts: bookkeeper
   any_errors_fatal: false
   become: true
   become_method: sudo
-  serial: 1
   roles: 
-    - { role: start_svc_bookie, when: srv_type|regex_search('bookie') }
+    - { role: pulsar/bookie/bkie_startSvc }
 
-# Test whether bookie functions properly after they're up and running
-- hosts: cluster_srv
-  any_errors_fatal: false
-  become: true
-  become_method: sudo
+# - Sanity test of whether bookies are up and running properly
+- hosts: bookkeeper
   run_once: true
   roles:
-    - { role: bookie_sanity_check }
+    - { role: pulsar/bookie/bkie_sanityCheck }
 
 # Start Pulsar broker nodes, one by one
-- hosts: cluster_srv
+- hosts: broker
   any_errors_fatal: true
   become: true
   become_method: sudo
   serial: 1
   roles: 
-    - { role: start_svc_broker, when: srv_type|regex_search('broker') }
+    - { role: pulsar/broker/brkr_startSvc }
