@@ -1,0 +1,21 @@
+---
+- name: Modify Pulsar client configuration file - set web service and broker service URLs
+  lineinfile:
+    path: "{{ pulsar_client_config_file }}"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    # authN/authR related settings
+    - { regexp: '^authPlugin=', 
+        line: "authPlugin={% if enable_authNR is defined and enable_authNR|bool %}org.apache.pulsar.client.impl.auth.AuthenticationToken{% else %} {% endif %}" }
+    - { regexp: '^authParams=', 
+        line: "authParams={% if enable_authNR is defined and enable_authNR|bool %}file://{{ tgt_jwt_dest_homedir }}/token/{{ super_user_roles[0] }}.jwt{% else %} {% endif %}" }
+    # TLS related settings
+    - { regexp: '^webServiceUrl=', 
+        line: "webServiceUrl={% if enable_tls is defined and enable_tls|bool %}https://{{ webSvcTlsListStr }}{% else %}http://{{ webSvcListStr }}{% endif %}" }
+    - { regexp: '^brokerServiceUrl=', 
+        line: "brokerServiceUrl={% if enable_tls is defined and enable_tls|bool %}pulsar+ssl://{{ brokerSvcTlsListStr }}{% else %}pulsar://{{ brokerSvcListStr }}{% endif %}" }
+    - { regexp: '^tlsEnableHostnameVerification=', 
+        line: "tlsEnableHostnameVerification=true" }
+    - { regexp: '^tlsTrustCertsFilePath=', 
+        line: "tlsTrustCertsFilePath={% if enable_tls is defined and enable_tls|bool %}{{ tgt_tls_dest_homedir }}/rootca/{{ public_cert_name }}{% else %} {% endif %}" }    

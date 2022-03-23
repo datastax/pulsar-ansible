@@ -1,0 +1,70 @@
+###
+# This is used for a Pulsar instance deployment with 2 Clusters: ClusterA and ClusterB
+###
+---
+##
+# For each cluster, get a string for all pulsar borker nodes with web service listening ports, e.g.
+#   <broker_node_1>:8080,<broker_node_2>:8080,<broker_node_3>:8080
+- name: Get "webSvcListStr" (IP:Port) list into a temporary file "/tmp/webSvcListStr"
+  template: src=websvc_liststr.j2 dest=/tmp/webSvcListStr mode=0664
+
+- name: Load tempoarary "/tmp/webSvcListStr" file
+  shell: cat /tmp/webSvcListStr
+  register: webSvcListStr_cmdcat
+
+- name: Set "webSvcListStr" (IP:Port:Port) list into a (dictionary) variable
+  set_fact: 
+    webSvcListStr={{ webSvcListStr_cmdcat.stdout }}
+- debug: msg="webSvcListStr - {{ webSvcListStr }}"
+  when: show_debug_msg|bool
+
+
+##
+# For each cluster, get a string for all pulsar borker nodes with web service TLS listening ports, e.g.
+#   <broker_node_1>:8443,<broker_node_2>:8443,<broker_node_3>:8443
+- name: Get "webSvcTlsListStr" (IP:Port) list into a temporary file "/tmp/webSvcTlsListStr"
+  template: src=websvc_tls_liststr.j2 dest=/tmp/webSvcTlsListStr mode=0664
+
+- name: Load tempoarary "/tmp/webSvcTlsListStr" file
+  shell: cat /tmp/webSvcTlsListStr
+  register: webSvcTlsListStr_cmdcat
+
+- name: Set "webSvcTlsListStr" (IP:Port:Port) list into a (dictionary) variable
+  set_fact: 
+    webSvcTlsListStr={{ webSvcTlsListStr_cmdcat.stdout }}
+- debug: msg="webSvcTlsListStr - {{ webSvcTlsListStr }}"
+  when: show_debug_msg|bool
+
+
+##
+# For each cluster, get a string for all pulsar borker nodes with broker service listening ports, e.g.
+#   <broker_node_1>:6650,<broker_node_2>:6650,<broker_node_3>:6650
+- name: Get "brokerSvcListStr" (IP:Port) list into a temporary file "/tmp/brokerSvcListStr"
+  template: src=brokersvc_liststr.j2 dest=/tmp/brokerSvcListStr mode=0664
+
+- name: Load tempoarary "/tmp/brokerSvcListStr" file
+  shell: cat /tmp/brokerSvcListStr
+  register: brokerSvcListStr_cmdcat
+
+- name: Set "brokerSvcListStr" (IP:Port:Port) list into a (dictionary) variable
+  set_fact: 
+    brokerSvcListStr={{ brokerSvcListStr_cmdcat.stdout }}
+- debug: msg="brokerSvcListStr - {{ brokerSvcListStr }}"
+  when: show_debug_msg|bool
+
+
+##
+# For each cluster, get a string for all pulsar borker nodes with broker service TLS listening ports, e.g.
+#   <broker_node_1>:6551,<broker_node_2>:6551,<broker_node_3>:6551
+- name: Get "brokerSvcTlsListStr" (IP:Port) list into a temporary file "/tmp/brokerSvcTlsListStr"
+  template: src=brokersvc_tls_liststr.j2 dest=/tmp/brokerSvcTlsListStr mode=0664
+
+- name: Load tempoarary "/tmp/brokerSvcTlsListStr" file
+  shell: cat /tmp/brokerSvcTlsListStr
+  register: brokerSvcTlsListStr_cmdcat
+
+- name: Set "brokerSvcTlsListStr" (IP:Port:Port) list into a (dictionary) variable
+  set_fact: 
+    brokerSvcTlsListStr={{ brokerSvcTlsListStr_cmdcat.stdout }}
+- debug: msg="brokerSvcTlsListStr - {{ brokerSvcTlsListStr }}"
+  when: show_debug_msg|bool

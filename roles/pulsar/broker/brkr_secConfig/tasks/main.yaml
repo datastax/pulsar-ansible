@@ -1,0 +1,70 @@
+---
+- name: If authN is enabled, copy JWT token related security files from localhost to the Pulsar (broker) servers
+  copy:
+    src: "{{ item.src_file }}/"
+    dest: "{{ item.dest_file }}"
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user }}"
+    # Make sure existing JWT token files won't be accidently overwritten
+    # But, this could be inconvenient when updating JWT token files are needed
+    force: no
+  with_items:
+    - { src_file: "{{ local_jwt_src_homedir }}/key/{{ cluster_name }}_jwt_private.key", 
+        dest_file: "{{ tgt_jwt_dest_homedir }}/key/{{ cluster_name }}_jwt_private.key" }
+    - { src_file: "{{ local_jwt_src_homedir }}/key/{{ cluster_name }}_jwt_public.key", 
+        dest_file: "{{ tgt_jwt_dest_homedir }}/key/{{ cluster_name }}_jwt_public.key" }
+    - { src_file: "{{ local_jwt_src_homedir }}/token/{{ super_user_roles[0] }}.jwt", 
+        dest_file: "{{ tgt_jwt_dest_homedir }}/token/{{ super_user_roles[0] }}.jwt" }
+  when: enable_authNR is defined and enable_authNR|bool
+    
+
+- name: If authN/authR are enabled, configure authN/authR related settings in the broker config file
+  lineinfile:
+    path: "{{ broker_conf_file }}"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { regexp: '^authenticationEnabled=', line: "authenticationEnabled=true" }
+    - { regexp: '^authenticationProviders=', line: "authenticationProviders=org.apache.pulsar.broker.authentication.AuthenticationProviderToken" }
+    - { regexp: '^authorizationEnabled=', line: "authorizationEnabled=true" }
+    - { regexp: '^superUserRoles=', line: "superUserRoles={{ super_user_roles_list_str }}" }
+    - { regexp: '^tokenPublicKey=', line: "tokenPublicKey=file://{{ tgt_jwt_dest_homedir }}/key/{{ cluster_name }}_jwt_public.key" }
+    - { regexp: '^brokerClientTlsEnabled=', line: "brokerClientTlsEnabled=true" }
+    - { regexp: '^brokerClientAuthenticationPlugin=', line: "brokerClientAuthenticationPlugin=org.apache.pulsar.client.impl.auth.AuthenticationToken" }
+    - { regexp: '^brokerClientAuthenticationParameters=', line: "brokerClientAuthenticationParameters=file://{{ tgt_jwt_dest_homedir }}/token/{{ super_user_roles[0] }}.jwt" }
+  when: enable_authNR is defined and enable_authNR|bool
+
+- name: If TLS is enabled, copy TLS certificate related security files from localhost to the Pulsar (broker) servers
+  copy:
+    src: "{{ item.src_file }}/"
+    dest: "{{ item.dest_file }}"
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user }}"
+    # Make sure existing TLS certificate files won't be accidently overwritten
+    # But, this could be inconvenient when updating TLS certificate files are needed
+    force: no
+  with_items:
+    - { src_file: "{{ local_tls_src_homedir }}/brokers/{{ broker_key_name }}", 
+        dest_file: "{{ tgt_tls_dest_homedir }}/server/{{ broker_key_name }}" }
+    - { src_file: "{{ local_tls_src_homedir }}/brokers/{{ broker_cert_name }}", 
+        dest_file: "{{ tgt_tls_dest_homedir }}/server/{{ broker_cert_name }}" }
+    - { src_file: "{{ local_tls_src_homedir }}/certs/{{ public_cert_name }}", 
+        dest_file: "{{ tgt_tls_dest_homedir }}/rootca/{{ public_cert_name }}" }
+  when: enable_tls is defined and enable_tls|bool
+
+- name: If TLS is enabled, configure TLS related settings in the broker config file
+  lineinfile:
+    path: "{{ broker_conf_file }}"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { regexp: '^brokerServicePortTls=', line: 'brokerServicePortTls={{ broker_svc_port_tls }}' }
+    - { regexp: '^webServicePortTls=', line: 'webServicePortTls={{ web_svc_port_tls }}' }
+    - { regexp: '^tlsKeyFilePath=', line: "tlsKeyFilePath={{ tgt_tls_dest_homedir }}/server/{{ broker_key_name }}" }
+    - { regexp: '^tlsCertificateFilePath=', line: "tlsCertificateFilePath={{ tgt_tls_dest_homedir }}/server/{{ broker_cert_name }}" }
+    - { regexp: '^tlsTrustCertsFilePath=', line: "tlsTrustCertsFilePath={{ tgt_tls_dest_homedir }}/rootca/{{ public_cert_name }}" }
+    - { regexp: '^brokerClientTlsEnabled=', line: "brokerClientTlsEnabled=true" }
+    - { regexp: '^brokerClientTrustCertsFilePath=', line: "brokerClientTrustCertsFilePath={{ tgt_tls_dest_homedir }}/rootca/{{ public_cert_name }}" }
+    - { regexp: '^tlsProtocols=', line: "tlsProtocols=TLSv1.3,TLSv1.2" }
+    # - { regexp: '^tlsCiphers=', line: "tlsCiphers=" }
+  when: enable_tls is defined and enable_tls|bool

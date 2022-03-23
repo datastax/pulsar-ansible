@@ -2,12 +2,13 @@
 # General settings
 # -------------------------------------------
 #
-show_debug_msg: true
+show_debug_msg: false
+cluster_name: "MyCluster"
 pulsar_user: pulsar
 # - Whether or not to use non-default, customized JVM settings for Pulsar server components
 customize_jvm: true
 # - Whether or not to use a log home directory that is different from the default (<PULSAR_HOME>/data)
-customize_logdir: true
+customize_logdir: false
 # - Whether or not to use a data home directory that is different from the default (<PULSAR_HOME>/data)
 customize_datadir: true
 # - Whether or not to download software releases from external internet URLs
@@ -187,3 +188,40 @@ broker_jvm_options: >
 # -------------------------------------------
 #
 pulsar_client_config_file: "{{ tgt_pulsar_inst_dir }}/conf/client.conf"
+
+
+#
+#  Pulsar security related settings
+# -------------------------------------------
+#
+
+# - Wether or not to enable Pulsar JWT authentication and authorization
+enable_authNR: true
+# - Whether or not to enable Pulsar In-Transit TLS encryption
+enable_tls: true
+
+enable_security: "{{ (enable_authNR is defined and enable_authNR|bool) or (enable_tls is defined and enable_tls|bool) }}"
+
+# - Pulsar super user role name list when authorization is enabled
+super_user_roles: 
+  - "cluster_admin"
+  - "cluster_admin_2"
+super_user_roles_list_str: "{{ super_user_roles | join(',') }}"
+
+# - Whether or not to skip generating JWT token files on the local host
+skip_jwt_token_generation: true
+# - Whether or not to skip generating TLS certificate files on the local host
+skip_tls_certs_generatation: true
+
+# local folders that have the security related files for JWT tokens
+local_jwt_src_homedir: "{{ playbook_dir }}/bash/security/authentication/jwt/my_pulsar_jwttoken"
+# local folders that have the security related files for TLS certificates
+local_tls_src_homedir: "{{ playbook_dir }}/bash/security/intransit_encryption/my_pulsar_certs"
+
+# Target fodlers that have the security related fiels
+tgt_pulsar_sec_dir: "{{ tgt_pulsar_inst_dir }}/security"
+tgt_jwt_dest_homedir: "{{ tgt_pulsar_sec_dir }}/jwt"
+tgt_tls_dest_homedir: "{{ tgt_pulsar_sec_dir }}/tls"
+
+# Public certificate file name
+public_cert_name: "ca.cert.pem"

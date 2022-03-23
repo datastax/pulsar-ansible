@@ -1,0 +1,67 @@
+---
+- name: Add a system user and group - {{ pulsar_user }}:{{ pulsar_user }}
+  user: 
+    name: "{{ pulsar_user }}"
+    create_home: false
+    system: yes
+    state: present
+
+# This makes it easier to run Pulsar CLI commands under the current SSH user
+- name: If needed and for convenience, add SSH user into group {{ pulsar_user }}
+  user:
+    name: "{{ ansible_ssh_user }}"
+    groups: "{{ pulsar_user }}"
+    append: yes
+  when: ssh_user_in_pulsar_group|bool
+
+- name: Create relevant Pulsar folders
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user }}"
+    mode: "0755"
+    recurse: yes
+  with_items:
+    - "{{ tgt_pkg_pular_dir }}"
+    - "{{ tgt_pulsar_inst_dir }}"
+    - "{{ tgt_pulsar_log_homedir }}"
+    - "{{ tgt_pulsar_data_homedir }}"
+    # security related folders
+    - "{{ tgt_pulsar_sec_dir }}/jwt/key"
+    - "{{ tgt_pulsar_sec_dir }}/jwt/token"
+    - "{{ tgt_pulsar_sec_dir }}/tls/server"
+    - "{{ tgt_pulsar_sec_dir }}/tls/rootca"
+
+- name: Check if Pulsar binary already exists
+  stat:
+    path: "{{ tgt_pkg_pular_dir }}/{{ pulsarLS_bin_name }}"
+  register: pulsar_distro_stat
+- debug: msg={{ pulsar_distro_stat.stat }}
+  when: show_debug_msg|bool
+
+- name: If Pulsar doesn't exist on the target host yet, copy it from local host when {{ internet_download }} is 'false'
+  copy:
+    src: "{{ local_bin_homedir }}/{{ pulsarLS_bin_name }}"
+    dest: "{{ tgt_pkg_pular_dir }}/{{ pulsarLS_bin_name }}"
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user }}"
+  when: not pulsar_distro_stat.stat.exists and not internet_download|bool
+
+- name: If Pulsar doesn't exist on the target host yet, download Pulsar from internet when {{ internet_download }} is 'true' 
+  get_url:
+    url: "{{ pulsarLS_bin_download_url }}"
+    dest: "{{ tgt_pkg_pular_dir }}/{{ pulsarLS_bin_name }}"
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user }}"
+  when: not pulsar_distro_stat.stat.exists and internet_download|bool
+
+- name: Extract Pulsar binary release to the target directory
+  unarchive:
+    src: "{{ tgt_pkg_pular_dir }}/{{ pulsarLS_bin_name }}"
+    remote_src: yes
+    dest: "{{ tgt_pulsar_inst_dir }}"
+    extra_opts: [--strip-components=1]
+    keep_newer: yes
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user }}"

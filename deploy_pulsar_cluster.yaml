@@ -1,0 +1,177 @@
+---
+#########################
+# PreWork
+# -----------------------
+- hosts: LSCluster
+  become: true
+  become_method: sudo
+  any_errors_fatal: true
+  roles: 
+    - { role: misc/_inst_openjdk }
+
+# - Get zookeeper list in deseried formats and save them in variables
+#   They are needed in later steps for Pulsar configurations
+- hosts: LSCluster
+  gather_facts: true
+  any_errors_fatal: true
+  run_once: true
+  roles: 
+    - { role: pulsar/common/_pre_zkListVar }
+
+# - Get broker list in deseried formats and save them in variables
+#   They are needed in later steps for Pulsar configurations
+- hosts: LSCluster
+  gather_facts: true
+  any_errors_fatal: true
+  run_once: true
+  roles: 
+    - { role: pulsar/common/_pre_brokerListVar }
+
+
+#########################
+# Pulsar server binary
+# -----------------------
+- hosts: pulsarClient
+  become: true
+  become_method: sudo
+  any_errors_fatal: true
+  roles: 
+    - { role: pulsar/pulsar_instBinary }
+
+
+#########################
+# Zookeeper Related
+# -----------------------
+# - Configure and start zookeepers
+- hosts: zookeeper
+  become: true
+  become_method: sudo
+  any_errors_fatal: true
+  roles: 
+    # Mount dedicated storage space to zookeepers
+    - { role: pulsar/zookeeper/zkpr_mntStorage, when: not skip_zk_block_device_setup|bool }
+    # Config zookeepers 
+    - { role: pulsar/zookeeper/zkpr_config }
+    # Start zookepers
+    - { role: pulsar/zookeeper/zkpr_startSvc }
+
+# - Initialzie Pulsar cluster metadata after zookeepers are up and running
+- hosts: zookeeper
+  any_errors_fatal: true
+  run_once: true
+  roles: 
+    - { role: pulsar/zookeeper/zkpr_initMetadata }
+
+
+#########################
+# Bookkeeper Related
+# -----------------------
+# - Configure and start bookkeepers
+- hosts: bookkeeper
+  become: true
+  become_method: sudo
+  any_errors_fatal: true
+  roles: 
+    # Mount dedicated storage space to bookkeepers
+    - { role: pulsar/bookie/bkie_mntStorage, when: not skip_bookie_block_device_setup|bool }
+    # Config bookies 
+    - { role: pulsar/bookie/bkie_config }
+    # Start bookies
+    - { role: pulsar/bookie/bkie_startSvc }
+
+# - Sanity test of whether bookies are up and running properly
+- hosts: bookkeeper
+  run_once: true
+  roles:
+    - { role: pulsar/bookie/bkie_sanityCheck }
+
+
+#########################
+# Generate security related files (only relevant when Pulsar security is enabled). 
+# - JWT tokens and keys
+# - TLS certificates and keys
+#
+# NOTE: this step will run bash script locally. This means that the localhost
+#       can't be Windows based machine. Linux or Mac machine are fine.
+# -----------------------
+- hosts: localhost
+  connection: local 
+  tasks:
+    - name: If authN/authR are enabled, call a bash script to create JWT token files
+      shell: |
+        cd bash/security/authentication/jwt
+        ./cleanup.sh
+        ./genUserJwtToken.sh -u {{ super_user_roles_list_str }} -c {{ cluster_name }}
+        cd ../../../..
+      when: > 
+        enable_security is defined and enable_security|bool and 
+        skip_jwt_token_generation is defined and not skip_jwt_token_generation|bool
+    - name: If TLS is enabled, call a bash script to create TLS certificate files
+      shell: |
+        cd bash/security/intransit_encryption
+        ./cleanup.sh
+        ./genPulsarSelfSignSSL.sh -b {{ groups['broker']|join(',') }}
+        cd ../../..
+      when: >
+        enable_security is defined and enable_security|bool and
+        skip_tls_certs_generatation is defined and not skip_tls_certs_generatation|bool  
+
+
+#########################
+# Broker Related
+# -----------------------
+# - Configure brokers
+- hosts: broker
+  become: true
+  become_method: sudo
+  any_errors_fatal: true
+  vars:
+    hostNameStr2: "{{ private_ip | replace('.', '-') }}"
+    broker_key_name: "broker.{{ hostNameStr2 }}.key-pk8.pem"
+    broker_cert_name: "broker.{{ hostNameStr2 }}.crt.pem"
+  roles: 
+    # Config brokers
+    - { role: pulsar/broker/brkr_config }
+    - { role: pulsar/broker/brkr_secConfig, when: enable_security|bool }
+
+# - Start brokers in serial mode
+#   NOTE: concurrent broker start seems having issue when function is enabled (as part of the broker)
+- hosts: broker
+  become: true
+  become_method: sudo
+  any_errors_fatal: true
+  serial: 1
+  roles: 
+    # Start brokers
+    - { role: pulsar/broker/brkr_startSvc }
+
+
+#########################
+# Configure Pular clients
+# -----------------------
+# - 
+- hosts: pulsarClient
+  become: true
+  become_method: sudo
+  any_errors_fatal: true
+  roles:
+    # Config bookies 
+    - { role: pulsar/client/clnt_config }
+    - { role: pulsar/client/clnt_secConfig, when: enable_security|bool }
+
+
+#########################
+# PostWork
+# -----------------------
+# - Update .profile for all hosts in cluster
+- hosts: pulsarServer:pulsarClient
+  tasks:
+  - name: Add Pulsar executeables in $PATH system variable
+    lineinfile:
+      # dest: ~/.bash_profile
+      dest: ~/.profile
+      state: present
+      line: "{{ item }}"
+    with_items:
+      - export PULSAR_HOME=/opt/pulsar
+      - export PATH="$PULSAR_HOME/bin:$PATH"
