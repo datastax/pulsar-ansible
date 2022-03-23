@@ -15,6 +15,7 @@
         line: "webServiceUrl={% if enable_tls is defined and enable_tls|bool %}https://{{ webSvcTlsListStr }}{% else %}http://{{ webSvcListStr }}{% endif %}" }
     - { regexp: '^brokerServiceUrl=', 
         line: "brokerServiceUrl={% if enable_tls is defined and enable_tls|bool %}pulsar+ssl://{{ brokerSvcTlsListStr }}{% else %}pulsar://{{ brokerSvcListStr }}{% endif %}" }
+    ## Disable Pulsar server host name verification for now
     # - { regexp: '^tlsEnableHostnameVerification=', 
     #     line: "tlsEnableHostnameVerification=true" }
     - { regexp: '^tlsTrustCertsFilePath=', 

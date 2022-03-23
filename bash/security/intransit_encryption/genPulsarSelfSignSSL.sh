@@ -132,7 +132,7 @@ for borkerHost in $(echo $brokerHostListStr | sed "s/,/ /g"); do
             -new -sha256 \
             -key ${BROKER_KEY_NAME} \
             -out ${BROKER_CSR_NAME} \
-            -subj "${CERT_SUBJ_LINE}/CN=${borkerHost2}.${COMP_ADDR}" \
+            -subj "${CERT_SUBJ_LINE}/CN=${borkerHost}" \
             -passin pass:${BROKER_CERT_PASSWORD}
 
    echo
