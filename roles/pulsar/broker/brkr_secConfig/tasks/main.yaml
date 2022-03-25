@@ -44,8 +44,8 @@
         dest_file: "{{ tgt_tls_dest_homedir }}/server/{{ broker_key_name }}" }
     - { src_file: "{{ local_tls_src_homedir }}/brokers/{{ broker_cert_name }}", 
         dest_file: "{{ tgt_tls_dest_homedir }}/server/{{ broker_cert_name }}" }
-    - { src_file: "{{ local_tls_src_homedir }}/certs/{{ public_cert_name }}", 
-        dest_file: "{{ tgt_tls_dest_homedir }}/rootca/{{ public_cert_name }}" }
+    - { src_file: "{{ local_tls_src_homedir }}/certs/{{ public_cacert_name }}", 
+        dest_file: "{{ tgt_tls_dest_homedir }}/rootca/{{ public_cacert_name }}" }
   when: enable_tls is defined and enable_tls|bool
 
 - name: If TLS is enabled, configure TLS related settings in the broker config file
@@ -58,9 +58,9 @@
     - { regexp: '^webServicePortTls=', line: 'webServicePortTls={{ web_svc_port_tls }}' }
     - { regexp: '^tlsKeyFilePath=', line: "tlsKeyFilePath={{ tgt_tls_dest_homedir }}/server/{{ broker_key_name }}" }
     - { regexp: '^tlsCertificateFilePath=', line: "tlsCertificateFilePath={{ tgt_tls_dest_homedir }}/server/{{ broker_cert_name }}" }
-    - { regexp: '^tlsTrustCertsFilePath=', line: "tlsTrustCertsFilePath={{ tgt_tls_dest_homedir }}/rootca/{{ public_cert_name }}" }
+    - { regexp: '^tlsTrustCertsFilePath=', line: "tlsTrustCertsFilePath={{ tgt_tls_dest_homedir }}/rootca/{{ public_cacert_name }}" }
     - { regexp: '^brokerClientTlsEnabled=', line: "brokerClientTlsEnabled=true" }
-    - { regexp: '^brokerClientTrustCertsFilePath=', line: "brokerClientTrustCertsFilePath={{ tgt_tls_dest_homedir }}/rootca/{{ public_cert_name }}" }
+    - { regexp: '^brokerClientTrustCertsFilePath=', line: "brokerClientTrustCertsFilePath={{ tgt_tls_dest_homedir }}/rootca/{{ public_cacert_name }}" }
     - { regexp: '^tlsProtocols=', line: "tlsProtocols=TLSv1.3,TLSv1.2" }
     # - { regexp: '^tlsCiphers=', line: "tlsCiphers=" }
   when: enable_tls is defined and enable_tls|bool

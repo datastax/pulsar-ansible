@@ -17,11 +17,11 @@ fi
 
 usage() {
    echo
-   echo "Usage: genUserJwtToken.sh [-h] -u <pulsar_user_name_list> -c <pulsar_cluster_name> [-r]"
-   echo "       -h : show usage info"
+   echo "Usage: genUserJwtToken.sh [-h] [-r] -u <pulsar_user_name_list> -c <pulsar_cluster_name>"
+   echo "       -h   : show usage info"
+   echo "       [-r] : reuse existing token generation key pair if it already exists"
    echo "       -u <pulsar_user_name> : Pulsar user name list (comma separated)"
-   echo "       -c <pulsar_user_name> : Pulsar cluster name"
-   echo "       -r : reuse existing token generation key pair if it already exists"
+   echo "       -c <pulsar_cluster_name> : Pulsar cluster name"
    echo
 }
 
@@ -30,15 +30,15 @@ if [[ $# -eq 0 || $# -gt 5 ]]; then
    exit 20
 fi
 
+reuseKey=0
 pulsarUserNameList=""
 pulsarClusterName=""
-reuseKey=0
 while [[ "$#" -gt 0 ]]; do
    case $1 in
       -h) usage; exit 0 ;;
+      -r) reuseKey=1; ;;
       -u) pulsarUserNameList="$2"; shift ;;
       -c) pulsarClusterName="$2"; shift ;;
-      -r) reuseKey=1; ;;
       *) echo "Unknown parameter passed: $1"; exit 20 ;;
    esac
    shift
@@ -60,8 +60,8 @@ fi
 PRIV_KEY="$pulsarClusterName""_jwt_private.key"
 PUB_KEY="$pulsarClusterName""_jwt_public.key"
 
-mkdir -p my_pulsar_jwttoken
-cd my_pulsar_jwttoken
+mkdir -p staging
+cd staging
 
 mkdir -p key token
 

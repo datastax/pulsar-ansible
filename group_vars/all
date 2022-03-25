@@ -27,7 +27,7 @@ openjdk_ver: 11
 
 # - DataStax LunaStreaming release
 pulsarLS_ver_main: "2.8.0"
-pulsarLS_ver_secondary: "1.1.22"
+pulsarLS_ver_secondary: "1.1.30"
 pulsarLS_ver_signifant: "{{ pulsarLS_ver_main.split('.')[0] }}.{{ pulsarLS_ver_main.split('.')[1] }}"
 pulsarLS_ver: "{{ pulsarLS_ver_main }}.{{ pulsarLS_ver_secondary }}"
 # valid luna streaming binary options: "core", "", "all"
@@ -209,9 +209,9 @@ super_user_roles:
 super_user_roles_list_str: "{{ super_user_roles | join(',') }}"
 
 # - Whether or not to skip generating JWT token files on the local host
-skip_jwt_token_generation: true
+skip_jwt_token_generation: false
 # - Whether or not to skip generating TLS certificate files on the local host
-skip_tls_certs_generatation: true
+skip_tls_certs_generatation: false
 
 ###
 # NOTE: please be careful with 2 settings. 
@@ -224,15 +224,37 @@ force_existing_server_jwt_token: false
 # - Whehter or not to force replacing the existing Pulsar server side TLS certificate files
 force_existing_server_tls_certs: false
 
-# local folders that have the security related files for JWT tokens
-local_jwt_src_homedir: "{{ playbook_dir }}/bash/security/authentication/jwt/my_pulsar_jwttoken"
-# local folders that have the security related files for TLS certificates
-local_tls_src_homedir: "{{ playbook_dir }}/bash/security/intransit_encryption/my_pulsar_certs"
+# - local folders that have the security related files for JWT tokens
+# NOTE: Please do NOT change this setting (considered as a constant)
+local_jwt_src_homedir: "{{ playbook_dir }}/bash/security/authentication/jwt/staging"
+# - local folders that have the security related files for TLS certificates
+# NOTE: Please do NOT change this setting (considered as a constant)
+local_tls_src_homedir: "{{ playbook_dir }}/bash/security/intransit_encryption/staging"
 
 # Target fodlers that have the security related fiels
 tgt_pulsar_sec_dir: "{{ tgt_pulsar_inst_dir }}/security"
 tgt_jwt_dest_homedir: "{{ tgt_pulsar_sec_dir }}/jwt"
 tgt_tls_dest_homedir: "{{ tgt_pulsar_sec_dir }}/tls"
 
-# Public certificate file name
-public_cert_name: "ca.cert.pem"
+##
+# Self signed root CA related settings
+#
+# - self signed root CA public certificate name
+# NOTE: Please do NOT change this setting (considered as a constant)
+public_cacert_name: "ca.cert.pem"
+# - self signed root CA public certificate expiry days (10 years)
+rootca_cert_expire_days: 3650
+# - self singed root CA private key password
+rootca_key_password: "MyRootCACertPass"
+
+##
+# Signed (broker) server certificate related settings
+#
+# - (broker) server certificate expiry days
+brkr_cert_expire_days: 365
+# - (broker) server private key expiry days
+brkr_key_password: "MyBrkrSrvCertPass"
+
+##
+# - common subject line in the generated certificate
+cert_subj_line: "/C=US/ST=TX/L=Dallas/O=mytest.com"

@@ -1,6 +1,6 @@
 /hosts.ini
 /test.yaml
-bash/security/intransit_encryption/my_pulsar_certs
-bash/security/authentication/jwt/my_pulsar_jwttoken
+bash/security/intransit_encryption/staging
+bash/security/authentication/jwt/staging
 bash/security/intransit_encryption/broker.list
 update_pulsar_sec.yaml

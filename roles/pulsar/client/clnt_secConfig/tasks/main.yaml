@@ -19,4 +19,4 @@
     # - { regexp: '^tlsEnableHostnameVerification=', 
     #     line: "tlsEnableHostnameVerification=true" }
     - { regexp: '^tlsTrustCertsFilePath=', 
-        line: "tlsTrustCertsFilePath={% if enable_tls is defined and enable_tls|bool %}{{ tgt_tls_dest_homedir }}/rootca/{{ public_cert_name }}{% else %} {% endif %}" }    
+        line: "tlsTrustCertsFilePath={% if enable_tls is defined and enable_tls|bool %}{{ tgt_tls_dest_homedir }}/rootca/{{ public_cacert_name }}{% else %} {% endif %}" }    
