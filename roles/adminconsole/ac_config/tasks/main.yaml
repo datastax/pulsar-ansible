@@ -4,8 +4,8 @@
     src: templates/ac_config.js.tmp.nosec
     dest: "{{ tgt_adminConsole_inst_dir }}/dashboard/dist/config.js"
     owner: "{{ pulsar_user }}"
-    group: "{{ pulsar_user }}"
-    mode: '0644'
+    group: "{{ pulsar_user_group }}"
+    mode: "{{ file_permission_mode_noexec }}"
 
 - name: Replace Pulsar AdminConsole config setting placeholders with cluster specific information
   replace:
@@ -22,7 +22,7 @@
   template:
     src: templates/ac_nginx.conf.tmp
     dest: "/etc/nginx/nginx.conf"
-    mode: '0644'
+    mode: "{{ file_permission_mode_noexec }}"
 
 - name: Replace Nginx config setting placeholders with cluster specific information
   replace:

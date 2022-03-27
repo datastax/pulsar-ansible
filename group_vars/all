@@ -4,11 +4,18 @@
 #
 show_debug_msg: false
 cluster_name: "MyCluster"
+
+# - System user and group for running Pulsar on remote server hosts
 pulsar_user: pulsar
+pulsar_user_group: pulsar
+allow_group_write_mode: false
+file_permission_mode: "{% if allow_group_write_mode is defined and allow_group_write_mode|bool %}0775{% else %}0755{% endif %}"
+file_permission_mode_noexec: "{% if allow_group_write_mode is defined and allow_group_write_mode|bool %}0664{% else %}0644{% endif %}"
+
 # - Whether or not to use non-default, customized JVM settings for Pulsar server components
 customize_jvm: true
 # - Whether or not to use a log home directory that is different from the default (<PULSAR_HOME>/data)
-customize_logdir: false
+customize_logdir: true
 # - Whether or not to use a data home directory that is different from the default (<PULSAR_HOME>/data)
 customize_datadir: true
 # - Whether or not to download software releases from external internet URLs
@@ -98,7 +105,9 @@ tgt_heartBeat_inst_dir: /opt/pulsarHeartBeat
 tgt_pulsar_log_homedir: "{% if customize_logdir is defined and customize_logdir|bool %}/var/log/pulsar{% else %}{{ tgt_pulsar_inst_dir }}/logs{% endif %}"
 
 # - Target data home directory
-tgt_pulsar_data_homedir: "{% if customize_datadir is defined and customize_datadir|bool %}/var/lib/pulsar/data{% else %}{{ tgt_pulsar_inst_dir }}/data{% endif %}"
+tgt_pulsar_zk_data_homedir: "{% if customize_datadir is defined and customize_datadir|bool %}/var/lib/pulsar{% else %}{{ tgt_pulsar_inst_dir }}/data{% endif %}"
+tgt_pulsar_bookie_journal_data_homedir: "{% if customize_datadir is defined and customize_datadir|bool %}/var/lib/pulsar{% else %}{{ tgt_pulsar_inst_dir }}/data{% endif %}"
+tgt_pulsar_bookie_ledger_data_homedir: "{% if customize_datadir is defined and customize_datadir|bool %}/var/lib/pulsar{% else %}{{ tgt_pulsar_inst_dir }}/data{% endif %}"
 
 
 #
@@ -125,8 +134,7 @@ zk_stats_port: 8010
 skip_zk_block_device_setup: true
 zk_disk_fs_type: xfs
 zk_storage_blk_device: /dev/xvdh
-zk_storage_mnt_path: "{{ tgt_pulsar_data_homedir }}/zookeeper"
-zk_data_dir: "{{ zk_storage_mnt_path }}"
+zk_storage_mnt_path: "{{ tgt_pulsar_zk_data_homedir }}/zookeeper"
 
 # extra JVM options to start zookeepers
 zk_jvm_options: > 
@@ -153,10 +161,9 @@ bookie_disk_fs_type: xfs
 bookie_storage_blk_devices: 
   - /dev/xvdj
   - /dev/xvdl
-bookie_storage_mnt_path_base: "{{ tgt_pulsar_data_homedir }}/bookie"
 bookie_storage_mnt_paths:
-  - "{{ bookie_storage_mnt_path_base }}/journal"
-  - "{{ bookie_storage_mnt_path_base }}/ledger"
+  - "{{ tgt_pulsar_bookie_journal_data_homedir }}/bookie/journal"
+  - "{{ tgt_pulsar_bookie_ledger_data_homedir }}/bookie/ledger"
 
 # extra JVM options to start bookkeepers
 bookie_jvm_options: > 

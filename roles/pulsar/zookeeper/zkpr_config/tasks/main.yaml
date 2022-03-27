@@ -5,7 +5,7 @@
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items:
-    - { regexp: '^dataDir=', line: 'dataDir={{ zk_data_dir }}' }
+    - { regexp: '^dataDir=', line: 'dataDir={{ zk_storage_mnt_path }}' }
     - { regexp: '^clientPort=', line: 'clientPort={{ zk_clnt_port }}' }
     - { regexp: '^admin.enableServer=', line: 'admin.enableServer={{ zk_admin_srv_enable|lower}}' }
     - { regexp: '^admin.serverPort=', line: 'admin.serverPort={{ zk_admin_srv_port }}' }
@@ -43,12 +43,13 @@
   with_indexed_items:  
     - "{{ zkArrVar }}"
 
-- name: Create zookeeper data folder - "{{ zk_data_dir }}"
+- name: Create zookeeper data folder"
   file:
-    path: "{{ zk_data_dir }}"
+    path: "{{ zk_storage_mnt_path }}"
     state: directory
     owner: "{{ pulsar_user }}"
-    group: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    mode: "{{ file_permission_mode }}"
 
 - name: Get zookeeper server ID
   shell: grep {{ private_ip }} {{ zk_conf_file }} | awk -F'=' '{print $1}' | awk -F'.' '{print $2}'
@@ -59,8 +60,8 @@
 
 - name: Define myid file for each zookeeper server
   copy:
-    dest: "{{ zk_data_dir }}/myid"
+    dest: "{{ zk_storage_mnt_path }}/myid"
     owner: "{{ pulsar_user }}"
-    group: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
     content: |
       {{ myid }}

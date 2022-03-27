@@ -36,7 +36,7 @@
   become_method: sudo
   any_errors_fatal: true
   roles: 
-    - { role: pulsar/pulsar_instBinary }
+    - { role: pulsar/common/pulsar_instBinary }
 
 
 #########################
@@ -162,7 +162,7 @@
   become_method: sudo
   any_errors_fatal: true
   roles:
-    # Config bookies 
+    # Config pulsar clients 
     - { role: pulsar/client/clnt_config }
     - { role: pulsar/client/clnt_secConfig, when: enable_security|bool }
 
@@ -180,5 +180,5 @@
       state: present
       line: "{{ item }}"
     with_items:
-      - export PULSAR_HOME=/opt/pulsar
+      - export PULSAR_HOME={{ tgt_pulsar_inst_dir }}
       - export PATH="$PULSAR_HOME/bin:$PATH"

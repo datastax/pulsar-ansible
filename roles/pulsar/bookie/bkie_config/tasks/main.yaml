@@ -1,10 +1,11 @@
 ---
-- name: Create bookeeper data folder - "{{ zk_data_dir }}"
+- name: Create bookeeper data folders"
   file:
     path: "{{ item }}"
     state: directory
     owner: "{{ pulsar_user }}"
-    group: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    mode: "{{ file_permission_mode }}"
   with_items:
     - "{{ bookie_storage_mnt_paths }}"  
 

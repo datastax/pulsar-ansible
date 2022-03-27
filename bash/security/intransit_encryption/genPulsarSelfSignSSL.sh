@@ -64,40 +64,40 @@ done
 
 echo
 
-if [[ "$brokerHostListStr" == ""  ]]; then
+if [[ "${brokerHostListStr}" == ""  ]]; then
   echo "[ERROR] Broker host list string (comma separated) can't be empty" 
   exit 20
 fi
 
-if [[ "$pulsarClusterName" == ""  ]]; then
+if [[ "${pulsarClusterName}" == ""  ]]; then
   echo "[ERROR] Pulsar cluster name can't be empty" 
   exit 30
 fi
 
-if [[ "$rootPasswd" == ""  ]]; then
+if [[ "${rootPasswd}" == ""  ]]; then
   echo "[ERROR] The password of the self-signed root CA key can't be empty" 
   exit 40
 fi
 
-if [[ "$brkrPasswd" == ""  ]]; then
+if [[ "${brkrPasswd}" == ""  ]]; then
   echo "[ERROR] The password of the (broker) server key can't be empty" 
   exit 50
 fi
 
 re='^[0-9]+$'
-if [[ "$rootCertExpDays" == "" || ! rootCertExpDays =~ $re ]]; then
+if [[ "${rootCertExpDays}" == "" || ! rootCertExpDays =~ $re ]]; then
   echo "[WARN] The expiration days of the self-signed root CA certificate is invalid. Use the default setting of 3650 days" 
-  rootCertExpDays=$DFT_rootCertExpDays
+  rootCertExpDays=${DFT_rootCertExpDays}
 fi
 
-if [[ "$brkrCertExpDays" == "" || ! brkrCertExpDays =~ $re ]]; then
+if [[ "${brkrCertExpDays}" == "" || ! brkrCertExpDays =~ $re ]]; then
   echo "[WARN] The expiration days of the signed (broker) server certificate is invalid. Use the default setting of 365 days" 
-  brkrCertExpDays=$DFT_brkrCertExpDays
+  brkrCertExpDays=${DFT_brkrCertExpDays}
 fi
 
-if [[ "$certSubjLineStr" == ""  ]]; then
+if [[ "${certSubjLineStr}" == ""  ]]; then
   echo "[WARN] The subject line in the certificate is empty. Use a default string." 
-  certSubjLineStr="$DFT_certSubjLineStr"
+  certSubjLineStr="${DFT_certSubjLineStr}"
 fi
 
 mkdir -p staging
@@ -119,10 +119,10 @@ else
    cp ../openssl.cnf .
 fi
 
-if [[ $forceDownload -eq 1 ]]; then
+if [[ ${forceDownload} -eq 1 ]]; then
   echo
   stepCnt=$((stepCnt+1))
-  echo "== STEP $stepCnt :: Download openssl.cnf file =="
+  echo "== STEP ${stepCnt} :: Download openssl.cnf file =="
   wget https://raw.githubusercontent.com/apache/pulsar/master/site2/website/static/examples/openssl.cnf
 fi
 
@@ -133,15 +133,15 @@ stepCnt=$((stepCnt+1))
 ROOT_CA_KEY_NAME="ca.key.pem"
 ROOT_CA_CERT_NAME="ca.cert.pem"
 
-echo "== STEP $stepCnt :: Create a root key and a X.509 certificate for self-signing purpose =="
-echo "   >> ($stepCnt.1) Generate the self-signed root CA private key file"
+echo "== STEP ${stepCnt} :: Create a root key and a X.509 certificate for self-signing purpose =="
+echo "   >> (${stepCnt}.1) Generate the self-signed root CA private key file"
 openssl genrsa -aes256 \
         -passout pass:${rootPasswd} \
         -out ${CA_HOME}/private/${ROOT_CA_KEY_NAME} \
         4096
 chmod 400 ${CA_HOME}/private/${ROOT_CA_KEY_NAME}
 
-echo "   >> ($stepCnt.2) Generate the self-signed root CA certificate file"
+echo "   >> (${stepCnt}.2) Generate the self-signed root CA certificate file"
 openssl req -config openssl.cnf \
         -new -x509 -sha256 \
         -extensions v3_ca \
@@ -155,7 +155,7 @@ chmod 444 ${CA_HOME}/certs/${ROOT_CA_CERT_NAME}
 
 echo
 stepCnt=$((stepCnt+1))
-echo "== STEP $stepCnt :: Generate and sign the Broker Server certificate for all specified Pulsar hosts =="
+echo "== STEP ${stepCnt} :: Generate and sign the Broker Server certificate for all specified Pulsar hosts =="
 
 for borkerHost in $(echo $brokerHostListStr | sed "s/,/ /g"); do
    echo "   [Host:  $borkerHost]"
@@ -168,14 +168,14 @@ for borkerHost in $(echo $brokerHostListStr | sed "s/,/ /g"); do
    BROKER_CSR_NAME="${CA_HOME}/brokers/broker.${borkerHost2}.csr.pem"
    BROKER_CRT_NAME="${CA_HOME}/brokers/broker.${borkerHost2}.crt.pem"
 
-   echo "   >> ($stepCnt.1) Generate the Server Certificate private key file"
+   echo "   >> (${stepCnt}.1) Generate the Server Certificate private key file"
    openssl genrsa \
             -passout pass:${brkrPasswd} \
             -out ${BROKER_KEY_NAME} \
             2048
 
    echo
-   echo "   >> ($stepCnt.2) Convert the private key file to PKCS8 format"
+   echo "   >> (${stepCnt}.2) Convert the private key file to PKCS8 format"
    openssl pkcs8 \
             -topk8 -nocrypt \
             -inform PEM -outform PEM \
@@ -183,7 +183,7 @@ for borkerHost in $(echo $brokerHostListStr | sed "s/,/ /g"); do
             -out ${BROKER_KEY_PK8_NAME}
 
    echo
-   echo "   >> ($stepCnt.3) Generate the CSR file"
+   echo "   >> (${stepCnt}.3) Generate the CSR file"
    openssl req \
             -config openssl.cnf \
             -new -sha256 \
@@ -193,7 +193,7 @@ for borkerHost in $(echo $brokerHostListStr | sed "s/,/ /g"); do
             -passin pass:${brkrPasswd}
 
    echo
-   echo "   >> ($stepCnt.4) Sign the CSR with the ROOT certificate"
+   echo "   >> (${stepCnt}.4) Sign the CSR with the ROOT certificate"
    openssl ca \
             -config openssl.cnf \
             -extensions server_cert \

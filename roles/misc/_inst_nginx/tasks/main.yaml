@@ -41,7 +41,7 @@
 #   file:
 #     path: "{{ item }}"
 #     owner: "{{ pulsar_user }}"
-#     group: "{{ pulsar_user }}"
+#     group: "{{ pulsar_user_group }}"
 #     recurse: yes
 #   with_items:
 #     - /etc/nginx

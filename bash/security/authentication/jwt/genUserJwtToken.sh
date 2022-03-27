@@ -10,7 +10,7 @@
 
 # Check if "pulsar" executable is available
 whichPulsar=$(which pulsar)
-if [[ "$whichPulsar" == "" || "$whichPulsar" == *"not found"* ]]; then
+if [[ "${whichPulsar}" == "" || "${whichPulsar}" == *"not found"* ]]; then
   echo "Can't find \"pulsar\" executable which is necessary to create JWT tokens"
   exit 10
 fi
@@ -44,12 +44,12 @@ while [[ "$#" -gt 0 ]]; do
    shift
 done
 
-if [[ "$pulsarUserNameList" == ""  ]]; then
+if [[ "${pulsarUserNameList}" == ""  ]]; then
   echo "Pulsar user name list can't be empty" 
   exit 30
 fi
 
-if [[ "$pulsarClusterName" == ""  ]]; then
+if [[ "${pulsarClusterName}" == ""  ]]; then
   echo "Pulsar cluster name can't be empty" 
   exit 40
 fi
@@ -57,8 +57,8 @@ fi
 # echo $pulsarUserNameList
 # echo $pulsarClusterName
 
-PRIV_KEY="$pulsarClusterName""_jwt_private.key"
-PUB_KEY="$pulsarClusterName""_jwt_public.key"
+PRIV_KEY="${pulsarClusterName}_jwt_private.key"
+PUB_KEY="${pulsarClusterName}_jwt_public.key"
 
 mkdir -p staging
 cd staging
@@ -70,25 +70,25 @@ stepCnt=0
 
 # Create a public/private key pair if they don't exist or 
 #   when we don't want to reuse existing ones
-if [[ ! -f key/$PRIV_KEY || ! key/$PUB_KEY || $reuseKey -eq 0 ]]; then
+if [[ ! -f key/${PRIV_KEY} || ! key/${PUB_KEY} || $reuseKey -eq 0 ]]; then
   echo
   stepCnt=$((stepCnt+1))
-  rm key/*
-  echo "== STEP $stepCnt :: Create a public/private key pair =="
+  rm -rf "${CUR_DIR}/key/key/*"
+  echo "== STEP ${stepCnt} :: Create a public/private key pair =="
   $whichPulsar tokens create-key-pair \
-     --output-private-key $CUR_DIR/key/$PRIV_KEY \
-     --output-public-key $CUR_DIR/key/$PUB_KEY
+     --output-private-key ${CUR_DIR}/key/${PRIV_KEY} \
+     --output-public-key ${CUR_DIR}/key/${PUB_KEY}
 fi
 
 echo
 stepCnt=$((stepCnt+1))
-echo "== STEP $stepCnt :: Create a JWT token for each of the specificed users =="
+echo "== STEP ${stepCnt} :: Create a JWT token for each of the specificed users =="
 
-for pulsarUserName in $(echo $pulsarUserNameList | sed "s/,/ /g"); do
-  echo "   >> JWT token for user: $pulsarUserName"
+for pulsarUserName in $(echo ${pulsarUserNameList} | sed "s/,/ /g"); do
+  echo "   >> JWT token for user: ${pulsarUserName}"
   $whichPulsar tokens create \
-      --private-key  $CUR_DIR/key/$PRIV_KEY \
-      --subject $pulsarUserName > $CUR_DIR/token/$pulsarUserName.jwt
+      --private-key  ${CUR_DIR}/key/${PRIV_KEY} \
+      --subject ${pulsarUserName} > ${CUR_DIR}/token/${pulsarUserName}.jwt
 done
 
 cd ..

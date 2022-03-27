@@ -5,7 +5,6 @@ heartBeat
 
 [LSCluster:vars]
 ansible_python_interpreter=/usr/bin/python3
-cluster_name="MyCluster"
 
 [pulsarClient:children]
 pulsarServer

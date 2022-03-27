@@ -35,7 +35,7 @@
     - { role: pulsar/zookeeper/zkpr_stopSvc }
   post_tasks:
     - name: If requested, clean-up zookeeper data directories
-      shell: rm -rf {{ zk_data_dir }}/*
+      shell: rm -rf {{ zk_storage_mnt_path }}/*
       args:
         warn: no
       when: purge_pulsar is defined and purge_pulsar|bool  

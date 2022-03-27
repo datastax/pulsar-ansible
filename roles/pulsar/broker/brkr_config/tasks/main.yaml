@@ -1,6 +1,6 @@
 ---
 - name: For each cluster, get bookie node count into a temporary file "/tmp/bookieCnt"
-  template: src=bookie_node_cnt.j2 dest=/tmp/bookieCnt mode=0664
+  template: src=bookie_node_cnt.j2 dest=/tmp/bookieCnt mode="{{ file_permission_mode_noexec }}"
 
 - name: Load tempoarary "/tmp/bookieCnt" file
   shell: cat /tmp/bookieCnt

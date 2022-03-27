@@ -20,7 +20,7 @@
 
 - name: Wait until bookkeeper listeneing port {{ bookie_listening_port }} is ready
   wait_for:
-    host: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}"
+    host: "{{ private_ip }}"
     port: "{{ bookie_listening_port }}"
     delay: 2
     timeout: 120

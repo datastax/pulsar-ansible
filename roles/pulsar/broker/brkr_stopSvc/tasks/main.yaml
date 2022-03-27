@@ -10,7 +10,7 @@
 
 - name: If TLS is not enabled, Wait until broker service non-TLS port and web service non-TLS port are gone
   wait_for:
-    host: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}"
+    host: "{{ private_ip }}"
     port: "{{ item }}"
     state: stopped
     delay: 2
@@ -22,7 +22,7 @@
 
 - name: If TLS is enabled, wait until broker service TLS port and web service TLS port are gone
   wait_for:
-    host: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}"
+    host: "{{ private_ip }}"
     port: "{{ item }}"
     state: stopped
     delay: 2

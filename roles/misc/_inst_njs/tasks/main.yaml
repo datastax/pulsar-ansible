@@ -18,7 +18,7 @@
   get_url: 
     url: "https://deb.nodesource.com/setup_{{ tgt_nodejs_ver_major }}.x"
     dest: /tmp/setup_nodejs_{{ tgt_nodejs_ver_major }}
-    mode: "0755"
+    mode: "{{ file_permission_mode }}"
   when: install_nodejs|bool
 
 - name: Setup Node.js

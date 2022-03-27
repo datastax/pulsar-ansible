@@ -1,16 +1,23 @@
 ---
-- name: Add a system user and group - {{ pulsar_user }}:{{ pulsar_user }}
+- name: Create the specified Pulsar user group
+  group: 
+    name: "{{ pulsar_user_group }}"
+    system: yes
+    state: present
+
+- name: Create the specified Pulsar user
   user: 
     name: "{{ pulsar_user }}"
     create_home: false
     system: yes
+    group: "{{ pulsar_user_group }}"
     state: present
 
 # This makes it easier to run Pulsar CLI commands under the current SSH user
 - name: If needed and for convenience, add SSH user into group {{ pulsar_user }}
   user:
     name: "{{ ansible_ssh_user }}"
-    groups: "{{ pulsar_user }}"
+    groups: "{{ pulsar_user_group }}"
     append: yes
   when: ssh_user_in_pulsar_group|bool
 
@@ -19,8 +26,8 @@
     path: "{{ item }}"
     state: directory
     owner: "{{ pulsar_user }}"
-    group: "{{ pulsar_user }}"
-    mode: "0755"
+    group: "{{ pulsar_user_group }}"
+    mode: "{{ file_permission_mode }}"
     recurse: yes
   with_items:
     - "{{ tgt_pkg_heartBeat_dir }}"
@@ -38,7 +45,7 @@
     src: "{{ local_bin_homedir }}/{{ heartBeat_bin_name }}"
     dest: "{{ tgt_pkg_heartBeat_dir }}/{{ heartBeat_bin_name }}"
     owner: "{{ pulsar_user }}"
-    group: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
   when: not heartBeat_distro_stat.stat.exists and not internet_download|bool
 
 - name: If HeartBeat doesn't exist on the target host yet, download it from internet when {{ internet_download }} is 'true' 
@@ -46,7 +53,7 @@
     url: "{{ heartBeat_download_url }}"
     dest: "{{ tgt_pkg_heartBeat_dir }}/{{ heartBeat_bin_name }}"
     owner: "{{ pulsar_user }}"
-    group: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
   when: not heartBeat_distro_stat.stat.exists and internet_download|bool
 
 - name: Extract HeartBeat binary release to the target directory

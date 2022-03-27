@@ -10,7 +10,7 @@
 
 - name: Wait until zookeeper listeneing port {{ zk_clnt_port }} is gone
   wait_for:
-    host: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}"
+    host: "{{ private_ip }}"
     port: "{{ zk_clnt_port }}"
     state: stopped
     delay: 2

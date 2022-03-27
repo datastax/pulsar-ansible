@@ -4,7 +4,7 @@
     src: "{{ item.src_file }}/"
     dest: "{{ item.dest_file }}"
     owner: "{{ pulsar_user }}"
-    group: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
     force: "{{ force_existing_server_jwt_token }}"
   with_items:
     - { src_file: "{{ local_jwt_src_homedir }}/key/{{ cluster_name }}_jwt_private.key", 
@@ -37,7 +37,7 @@
     src: "{{ item.src_file }}/"
     dest: "{{ item.dest_file }}"
     owner: "{{ pulsar_user }}"
-    group: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
     force: "{{ force_existing_server_tls_certs }}"
   with_items:
     - { src_file: "{{ local_tls_src_homedir }}/brokers/{{ broker_key_name }}", 
