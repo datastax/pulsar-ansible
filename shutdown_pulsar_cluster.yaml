@@ -18,11 +18,12 @@
     - { role: pulsar/bookie/bkie_stopSvc }
   post_tasks:
     - name: If requested, clean-up bookkeeper data directories
-      shell: rm -rf {{ item }}/*
+      shell: rm -rf {{ item }}
       args:
         warn: no
       with_items:
-        - "{{ bookie_storage_mnt_paths }}"
+        - "{{ tgt_pulsar_bookie_journal_data_homedir }}"
+        - "{{ tgt_pulsar_bookie_ledger_data_homedir }}"
       when: purge_pulsar is defined and purge_pulsar|bool
 
 # Stop zookeepers 
@@ -35,7 +36,7 @@
     - { role: pulsar/zookeeper/zkpr_stopSvc }
   post_tasks:
     - name: If requested, clean-up zookeeper data directories
-      shell: rm -rf {{ zk_storage_mnt_path }}/*
+      shell: rm -rf {{ tgt_pulsar_zk_data_homedir }}
       args:
         warn: no
       when: purge_pulsar is defined and purge_pulsar|bool  

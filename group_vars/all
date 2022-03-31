@@ -189,6 +189,12 @@ broker_jvm_options: >
   {% if customize_jvm is defined and customize_jvm|bool %}PULSAR_MEM="{{ pulsar_mem_broker }}" {% endif %}
   PULSAR_LOG_DIR="{{ tgt_pulsar_log_homedir }}"
 
+# whether or not to use customized message replication settings (E/Qw/Qa)
+force_message_rf_setting: false
+cust_ensemble_size: 2
+cust_write_quorum: 1
+cust_ack_quorum: 1
+
 
 #
 #  Pulsar client specific settings

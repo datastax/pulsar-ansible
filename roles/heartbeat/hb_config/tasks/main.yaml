@@ -1,7 +1,7 @@
 ---
 - name: Copy Pulsar HeartBeat runtime config (runtime.yaml) template
   template:
-    src: templates/hb_runtime.yaml.tmp.nosec
+    src: templates/hb_runtime.yaml.tmp
     dest: "{{ tgt_heartBeat_inst_dir }}/runtime.yaml"
     owner: "{{ pulsar_user }}"
     group: "{{ pulsar_user_group }}"

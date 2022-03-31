@@ -19,21 +19,28 @@ broker
 <public_zk_ip1> private_ip=<private_zk_ip1>
 <public_zk_ip2> private_ip=<private_zk_ip2>
 <public_zk_ip3> private_ip=<private_zk_ip3>
+... ...
 
 [bookkeeper]
 <public_bookie_ip1> private_ip=<private_bookie_ip1>
 <public_bookie_ip2> private_ip=<private_bookie_ip2>
 <public_bookie_ip3> private_ip=<private_bookie_ip3>
+... ...
 
 [broker]
 <public_broker_ip1> private_ip=<private_broker_ip1>
 <public_broker_ip2> private_ip=<private_broker_ip2>
 <public_broker_ip3> private_ip=<private_broker_ip3>
+... ...
 
 [adminConsole]
 <public_adminConsole_ip> private_ip=<private_adminConsole_ip>
+... ...
 
 [heartBeat]
 <public_heartBeat_ip> private_ip=<private_heartBeat_ip>
+... ...
 
 [pulsarStandAloneClient]
+<public_pulsar_client_ip> private_ip=<private_pulsar_client_ip>
+... ...

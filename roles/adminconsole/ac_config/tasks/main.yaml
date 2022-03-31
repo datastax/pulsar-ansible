@@ -1,7 +1,7 @@
 ---
 - name: Copy Pulsar AdminConsole dashboard config (config.js) template
   template:
-    src: templates/ac_config.js.tmp.nosec
+    src: templates/ac_config.js.tmp
     dest: "{{ tgt_adminConsole_inst_dir }}/dashboard/dist/config.js"
     owner: "{{ pulsar_user }}"
     group: "{{ pulsar_user_group }}"

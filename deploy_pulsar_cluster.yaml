@@ -29,7 +29,7 @@
 
 
 #########################
-# Pulsar server binary
+# Install Pulsar server binary
 # -----------------------
 - hosts: pulsarClient
   become: true
@@ -48,7 +48,7 @@
   become_method: sudo
   any_errors_fatal: true
   roles: 
-    # Mount dedicated storage space to zookeepers
+    # If needed, mount dedicated storage space to zookeepers
     - { role: pulsar/zookeeper/zkpr_mntStorage, when: not skip_zk_block_device_setup|bool }
     # Config zookeepers 
     - { role: pulsar/zookeeper/zkpr_config }
@@ -72,7 +72,7 @@
   become_method: sudo
   any_errors_fatal: true
   roles: 
-    # Mount dedicated storage space to bookkeepers
+    # If needed, mount dedicated storage space to bookkeepers
     - { role: pulsar/bookie/bkie_mntStorage, when: not skip_bookie_block_device_setup|bool }
     # Config bookies 
     - { role: pulsar/bookie/bkie_config }
@@ -137,8 +137,9 @@
     broker_key_name: "broker.{{ hostNameStr2 }}.key-pk8.pem"
     broker_cert_name: "broker.{{ hostNameStr2 }}.crt.pem"
   roles: 
-    # Config brokers
+    # Config broker non-security related settings
     - { role: pulsar/broker/brkr_config }
+    # If needed, config broker security related settings
     - { role: pulsar/broker/brkr_secConfig, when: enable_security|bool }
 
 # - Start brokers in serial mode
@@ -162,8 +163,9 @@
   become_method: sudo
   any_errors_fatal: true
   roles:
-    # Config pulsar clients 
+    # Config pulsar client non-security related settings
     - { role: pulsar/client/clnt_config }
+    # If needed, config pulsar client security related settings
     - { role: pulsar/client/clnt_secConfig, when: enable_security|bool }
 
 
