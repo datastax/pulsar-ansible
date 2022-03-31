@@ -23,7 +23,7 @@ $ ansible-playbook -i hosts.ini <playbook_name> --private-key=</path/to/ssh/key/
 
 A template of the host inventory file, *hosts.ini.template*, is included in this repo. When creating your own host inventory file, please remember that: 
 1) Other than the actual host machine list, please follow exactly the host inventory structure as demonstrated in the template file, such as the number of the host groups, the names of the host groups, the relationships among the host groups, and etc.
-2) For each host machine, please follow the format of ***<public_ip_of_the_host> private_ip=<private_ip_of_the_host>*** in the host inventory file. 
+2) For each host machine, please follow the format of *<public_ip_of_the_host> private_ip=<private_ip_of_the_host>* in the host inventory file. 
    1) If there is only one IP address for a host, use the same IP address for both the public and private IPs.
    2) The host DNS names can be used instead of the IP addresses.
 
@@ -59,7 +59,7 @@ Once the relevant JWT token files and the TLS certificate files are created, the
 
 # Customize Pulsar cluster install via Global Variables
 
-The Ansible scripts in this repo. are highly customizable through the global Ansible variables that are defined in **group_vars/all** file. Most of these variables are closely related with how the Pulsar cluster would be installed and configured. 
+The Ansible scripts in this repo. are highly customizable through the global Ansible variables that are defined in *group_vars/all* file. Most of these variables are closely related with how the Pulsar cluster would be installed and configured. 
 
 
 Some key customization categories are listed below:
