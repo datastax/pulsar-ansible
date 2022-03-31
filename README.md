@@ -21,7 +21,7 @@ The command to run a playbook is as below:
 $ ansible-playbook -i hosts.ini <playbook_name> --private-key=</path/to/ssh/key/file> -u <ssh_user_name>
 ```
 
-A template of the host inventory file, *hosts.ini.template*, is included in this repo. When creating your own host inventory file, please remember that: 
+A template of the host inventory file, [*hosts.ini.template*](hosts.ini.template), is included in this repo. When creating your own host inventory file, please remember that: 
 1) Other than the actual host machine list, please follow exactly the host inventory structure as demonstrated in the template file, such as the number of the host groups, the names of the host groups, the relationships among the host groups, and etc.
 2) For each host machine, please follow the format of *<public_ip_of_the_host> private_ip=<private_ip_of_the_host>* in the host inventory file. 
    1) If there is only one IP address for a host, use the same IP address for both the public and private IPs.
@@ -29,7 +29,7 @@ A template of the host inventory file, *hosts.ini.template*, is included in this
 
 # Pulsar Cluster Deployment
 
-The script in this repo. (in particular *deploy_pulsar_cluster.yaml*) deploys a single Pulsar cluster with all mandatory server components: zookeepers, brokers, and bookkeepers (bookies) that can either share a common set of host machines or reside on separate dedicated host machines. 
+The script in this repo. (in particular [*deploy_pulsar_cluster.yaml*](deploy_pulsar_cluster.yaml)) deploys a single Pulsar cluster with all mandatory server components: zookeepers, brokers, and bookkeepers (bookies) that can either share a common set of host machines or reside on separate dedicated host machines. 
 
 For the case of multi-region/data center geo-replication, we can still use the script in this repo. to launch multiple standalone Pulsar clusters and then follow the simple and straightforward procedure as described [here](https://pulsar.apache.org/docs/en/administration-geo/#configure-replication) to manually configure geo-replication among these Pulsar clusters. 
 
@@ -51,15 +51,15 @@ The scripts in this repo. provides the options of installing a Pulsar cluster ei
     * Create a broker specific private key and a certificate signing request (CSR)
     * Sign the CSR with the root CA and generate the signed certificate
 
-One bash script (bash/security/authentication/jwt/genUserJwtToken.sh) is responsible for creating the required JWT token files.  It can take input parameters from the Ansible playbook such as the list of the cluster admin role names.
+One bash script ([*bash/security/authentication/jwt/genUserJwtToken.sh*](bash/security/authentication/jwt/genUserJwtToken.sh)) is responsible for creating the required JWT token files.  It can take input parameters from the Ansible playbook such as the list of the cluster admin role names.
 
-Another bash script (bash/security/intransit_encryption/genPulsarSelfSignSSL.sh) is responsible for creating the required TLS certificate files for all brokers. It can also take input parameters from the Ansible playbook such as the root CA and broker key password, the root CA and broker certificate expiration days, and etc.
+Another bash script ([*bash/security/intransit_encryption/genPulsarSelfSignSSL.sh*](bash/security/intransit_encryption/genPulsarSelfSignSSL.sh)) is responsible for creating the required TLS certificate files for all brokers. It can also take input parameters from the Ansible playbook such as the root CA and broker key password, the root CA and broker certificate expiration days, and etc.
 
 Once the relevant JWT token files and the TLS certificate files are created, the Ansible playbook will automatically configure *broker.conf* file for every broker and *client.conf* file for every Pulsar client in order to pick up the security setting changes.
 
 # Customize Pulsar cluster install via Global Variables
 
-The Ansible scripts in this repo. are highly customizable through the global Ansible variables that are defined in *group_vars/all* file. Most of these variables are closely related with how the Pulsar cluster would be installed and configured. 
+The Ansible scripts in this repo. are highly customizable through the global Ansible variables that are defined in [*group_vars/all*](group_vars/all) file. Most of these variables are closely related with how the Pulsar cluster would be installed and configured. 
 
 
 Some key customization categories are listed below:
