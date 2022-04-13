@@ -30,9 +30,9 @@ cust_ack_quorum: 1
 #
 
 # - Wether or not to enable Pulsar JWT authentication and authorization
-enable_brkr_authNR: false
+enable_brkr_authNR: true
 # - Whether or not to enable Pulsar In-Transit TLS encryption
-enable_brkr_tls: false
+enable_brkr_tls: true
 
 enable_security: "{{ (enable_brkr_authNR is defined and enable_brkr_authNR|bool) or (enable_brkr_tls is defined and enable_brkr_tls|bool) }}"
 
