@@ -65,3 +65,52 @@
     keep_newer: yes
     owner: "{{ pulsar_user }}"
     group: "{{ pulsar_user_group }}"
+
+
+- name: If broker authN is enabled, create JWT token related security folders on AdminConsole host
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    mode: "{{ file_permission_mode }}"
+    recurse: yes
+  with_items:
+    - "{{ tgt_adminConsole_sec_dir }}/jwt/token"
+  when: enable_brkr_authNR is defined and enable_brkr_authNR|bool
+
+- name: If broker authN is enabled, copy JWT token file from localhost to Pulsar client hosts
+  copy:
+    src: "{{ item.src_file }}/"
+    dest: "{{ item.dest_file }}"
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    force: "{{ force_existing_remote_jwt_token }}"
+  with_items:
+    - { src_file: "{{ local_jwt_src_homedir }}/token/{{ super_user_roles[0] }}.jwt", 
+        dest_file: "{{ tgt_adminConsole_sec_dir }}/jwt/token/{{ super_user_roles[0] }}.jwt" }
+  when: enable_brkr_authNR is defined and enable_brkr_authNR|bool
+
+- name: If broker broker TLS is enabled, create TLS certificate related security folders on Pulsar client hosts
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    mode: "{{ file_permission_mode }}"
+    recurse: yes
+  with_items:
+    - "{{ tgt_adminConsole_sec_dir }}/tls/rootca"
+  when: enable_brkr_authNR is defined and enable_brkr_authNR|bool
+
+- name: If TLS is enabled, copy the trusted TLS certificate to Pulsar client hosts
+  copy:
+    src: "{{ item.src_file }}/"
+    dest: "{{ item.dest_file }}"
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    force: "{{ force_existing_remote_tls_certs }}"
+  with_items:
+    - { src_file: "{{ local_tls_src_homedir }}/certs/{{ public_cacert_name }}", 
+        dest_file: "{{ tgt_adminConsole_sec_dir }}/tls/rootca/{{ public_cacert_name }}" }
+  when: enable_brkr_tls is defined and enable_brkr_tls|bool

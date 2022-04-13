@@ -1,0 +1,24 @@
+#
+# Software binary release and version
+# -------------------------------------------
+#
+# - HeartBeat release
+heartBeat_ver: "1.0.13"
+heartBeat_bin_name: "pulsar-heartbeat-{{ heartBeat_ver }}-linux-amd64.gz"
+
+
+#
+# Downlaod software binaries from external internet URLs
+# -------------------------------------------
+#
+# - Heartbeat download
+heartBeat_download_url_base: "https://github.com/datastax/pulsar-heartbeat/releases/download/"
+heartBeat_download_url: "{{ heartBeat_download_url_base }}/{{ heartBeat_ver }}/{{ heartBeat_bin_name }}"
+
+
+#
+# Target directories
+# -------------------------------------------
+#
+tgt_pkg_heartBeat_dir: "{{ tgt_pkg_homedir }}/pulsar_heart_beat"
+tgt_heartBeat_inst_dir: /opt/pulsarHeartBeat

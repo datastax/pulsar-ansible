@@ -1,11 +1,24 @@
 ---
-- name: If authN is enabled, copy JWT token related security files from localhost to the Pulsar (broker) servers
+- name: If broker authN is enabled, create JWT token related security folders on Pulsar (broker) servers
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    mode: "{{ file_permission_mode }}"
+    recurse: yes
+  with_items:
+    - "{{ tgt_pulsar_sec_dir }}/jwt/key"
+    - "{{ tgt_pulsar_sec_dir }}/jwt/token"
+  when: enable_brkr_authNR is defined and enable_brkr_authNR|bool
+
+- name: If broker authN is enabled, copy JWT token related security files from localhost to Pulsar (broker) servers
   copy:
     src: "{{ item.src_file }}/"
     dest: "{{ item.dest_file }}"
     owner: "{{ pulsar_user }}"
     group: "{{ pulsar_user_group }}"
-    force: "{{ force_existing_server_jwt_token }}"
+    force: "{{ force_existing_remote_jwt_token }}"
   with_items:
     - { src_file: "{{ local_jwt_src_homedir }}/key/{{ cluster_name }}_jwt_private.key", 
         dest_file: "{{ tgt_jwt_dest_homedir }}/key/{{ cluster_name }}_jwt_private.key" }
@@ -13,10 +26,9 @@
         dest_file: "{{ tgt_jwt_dest_homedir }}/key/{{ cluster_name }}_jwt_public.key" }
     - { src_file: "{{ local_jwt_src_homedir }}/token/{{ super_user_roles[0] }}.jwt", 
         dest_file: "{{ tgt_jwt_dest_homedir }}/token/{{ super_user_roles[0] }}.jwt" }
-  when: enable_authNR is defined and enable_authNR|bool
-    
+  when: enable_brkr_authNR is defined and enable_brkr_authNR|bool
 
-- name: If authN/authR are enabled, configure authN/authR related settings in the broker config file
+- name: If broker authN/authR are enabled, configure authN/authR related settings in the broker config file
   lineinfile:
     path: "{{ broker_conf_file }}"
     regexp: "{{ item.regexp }}"
@@ -30,15 +42,28 @@
     - { regexp: '^brokerClientTlsEnabled=', line: "brokerClientTlsEnabled=true" }
     - { regexp: '^brokerClientAuthenticationPlugin=', line: "brokerClientAuthenticationPlugin=org.apache.pulsar.client.impl.auth.AuthenticationToken" }
     - { regexp: '^brokerClientAuthenticationParameters=', line: "brokerClientAuthenticationParameters=file://{{ tgt_jwt_dest_homedir }}/token/{{ super_user_roles[0] }}.jwt" }
-  when: enable_authNR is defined and enable_authNR|bool
+  when: enable_brkr_authNR is defined and enable_brkr_authNR|bool
 
-- name: If TLS is enabled, copy TLS certificate related security files from localhost to the Pulsar (broker) servers
+- name: If broker TLS is enabled, create TLS certificate related security folders on Pulsar (broker) servers
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    mode: "{{ file_permission_mode }}"
+    recurse: yes
+  with_items:
+    - "{{ tgt_pulsar_sec_dir }}/tls/server"
+    - "{{ tgt_pulsar_sec_dir }}/tls/rootca"
+  when: enable_brkr_authNR is defined and enable_brkr_authNR|bool
+
+- name: If broker TLS is enabled, copy TLS certificate related security files from localhost to Pulsar (broker) servers
   copy:
     src: "{{ item.src_file }}/"
     dest: "{{ item.dest_file }}"
     owner: "{{ pulsar_user }}"
     group: "{{ pulsar_user_group }}"
-    force: "{{ force_existing_server_tls_certs }}"
+    force: "{{ force_existing_remote_tls_certs }}"
   with_items:
     - { src_file: "{{ local_tls_src_homedir }}/brokers/{{ broker_key_name }}", 
         dest_file: "{{ tgt_tls_dest_homedir }}/server/{{ broker_key_name }}" }
@@ -46,9 +71,9 @@
         dest_file: "{{ tgt_tls_dest_homedir }}/server/{{ broker_cert_name }}" }
     - { src_file: "{{ local_tls_src_homedir }}/certs/{{ public_cacert_name }}", 
         dest_file: "{{ tgt_tls_dest_homedir }}/rootca/{{ public_cacert_name }}" }
-  when: enable_tls is defined and enable_tls|bool
+  when: enable_brkr_tls is defined and enable_brkr_tls|bool
 
-- name: If TLS is enabled, configure TLS related settings in the broker config file
+- name: If broker TLS is enabled, configure TLS related settings in the broker config file
   lineinfile:
     path: "{{ broker_conf_file }}"
     regexp: "{{ item.regexp }}"
@@ -63,4 +88,4 @@
     - { regexp: '^brokerClientTrustCertsFilePath=', line: "brokerClientTrustCertsFilePath={{ tgt_tls_dest_homedir }}/rootca/{{ public_cacert_name }}" }
     - { regexp: '^tlsProtocols=', line: "tlsProtocols=TLSv1.3,TLSv1.2" }
     # - { regexp: '^tlsCiphers=', line: "tlsCiphers=" }
-  when: enable_tls is defined and enable_tls|bool
+  when: enable_brkr_tls is defined and enable_brkr_tls|bool

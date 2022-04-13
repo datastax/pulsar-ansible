@@ -33,11 +33,6 @@
     - "{{ tgt_pkg_pular_dir }}"
     - "{{ tgt_pulsar_inst_dir }}"
     - "{{ tgt_pulsar_log_homedir }}"
-    # security related folders
-    - "{{ tgt_pulsar_sec_dir }}/jwt/key"
-    - "{{ tgt_pulsar_sec_dir }}/jwt/token"
-    - "{{ tgt_pulsar_sec_dir }}/tls/server"
-    - "{{ tgt_pulsar_sec_dir }}/tls/rootca"
 
 - name: Check if Pulsar binary already exists
   stat:

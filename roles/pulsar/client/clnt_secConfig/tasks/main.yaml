@@ -1,4 +1,52 @@
 ---
+- name: If broker authN is enabled, create JWT token related security folders on Pulsar client hosts
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    mode: "{{ file_permission_mode }}"
+    recurse: yes
+  with_items:
+    - "{{ tgt_pulsar_sec_dir }}/jwt/token"
+  when: enable_brkr_authNR is defined and enable_brkr_authNR|bool
+
+- name: If broker authN is enabled, copy JWT token file from localhost to Pulsar client hosts
+  copy:
+    src: "{{ item.src_file }}/"
+    dest: "{{ item.dest_file }}"
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    force: "{{ force_existing_remote_jwt_token }}"
+  with_items:
+    - { src_file: "{{ local_jwt_src_homedir }}/token/{{ super_user_roles[0] }}.jwt", 
+        dest_file: "{{ tgt_jwt_dest_homedir }}/token/{{ super_user_roles[0] }}.jwt" }
+  when: enable_brkr_authNR is defined and enable_brkr_authNR|bool
+
+- name: If broker broker TLS is enabled, create TLS certificate related security folders on Pulsar client hosts
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    mode: "{{ file_permission_mode }}"
+    recurse: yes
+  with_items:
+    - "{{ tgt_pulsar_sec_dir }}/tls/rootca"
+  when: enable_brkr_authNR is defined and enable_brkr_authNR|bool
+
+- name: If TLS is enabled, copy the trusted TLS certificate to Pulsar client hosts
+  copy:
+    src: "{{ item.src_file }}/"
+    dest: "{{ item.dest_file }}"
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    force: "{{ force_existing_remote_tls_certs }}"
+  with_items:
+    - { src_file: "{{ local_tls_src_homedir }}/certs/{{ public_cacert_name }}", 
+        dest_file: "{{ tgt_tls_dest_homedir }}/rootca/{{ public_cacert_name }}" }
+  when: enable_brkr_tls is defined and enable_brkr_tls|bool
+
 - name: Modify Pulsar client configuration file - set web service and broker service URLs
   lineinfile:
     path: "{{ pulsar_client_config_file }}"
@@ -7,16 +55,16 @@
   with_items:
     # authN/authR related settings
     - { regexp: '^authPlugin=', 
-        line: "authPlugin={% if enable_authNR is defined and enable_authNR|bool %}org.apache.pulsar.client.impl.auth.AuthenticationToken{% else %} {% endif %}" }
+        line: "authPlugin={% if enable_brkr_authNR is defined and enable_brkr_authNR|bool %}org.apache.pulsar.client.impl.auth.AuthenticationToken{% else %} {% endif %}" }
     - { regexp: '^authParams=', 
-        line: "authParams={% if enable_authNR is defined and enable_authNR|bool %}file://{{ tgt_jwt_dest_homedir }}/token/{{ super_user_roles[0] }}.jwt{% else %} {% endif %}" }
+        line: "authParams={% if enable_brkr_authNR is defined and enable_brkr_authNR|bool %}file://{{ tgt_jwt_dest_homedir }}/token/{{ super_user_roles[0] }}.jwt{% else %} {% endif %}" }
     # TLS related settings
     - { regexp: '^webServiceUrl=', 
-        line: "webServiceUrl={% if enable_tls is defined and enable_tls|bool %}https://{{ webSvcTlsListStr }}{% else %}http://{{ webSvcListStr }}{% endif %}" }
+        line: "webServiceUrl={% if enable_brkr_tls is defined and enable_brkr_tls|bool %}https://{{ webSvcTlsListStr }}{% else %}http://{{ webSvcListStr }}{% endif %}" }
     - { regexp: '^brokerServiceUrl=', 
-        line: "brokerServiceUrl={% if enable_tls is defined and enable_tls|bool %}pulsar+ssl://{{ brokerSvcTlsListStr }}{% else %}pulsar://{{ brokerSvcListStr }}{% endif %}" }
+        line: "brokerServiceUrl={% if enable_brkr_tls is defined and enable_brkr_tls|bool %}pulsar+ssl://{{ brokerSvcTlsListStr }}{% else %}pulsar://{{ brokerSvcListStr }}{% endif %}" }
     ## Disable Pulsar server host name verification for now
     # - { regexp: '^tlsEnableHostnameVerification=', 
     #     line: "tlsEnableHostnameVerification=true" }
     - { regexp: '^tlsTrustCertsFilePath=', 
-        line: "tlsTrustCertsFilePath={% if enable_tls is defined and enable_tls|bool %}{{ tgt_tls_dest_homedir }}/rootca/{{ public_cacert_name }}{% else %} {% endif %}" }    
+        line: "tlsTrustCertsFilePath={% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ tgt_tls_dest_homedir }}/rootca/{{ public_cacert_name }}{% else %} {% endif %}" }    

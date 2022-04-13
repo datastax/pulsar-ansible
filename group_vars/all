@@ -2,7 +2,7 @@
 # General settings
 # -------------------------------------------
 #
-show_debug_msg: false
+show_debug_msg: true
 cluster_name: "MyCluster"
 
 # - System user and group for running Pulsar on remote server hosts
@@ -21,7 +21,7 @@ customize_datadir: true
 # - Whether or not to download software releases from external internet URLs
 #   * true:  yes
 #   * false: copy software releases from local machine
-internet_download: false
+internet_download: true
 # - Whehter or not to put the SSH user as part of the "pulsar" group 
 ssh_user_in_pulsar_group: true
 
@@ -33,34 +33,16 @@ ssh_user_in_pulsar_group: true
 openjdk_ver: 11
 
 # - DataStax LunaStreaming release
-pulsarLS_ver_main: "2.8.0"
-pulsarLS_ver_secondary: "1.1.30"
+# pulsarLS_ver_main: "2.8.0"
+# pulsarLS_ver_secondary: "1.1.30"
+pulsarLS_ver_main: "2.8.3"
+pulsarLS_ver_secondary: "1.0.7"
 pulsarLS_ver_signifant: "{{ pulsarLS_ver_main.split('.')[0] }}.{{ pulsarLS_ver_main.split('.')[1] }}"
 pulsarLS_ver: "{{ pulsarLS_ver_main }}.{{ pulsarLS_ver_secondary }}"
 # valid luna streaming binary options: "core", "", "all"
 pulsarLS_bin_opt: "core"
 pulsarLS_bin_name: "lunastreaming-{% if pulsarLS_bin_opt is defined and pulsarLS_bin_opt != '' %}{{ pulsarLS_bin_opt }}-{% endif %}{{ pulsarLS_ver }}-bin.tar.gz"
 
-# - AdminConsole release
-adminConsole_ver: "1.2.4"
-adminConsole_bin_name: "pulsar-admin-console-{{ adminConsole_ver }}.tar.gz"
-# - HeartBeat release
-heartBeat_ver: "1.0.13"
-heartBeat_bin_name: "pulsar-heartbeat-{{ heartBeat_ver }}-linux-amd64.gz"
-
-# - Node.js (needed by AdminConsole) 
-tgt_nodejs_ver_major: "14"
-tgt_nodejs_ver_minor: "19.0"
-tgt_nodejs_ver: "{{ tgt_nodejs_ver_major }}.{{ tgt_nodejs_ver_minor }}"
-# whether or not force installing nodejs even if it already exists
-force_nodejs_install: no
-
-# - Nginx (needed by AdminConsole)
-#   > NOTE: version 1.17.9 is probably too old and can't be found as an apt package
-# nginx_ver: 1.17.9 
-tgt_nginx_ver: 1.20.2
-# whether or not force installing nginx even if it already exists
-force_nginx_install: no
 
 #
 # Downlaod software binaries from external internet URLs
@@ -69,15 +51,6 @@ force_nginx_install: no
 # - DataStax Luna Streaming download
 pulsarLS_download_url_base: "https://github.com/datastax/pulsar/releases/download"
 pulsarLS_bin_download_url: "{{ pulsarLS_download_url_base }}/ls{{ pulsarLS_ver_main | replace('.','') }}_{{ pulsarLS_ver_minor }}/{{ pulsarLS_bin_name }}"
-# - AdminConsole download
-adminConsole_download_url_base: "https://github.com/datastax/pulsar-admin-console/releases/download/"
-adminConsole_download_url: "{{ adminConsole_download_url_base }}/{{ adminConsole_ver }}/{{ adminConsole_bin_name }}"
-# - Heartbeat download
-heartBeat_download_url_base: "https://github.com/datastax/pulsar-heartbeat/releases/download/"
-heartBeat_download_url: "{{ heartBeat_download_url_base }}/{{ heartBeat_ver }}/{{ heartBeat_bin_name }}"
-# - Nodejs download
-nodejs_download_url_base: "https://nodejs.org/download/release/latest-v{{ nodejs_ver_major }}.x/"
-nodejs_download_url: "{{ nodejs_download_url_base }}/{{ nodejs_bin_name }}"
 
 
 #
@@ -96,104 +69,18 @@ local_bin_homedir: "~/DataStax/pulsar_bin/releases/luna_streaming"
 tgt_pkg_homedir: /opt/packages
 tgt_pkg_pular_dir: "{{ tgt_pkg_homedir }}/pulsar"
 tgt_pulsar_inst_dir: /opt/pulsar
-tgt_pkg_adminConsole_dir: "{{ tgt_pkg_homedir }}/pulsar_admin_console"
-tgt_adminConsole_inst_dir: /opt/pulsarAdminConsole
-tgt_pkg_heartBeat_dir: "{{ tgt_pkg_homedir }}/pulsar_heart_beat"
-tgt_heartBeat_inst_dir: /opt/pulsarHeartBeat
 
 # - Target log directories
 tgt_pulsar_log_homedir: "{% if customize_logdir is defined and customize_logdir|bool %}/var/log/pulsar{% else %}{{ tgt_pulsar_inst_dir }}/logs{% endif %}"
 
-# - Target data home directory
-tgt_pulsar_zk_data_homedir: "{% if customize_datadir is defined and customize_datadir|bool %}/var/lib/pulsar{% else %}{{ tgt_pulsar_inst_dir }}/data{% endif %}"
-tgt_pulsar_bookie_journal_data_homedir: "{% if customize_datadir is defined and customize_datadir|bool %}/var/lib/pulsar{% else %}{{ tgt_pulsar_inst_dir }}/data{% endif %}"
-tgt_pulsar_bookie_ledger_data_homedir: "{% if customize_datadir is defined and customize_datadir|bool %}/var/lib/pulsar{% else %}{{ tgt_pulsar_inst_dir }}/data{% endif %}"
-
 
 #
-#  Zookeeper related settings
+#  Function worker specific settings
 # -------------------------------------------
 #
-zk_conf_file: "{{ tgt_pulsar_inst_dir }}/conf/zookeeper.conf"
-pulsar_mem_zk: "-Xms1g -Xmx1g -XX:MaxDirectMemorySize=2g"
+enable_func_worker: true
+dedicated_func_worker: false
 
-zk_clnt_port: 2181
-zk_admin_srv_enable: true
-zk_admin_srv_port: 9990
-
-zk_enable_4lw_cmd: true
-zk_cmd_white_list: "*"
-
-##
-# This is the metrics port for Zookeepers (default port: 8000, path: "/metrics")
-# - If deploying Zookeeper and Bookie on the same node, need to start zookeeper with different stats port.
-# - PULSAR_EXTRA_OPTS="-Dstats_server_port=<custom_port>"
-zk_stats_port: 8010
-
-# zookeeper storage deivces 
-skip_zk_block_device_setup: true
-zk_disk_fs_type: xfs
-zk_storage_blk_device: /dev/xvdh
-zk_storage_mnt_path: "{{ tgt_pulsar_zk_data_homedir }}/zookeeper"
-
-# extra JVM options to start zookeepers
-zk_jvm_options: > 
-  {% if customize_jvm is defined and customize_jvm|bool %}PULSAR_MEM="{{ pulsar_mem_zk }}"{% endif %}
-  PULSAR_LOG_DIR="{{ tgt_pulsar_log_homedir }}"
-  PULSAR_EXTRA_OPTS="-Dstats_server_port={{ zk_stats_port }}"
-
-#
-#  Bookkeeper specific settings
-# -------------------------------------------
-#
-bk_conf_file: "{{ tgt_pulsar_inst_dir }}/conf/bookkeeper.conf"
-pulsar_mem_bookie: "-Xms4g -Xmx4g -XX:MaxDirectMemorySize=4g"
-
-bookie_listening_port: 3181
-
-# This is the metrics port for Bookie (default port: 8000, path: "/metrics")
-# - see comment about "zk_stats_port"
-bk_stats_port: 8000
-
-# bookkeeper storage deivces
-skip_bookie_block_device_setup: true
-bookie_disk_fs_type: xfs
-bookie_storage_blk_devices: 
-  - /dev/xvdj
-  - /dev/xvdl
-bookie_storage_mnt_paths:
-  - "{{ tgt_pulsar_bookie_journal_data_homedir }}/bookie/journal"
-  - "{{ tgt_pulsar_bookie_ledger_data_homedir }}/bookie/ledger"
-
-# extra JVM options to start bookkeepers
-bookie_jvm_options: > 
-  {% if customize_jvm is defined and customize_jvm|bool %}PULSAR_MEM="{{ pulsar_mem_bookie }}" {% endif %}
-  PULSAR_LOG_DIR="{{ tgt_pulsar_log_homedir }}"
-
-#
-#  Pulsar broker specific settings
-# -------------------------------------------
-#
-broker_conf_file: "{{ tgt_pulsar_inst_dir }}/conf/broker.conf"
-broker_func_worker_file: "{{ tgt_pulsar_inst_dir }}/conf/functions_worker.yml"
-pulsar_mem_broker: "-Xms4g -Xmx4g -XX:MaxDirectMemorySize=8g"
-
-broker_svc_port: 6650
-broker_svc_port_tls: 6651
-# Broker metrics are also exposed at port 8080, at path "/metrics"
-web_svc_port: 8080
-web_svc_port_tls: 8443
-
-# extra JVM options to start bookkeepers
-broker_jvm_options: > 
-  {% if customize_jvm is defined and customize_jvm|bool %}PULSAR_MEM="{{ pulsar_mem_broker }}" {% endif %}
-  PULSAR_LOG_DIR="{{ tgt_pulsar_log_homedir }}"
-
-# whether or not to use customized message replication settings (E/Qw/Qa)
-force_message_rf_setting: false
-cust_ensemble_size: 2
-cust_write_quorum: 1
-cust_ack_quorum: 1
 
 
 #
@@ -201,73 +88,3 @@ cust_ack_quorum: 1
 # -------------------------------------------
 #
 pulsar_client_config_file: "{{ tgt_pulsar_inst_dir }}/conf/client.conf"
-
-
-#
-#  Pulsar security related settings
-# -------------------------------------------
-#
-
-# - Wether or not to enable Pulsar JWT authentication and authorization
-enable_authNR: true
-# - Whether or not to enable Pulsar In-Transit TLS encryption
-enable_tls: true
-
-enable_security: "{{ (enable_authNR is defined and enable_authNR|bool) or (enable_tls is defined and enable_tls|bool) }}"
-
-# - Pulsar super user role name list when authorization is enabled
-super_user_roles: 
-  - "cluster_admin"
-  - "cluster_admin_2"
-super_user_roles_list_str: "{{ super_user_roles | join(',') }}"
-
-# - Whether or not to skip generating JWT token files on the local host
-skip_jwt_token_generation: false
-# - Whether or not to skip generating TLS certificate files on the local host
-skip_tls_certs_generatation: false
-
-###
-# NOTE: please be careful with 2 settings. 
-#       - if these variables are set to true, existing server side JWT token 
-#         and/or TLS certificate files could be replaced by new ones, which
-#         may cause interruption of existing client connections. 
-#       - by default, these 2 settings should be always set as false!
-# - Whehter or not to force replacing the existing Pulsar server side JWT token files
-force_existing_server_jwt_token: false
-# - Whehter or not to force replacing the existing Pulsar server side TLS certificate files
-force_existing_server_tls_certs: false
-
-# - local folders that have the security related files for JWT tokens
-# NOTE: Please do NOT change this setting (considered as a constant)
-local_jwt_src_homedir: "{{ playbook_dir }}/bash/security/authentication/jwt/staging"
-# - local folders that have the security related files for TLS certificates
-# NOTE: Please do NOT change this setting (considered as a constant)
-local_tls_src_homedir: "{{ playbook_dir }}/bash/security/intransit_encryption/staging"
-
-# Target fodlers that have the security related fiels
-tgt_pulsar_sec_dir: "{{ tgt_pulsar_inst_dir }}/security"
-tgt_jwt_dest_homedir: "{{ tgt_pulsar_sec_dir }}/jwt"
-tgt_tls_dest_homedir: "{{ tgt_pulsar_sec_dir }}/tls"
-
-##
-# Self signed root CA related settings
-#
-# - self signed root CA public certificate name
-# NOTE: Please do NOT change this setting (considered as a constant)
-public_cacert_name: "ca.cert.pem"
-# - self signed root CA public certificate expiry days (10 years)
-rootca_cert_expire_days: 3650
-# - self singed root CA private key password
-rootca_key_password: "MyRootCACertPass"
-
-##
-# Signed (broker) server certificate related settings
-#
-# - (broker) server certificate expiry days
-brkr_cert_expire_days: 365
-# - (broker) server private key expiry days
-brkr_key_password: "MyBrkrSrvCertPass"
-
-##
-# - common subject line in the generated certificate
-cert_subj_line: "/C=US/ST=TX/L=Dallas/O=mytest.com"

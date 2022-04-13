@@ -1,0 +1,34 @@
+#
+#  Zookeeper related settings
+# -------------------------------------------
+#
+zk_conf_file: "{{ tgt_pulsar_inst_dir }}/conf/zookeeper.conf"
+pulsar_mem_zk: "-Xms1g -Xmx1g -XX:MaxDirectMemorySize=2g"
+
+zk_clnt_port: 2181
+zk_admin_srv_enable: true
+zk_admin_srv_port: 9990
+
+zk_enable_4lw_cmd: true
+zk_cmd_white_list: "*"
+
+##
+# This is the metrics port for Zookeepers (default port: 8000, path: "/metrics")
+# - If deploying Zookeeper and Bookie on the same node, need to start zookeeper with different stats port.
+# - PULSAR_EXTRA_OPTS="-Dstats_server_port=<custom_port>"
+zk_stats_port: 8010
+
+# zookeeper storage deivces 
+skip_zk_block_device_setup: true
+zk_disk_fs_type: xfs
+zk_storage_blk_device: /dev/xvdh
+
+# target data directory
+tgt_pulsar_zk_data_homedir: "{% if customize_datadir is defined and customize_datadir|bool %}/var/lib/pulsar{% else %}{{ tgt_pulsar_inst_dir }}/data{% endif %}"
+zk_storage_mnt_path: "{{ tgt_pulsar_zk_data_homedir }}/zookeeper"
+
+# extra JVM options to start zookeepers
+zk_jvm_options: > 
+  {% if customize_jvm is defined and customize_jvm|bool %}PULSAR_MEM="{{ pulsar_mem_zk }}"{% endif %}
+  PULSAR_LOG_DIR="{{ tgt_pulsar_log_homedir }}"
+  PULSAR_EXTRA_OPTS="-Dstats_server_port={{ zk_stats_port }}"

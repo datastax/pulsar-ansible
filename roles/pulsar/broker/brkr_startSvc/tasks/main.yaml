@@ -20,7 +20,7 @@
   with_items:
     - "{{ broker_svc_port }}"
     - "{{ web_svc_port }}"
-  when: enable_tls is not defined or not enable_tls|bool
+  when: enable_brkr_tls is not defined or not enable_brkr_tls|bool
 
 - name: If TLS is enabled, wait until broker service TLS port and web service TLS port are ready
   wait_for:
@@ -31,4 +31,4 @@
   with_items:
     - "{{ broker_svc_port_tls }}"
     - "{{ web_svc_port_tls }}"
-  when: enable_tls is defined and enable_tls|bool
+  when: enable_brkr_tls is defined and enable_brkr_tls|bool

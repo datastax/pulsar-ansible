@@ -27,7 +27,7 @@ var globalConf = {
     "test": "",
     "client_token": "",
     "admin_token": "",
-    "superuser_token_path": "",
+    "superuser_token_path": "<<admin_token_path>>",
     "login": "",
     "email": "",
     "client_role": "",
@@ -37,8 +37,8 @@ var globalConf = {
     "admin_role": "",
     "cluster_list": ["<<home_cluster>>"],
     "api_base_url": "/api/v1",
-    "ca_certificate": "",
-    "api_version": <<api_version>>,
+    "ca_certificate": "<<ca_certificate>>",
+    "api_version": "<<api_version>>",
     "default_plan": "",
     "notice_text": "",
     "grafana_url": "",
@@ -62,8 +62,8 @@ var globalConf = {
     "auth_mode": "none",
     "oauth_client_id": "",
     "host_overrides": {
-        "pulsar": "pulsar://<<pulsar_broker_svc_url>>",
-        "ws": "ws://<<pulsar_web_svc_url>>",
-        "http": "http://<<pulsar_web_svc_url>>"
-    }
+        "pulsar": "<<broker_svc_url>>",
+        "ws": "",
+        "http": ""
+    }   
 }

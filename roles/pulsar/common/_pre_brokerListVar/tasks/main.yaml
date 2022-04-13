@@ -1,6 +1,3 @@
-###
-# This is used for a Pulsar instance deployment with 2 Clusters: ClusterA and ClusterB
-###
 ---
 ##
 # For each cluster, get a string for all pulsar borker nodes with web service listening ports, e.g.
@@ -33,8 +30,7 @@
   set_fact: 
     webSvcTlsListStr={{ webSvcTlsListStr_cmdcat.stdout }}
 - debug: msg="webSvcTlsListStr - {{ webSvcTlsListStr }}"
-  when: show_debug_msg|bool
-
+  when: show_debug_msg|bool 
 
 ##
 # For each cluster, get a string for all pulsar borker nodes with broker service listening ports, e.g.

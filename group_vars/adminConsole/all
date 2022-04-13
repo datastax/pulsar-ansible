@@ -1,0 +1,79 @@
+#
+# Software binary release and version
+# -------------------------------------------
+#
+# - AdminConsole release
+adminConsole_ver: "1.2.6"
+adminConsole_bin_name: "pulsar-admin-console-{{ adminConsole_ver }}.tar.gz"
+
+# - Node.js (needed by AdminConsole) 
+tgt_nodejs_ver_major: "14"
+tgt_nodejs_ver_minor: "19.0"
+tgt_nodejs_ver: "{{ tgt_nodejs_ver_major }}.{{ tgt_nodejs_ver_minor }}"
+# - whether or not force installing nodejs even if it already exists
+force_nodejs_install: no
+
+# - Nginx (needed by AdminConsole)
+#   > NOTE: version 1.17.9 is probably too old and can't be found as an apt package
+# nginx_ver: 1.17.9 
+tgt_nginx_ver: 1.20.2
+# whether or not force installing nginx even if it already exists
+force_nginx_install: no
+
+
+#
+# Downlaod software binaries from external internet URLs
+# -------------------------------------------
+#
+# - AdminConsole download
+adminConsole_download_url_base: "https://github.com/datastax/pulsar-admin-console/releases/download/"
+adminConsole_download_url: "{{ adminConsole_download_url_base }}/{{ adminConsole_ver }}/{{ adminConsole_bin_name }}"
+# - Nodejs download
+nodejs_download_url_base: "https://nodejs.org/download/release/latest-v{{ nodejs_ver_major }}.x/"
+nodejs_download_url: "{{ nodejs_download_url_base }}/{{ nodejs_bin_name }}"
+
+
+#
+# AdminConsole specific settings
+# -------------------------------------------
+#
+# - Target package and binary directories
+tgt_pkg_adminConsole_dir: "{{ tgt_pkg_homedir }}/pulsar_admin_console"
+tgt_adminConsole_inst_dir: /opt/pulsarAdminConsole
+tgt_adminConsole_sec_dir: "{{ tgt_adminConsole_inst_dir }}/security"
+
+# - AdminConsole listending port (DO NOT change it. This is a constant)
+ac_listen_port: 6454
+
+
+#
+# Nginx specific settings
+# -------------------------------------------
+#
+nginx_listen_port: 9090
+nginx_status_port: 9091
+
+# TBD: add support for Nginx security (e.g. AuthN, HTTPS, etc.)
+# nginx_listen_port_tls: 9443
+# enable_nginx_https: true
+
+
+#
+# Template placeholders 
+# -------------------------------------------
+#
+# - AdminConsole dashboard config.js template place holder
+placeHolder_homeCluster: "<<home_cluster>>"
+placeHolder_brokerSvcUrl: "<<broker_svc_url>>"
+placeHolder_webSvcUrl: "<<web_svc_url>>"
+placeHolder_apiVersion: "<<api_version>>"
+placeHolder_adminToken: "<<admin_token>>"
+placeHolder_adminTokenPath: "<<admin_token_path>>"
+placeHolder_caCertificate: "<<ca_certificate>>"
+placeHolder_acListenHost: "<<ac_host_name>>"
+placeHolder_acListenPort: "<<ac_listen_port>>"
+
+# - Nginx config template place holder
+placeHolder_brkrWebPortList: "<<pulsar_broker_webport_list>>" 
+placeHolder_nginxListenPort: "<<ng_listen_port>>"
+placeHolder_nginxStatusPort: "<<ng_status_port>>"

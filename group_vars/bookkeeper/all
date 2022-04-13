@@ -1,0 +1,31 @@
+#
+#  Bookkeeper specific settings
+# -------------------------------------------
+#
+bk_conf_file: "{{ tgt_pulsar_inst_dir }}/conf/bookkeeper.conf"
+pulsar_mem_bookie: "-Xms4g -Xmx4g -XX:MaxDirectMemorySize=4g"
+
+bookie_listening_port: 3181
+
+# This is the metrics port for Bookie (default port: 8000, path: "/metrics")
+# - see comment about "zk_stats_port"
+bk_stats_port: 8000
+
+# bookkeeper storage deivces
+skip_bookie_block_device_setup: true
+bookie_disk_fs_type: xfs
+bookie_storage_blk_devices: 
+  - /dev/xvdj
+  - /dev/xvdl
+
+# target data directories
+tgt_pulsar_bookie_journal_data_homedir: "{% if customize_datadir is defined and customize_datadir|bool %}/var/lib/pulsar{% else %}{{ tgt_pulsar_inst_dir }}/data{% endif %}"
+tgt_pulsar_bookie_ledger_data_homedir: "{% if customize_datadir is defined and customize_datadir|bool %}/var/lib/pulsar{% else %}{{ tgt_pulsar_inst_dir }}/data{% endif %}"
+bookie_storage_mnt_paths:
+  - "{{ tgt_pulsar_bookie_journal_data_homedir }}/bookie/journal"
+  - "{{ tgt_pulsar_bookie_ledger_data_homedir }}/bookie/ledger"
+
+# extra JVM options to start bookkeepers
+bookie_jvm_options: > 
+  {% if customize_jvm is defined and customize_jvm|bool %}PULSAR_MEM="{{ pulsar_mem_bookie }}" {% endif %}
+  PULSAR_LOG_DIR="{{ tgt_pulsar_log_homedir }}"

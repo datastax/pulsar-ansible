@@ -27,7 +27,8 @@
 
 - name: Install nodejs   
   apt: 
-    name: "nodejs={{ tgt_nodejs_ver }}-1nodesource1"
+    # name: "nodejs={{ tgt_nodejs_ver }}-1nodesource1"
+    name: "nodejs"
     update_cache: yes
     state: present
   when: install_nodejs|bool

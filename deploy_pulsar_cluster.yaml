@@ -16,7 +16,7 @@
   any_errors_fatal: true
   run_once: true
   roles: 
-    - { role: pulsar/common/_pre_zkListVar }
+    - { role: pulsar/common/_pre_zkArrListVar }
 
 # - Get broker list in deseried formats and save them in variables
 #   They are needed in later steps for Pulsar configurations

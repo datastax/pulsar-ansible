@@ -1,0 +1,32 @@
+---
+##
+# For each cluster, get broker node list with web service port (needed by AdminConsole Niginx)
+#   server <broker_node_1>:8080
+#   server <broker_node_2>:8080
+#   server <broker_node_3>:8080
+- name: Get broker web list string into a temporary file "/tmp/brkrWebArrStrVar"
+  template: src=brkr_web_arrstr_var.j2 dest=/tmp/brkrWebArrStrVar mode="{{ file_permission_mode_noexec }}"
+
+- name: Load tempoarary "/tmp/brkrWebArrStrVar" file
+  shell: cat /tmp/brkrWebArrStrVar
+  register: brkrWebArrStrVar_cmdcat
+
+- name: Set broker web Nginx configuration list (server <broker_ip>:<web_port>;) into a variable
+  set_fact: 
+    brkrWebArrStrVar="{{ brkrWebArrStrVar_cmdcat.stdout }}"
+- debug: msg="brkrWebArrStrVar - {{ brkrWebArrStrVar }}"
+  when: show_debug_msg|bool 
+
+
+- name: Get broker web TLS list string into a temporary file "/tmp/brkrWebTLSArrStrVar"
+  template: src=brkr_web_tls_arrstr_var.j2 dest=/tmp/brkrWebTLSArrStrVar mode="{{ file_permission_mode_noexec }}"
+
+- name: Load tempoarary "/tmp/brkrWebTLSArrStrVar" file
+  shell: cat /tmp/brkrWebTLSArrStrVar
+  register: brkrWebTLSArrStrVar_cmdcat
+
+- name: Set broker web TLS Nginx configuration list (server <broker_ip>:<web_tls_port>;) into a variable
+  set_fact: 
+    brkrWebTLSArrStrVar="{{ brkrWebTLSArrStrVar_cmdcat.stdout }}"
+- debug: msg="brkrWebTLSArrStrVar - {{ brkrWebTLSArrStrVar }}"
+  when: show_debug_msg|bool 

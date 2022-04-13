@@ -1,0 +1,94 @@
+#
+#  Pulsar broker specific settings
+# -------------------------------------------
+#
+broker_conf_file: "{{ tgt_pulsar_inst_dir }}/conf/broker.conf"
+broker_func_worker_file: "{{ tgt_pulsar_inst_dir }}/conf/functions_worker.yml"
+pulsar_mem_broker: "-Xms4g -Xmx4g -XX:MaxDirectMemorySize=8g"
+
+broker_svc_port: 6650
+broker_svc_port_tls: 6651
+# Broker metrics are also exposed at port 8080, at path "/metrics"
+web_svc_port: 8080
+web_svc_port_tls: 8443
+
+# extra JVM options to start bookkeepers
+broker_jvm_options: > 
+  {% if customize_jvm is defined and customize_jvm|bool %}PULSAR_MEM="{{ pulsar_mem_broker }}" {% endif %}
+  PULSAR_LOG_DIR="{{ tgt_pulsar_log_homedir }}"
+
+# whether or not to use customized message replication settings (E/Qw/Qa)
+force_message_rf_setting: false
+cust_ensemble_size: 2
+cust_write_quorum: 1
+cust_ack_quorum: 1
+
+
+#
+#  Pulsar broker security related settings
+# -------------------------------------------
+#
+
+# - Wether or not to enable Pulsar JWT authentication and authorization
+enable_brkr_authNR: false
+# - Whether or not to enable Pulsar In-Transit TLS encryption
+enable_brkr_tls: false
+
+enable_security: "{{ (enable_brkr_authNR is defined and enable_brkr_authNR|bool) or (enable_brkr_tls is defined and enable_brkr_tls|bool) }}"
+
+# - Pulsar super user role name list when authorization is enabled
+super_user_roles: 
+  - "cluster_admin"
+  - "cluster_admin_2"
+super_user_roles_list_str: "{{ super_user_roles | join(',') }}"
+
+# - Whether or not to skip generating JWT token files on the local host
+skip_jwt_token_generation: false
+# - Whether or not to skip generating TLS certificate files on the local host
+skip_tls_certs_generatation: false
+
+###
+# NOTE: please be careful with 2 settings. 
+#       - if these variables are set to true, existing server side JWT token 
+#         and/or TLS certificate files could be replaced by new ones, which
+#         may cause interruption of existing client connections. 
+#       - by default, these 2 settings should be always set as false!
+# - Whehter or not to force replacing the existing Pulsar server side JWT token files
+force_existing_remote_jwt_token: false
+# - Whehter or not to force replacing the existing Pulsar server side TLS certificate files
+force_existing_remote_tls_certs: false
+
+# - local folders that have the security related files for JWT tokens
+# NOTE: Please do NOT change this setting (considered as a constant)
+local_jwt_src_homedir: "{{ playbook_dir }}/bash/security/authentication/jwt/staging"
+# - local folders that have the security related files for TLS certificates
+# NOTE: Please do NOT change this setting (considered as a constant)
+local_tls_src_homedir: "{{ playbook_dir }}/bash/security/intransit_encryption/staging"
+
+# Target fodlers that have the security related fiels
+tgt_pulsar_sec_dir: "{{ tgt_pulsar_inst_dir }}/security"
+tgt_jwt_dest_homedir: "{{ tgt_pulsar_sec_dir }}/jwt"
+tgt_tls_dest_homedir: "{{ tgt_pulsar_sec_dir }}/tls"
+
+##
+# Self signed root CA related settings
+#
+# - self signed root CA public certificate name
+# NOTE: Please do NOT change this setting (considered as a constant)
+public_cacert_name: "ca.cert.pem"
+# - self signed root CA public certificate expiry days (10 years)
+rootca_cert_expire_days: 3650
+# - self singed root CA private key password
+rootca_key_password: "MyRootCACertPass"
+
+##
+# Signed (broker) server certificate related settings
+#
+# - (broker) server certificate expiry days
+brkr_cert_expire_days: 365
+# - (broker) server private key expiry days
+brkr_key_password: "MyBrkrSrvCertPass"
+
+##
+# - common subject line in the generated certificate
+cert_subj_line: "/C=US/ST=TX/L=Dallas/O=mytest.com"

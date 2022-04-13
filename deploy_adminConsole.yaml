@@ -9,6 +9,7 @@
   run_once: true
   roles: 
     - { role: pulsar/common/_pre_brokerListVar }
+    - { role: pulsar/common/_pre_brokerNginxArrStrVar }
 
 
 #########################
@@ -19,14 +20,14 @@
   become: true
   become_method: sudo
   any_errors_fatal: true
+  gather_facts: true
   roles: 
     - { role: misc/_inst_njs }
     - { role: misc/_inst_nginx }
     - { role: adminconsole/ac_instBinary }
     - { role: adminconsole/ac_config }
+    - { role: adminconsole/ac_startSvc }
   post_tasks:
-    - name: Start Pulsar AdminConsole
-      shell: cd {{ tgt_adminConsole_inst_dir }}/server/; nohup npm start 2>&1 &
     - name: Start Nginx Server
       service:
         name: nginx
