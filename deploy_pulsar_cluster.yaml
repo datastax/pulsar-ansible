@@ -117,7 +117,7 @@
           -brkr_expr_days {{ brkr_cert_expire_days }} \
           -certSubjLineStr {{ cert_subj_line }}
         cd ../../..
-      # when: enable_brkr_tls is defined and enable_brkr_tls|bool and skip_tls_certs_generatation is defined and not skip_tls_certs_generatation|bool
+      when: enable_brkr_tls is defined and enable_brkr_tls|bool and skip_tls_certs_generatation is defined and not skip_tls_certs_generatation|bool
 
 
 #########################
