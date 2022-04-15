@@ -9,9 +9,9 @@
     recurse: yes
   with_items:
     - "{{ tgt_pulsar_sec_dir }}/jwt/token"
-  when: enable_brkr_authNR is defined and enable_brkr_authNR|bool
+  when: enable_brkr_authNZ is defined and enable_brkr_authNZ|bool
 
-- name: If broker authN is enabled, copy JWT token file from localhost to Pulsar client hosts
+- name: If broker authN is enabled, copy JWT token file to Pulsar client hosts
   copy:
     src: "{{ item.src_file }}/"
     dest: "{{ item.dest_file }}"
@@ -21,9 +21,9 @@
   with_items:
     - { src_file: "{{ local_jwt_src_homedir }}/token/{{ super_user_roles[0] }}.jwt", 
         dest_file: "{{ tgt_jwt_dest_homedir }}/token/{{ super_user_roles[0] }}.jwt" }
-  when: enable_brkr_authNR is defined and enable_brkr_authNR|bool
+  when: enable_brkr_authNZ is defined and enable_brkr_authNZ|bool
 
-- name: If broker broker TLS is enabled, create TLS certificate related security folders on Pulsar client hosts
+- name: If broker TLS is enabled, create TLS certificate related security folders on Pulsar client hosts
   file:
     path: "{{ item }}"
     state: directory
@@ -33,7 +33,7 @@
     recurse: yes
   with_items:
     - "{{ tgt_pulsar_sec_dir }}/tls/rootca"
-  when: enable_brkr_authNR is defined and enable_brkr_authNR|bool
+  when: enable_brkr_authNZ is defined and enable_brkr_authNZ|bool
 
 - name: If TLS is enabled, copy the trusted TLS certificate to Pulsar client hosts
   copy:
@@ -55,9 +55,9 @@
   with_items:
     # authN/authR related settings
     - { regexp: '^authPlugin=', 
-        line: "authPlugin={% if enable_brkr_authNR is defined and enable_brkr_authNR|bool %}org.apache.pulsar.client.impl.auth.AuthenticationToken{% else %} {% endif %}" }
+        line: "authPlugin={% if enable_brkr_authNZ is defined and enable_brkr_authNZ|bool %}org.apache.pulsar.client.impl.auth.AuthenticationToken{% else %} {% endif %}" }
     - { regexp: '^authParams=', 
-        line: "authParams={% if enable_brkr_authNR is defined and enable_brkr_authNR|bool %}file://{{ tgt_jwt_dest_homedir }}/token/{{ super_user_roles[0] }}.jwt{% else %} {% endif %}" }
+        line: "authParams={% if enable_brkr_authNZ is defined and enable_brkr_authNZ|bool %}file://{{ tgt_jwt_dest_homedir }}/token/{{ super_user_roles[0] }}.jwt{% else %} {% endif %}" }
     # TLS related settings
     - { regexp: '^webServiceUrl=', 
         line: "webServiceUrl={% if enable_brkr_tls is defined and enable_brkr_tls|bool %}https://{{ webSvcTlsListStr }}{% else %}http://{{ webSvcListStr }}{% endif %}" }

@@ -33,16 +33,16 @@ http {
 
   # Only required if running with HTTP
   upstream http-pulsar-proxy {
-    <<pulsar_broker_webport_list>>
+<<pulsar_broker_webport_list>>
+  }
+
+  # Only required if running with HTTPS
+  upstream https-pulsar-proxy {
+<<pulsar_broker_webport_tls_list>>
   }
 
   ##################
   ## !->
-  # # Only required if running with HTTPS
-  # upstream https-pulsar-proxy {
-  #   server <<pulsar_https_proxy_dns_port>>;
-  # }
-  # 
   # # Only required if running Pulsar Burnell
   # # Burnell is meant to run collocated with the Pulsar Proxy and the Pulsar Websocket Proxy
   # # https://github.com/datastax/burnell

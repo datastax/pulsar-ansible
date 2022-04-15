@@ -1,4 +1,60 @@
 ---
+- name: If broker authN is enabled, create JWT token related security folders on Pulsar AdminConsole Host
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    mode: "{{ file_permission_mode }}"
+    recurse: yes
+  with_items:
+    - "{{ tgt_adminConsole_sec_dir }}/jwt/token"
+  when: enable_brkr_authNZ is defined and enable_brkr_authNZ|bool
+
+- name: If broker authN is enabled, copy JWT token file to Pulsar AdminConsole host
+  copy:
+    src: "{{ item.src_file }}/"
+    dest: "{{ item.dest_file }}"
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    force: "{{ force_existing_remote_jwt_token }}"
+  with_items:
+    - { src_file: "{{ local_jwt_src_homedir }}/token/{{ super_user_roles[0] }}.jwt", 
+        dest_file: "{{ tgt_adminConsole_sec_dir }}/jwt/token/{{ super_user_roles[0] }}.jwt" }
+  when: enable_brkr_authNZ is defined and enable_brkr_authNZ|bool
+
+- name: Put the JWT token value in varaible
+  slurp:
+    src: "{{ tgt_adminConsole_sec_dir }}/jwt/token/{{ super_user_roles[0] }}.jwt"
+  register: client_token
+  when: enable_brkr_authNZ is defined and enable_brkr_authNZ|bool
+- debug: msg={{ client_token['content'] | b64decode }}
+  when: show_debug_msg|bool
+
+- name: If broker TLS is enabled, create TLS certificate related security folders on Pulsar AdminConsole host
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    mode: "{{ file_permission_mode }}"
+    recurse: yes
+  with_items:
+    - "{{ tgt_adminConsole_sec_dir }}/tls/rootca"
+  when: enable_brkr_tls is defined and enable_brkr_tls|bool
+
+- name: If TLS is enabled, copy the trusted TLS certificate to Pulsar AdminConsole host
+  copy:
+    src: "{{ item.src_file }}/"
+    dest: "{{ item.dest_file }}"
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    force: "{{ force_existing_remote_tls_certs }}"
+  with_items:
+    - { src_file: "{{ local_tls_src_homedir }}/certs/{{ public_cacert_name }}", 
+        dest_file: "{{ tgt_adminConsole_sec_dir }}/tls/rootca/{{ public_cacert_name }}" }
+  when: enable_brkr_tls is defined and enable_brkr_tls|bool
+
 - name: Copy Pulsar AdminConsole dashboard config (config.js) template
   template:
     src: templates/ac_config.js.tmp
@@ -16,9 +72,8 @@
     - { regexp: '{{ placeHolder_homeCluster }}', line: "{{ cluster_name }}" }
     - { regexp: '{{ placeHolder_apiVersion }}', line: "{{ pulsarLS_ver_main }}" }
     - { regexp: '{{ placeHolder_brokerSvcUrl }}', line: "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}pulsar+ssl://{{ brokerSvcTlsListStr }}{% else %}pulsar://{{ brokerSvcListStr }}{% endif %}" }
-    # - { regexp: '{{ placeHolder_webSvcUrl }}', line: "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}https://{{ webSvcTlsListStr }}{% else %}http://{{ webSvcListStr }}{% endif %}" }
-    - { regexp: '{{ placeHolder_adminTokenPath }}', line: "{% if enable_brkr_authNR is defined and enable_brkr_authNR|bool %}file://{{ tgt_adminConsole_sec_dir }}/jwt/token/{{ super_user_roles[0] }}.jwt{% else %}\"\"{% endif %}" }
-    - { regexp: '{{ placeHolder_caCertificate }}', line: "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ tgt_adminConsole_sec_dir }}/tls/rootca/{{ public_cacert_name }}{% else %}\"\"{% endif %}" }
+    - { regexp: '{{ placeHolder_clientToken }}', line: "{% if enable_brkr_authNZ is defined and enable_brkr_authNZ|bool %}{{ client_token['content'] | b64decode }}{% else %}{% endif %}" }
+    - { regexp: '{{ placeHolder_caCertificate }}', line: "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ tgt_adminConsole_sec_dir }}/tls/rootca/{{ public_cacert_name }}{% else %}{% endif %}" }
     
 - name: Copy Nginx Web Server config (nginx.conf) template
   template:
@@ -33,8 +88,18 @@
       replace: "{{ item.line }}"
   with_items:
     - { regexp: '{{ placeHolder_homeCluster }}', line: "{{ cluster_name }}" }
-    - { regexp: '{{ placeHolder_brkrWebPortList }}', line: "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ brkrWebTLSArrStrVar }}{% else %}{{ brkrWebArrStrVar }}{% endif %}" }
+    - { regexp: '{{ placeHolder_brkrWebPortList }}', line: "{{ brkrWebArrStrVar }}" }
     - { regexp: '{{ placeHolder_acListenHost }}', line: "{{ private_ip }}" }
     - { regexp: '{{ placeHolder_acListenPort }}', line: "{{ ac_listen_port }}" }
     - { regexp: '{{ placeHolder_nginxListenPort }}', line: "{{ nginx_listen_port }}" }
     - { regexp: '{{ placeHolder_nginxStatusPort }}', line: "{{ nginx_status_port }}" }
+
+- name: Replace TLS related Nginx config setting placeholders with cluster specific information
+  replace:
+      path: "/etc/nginx/nginx.conf"
+      regexp: "{{ item.regexp }}"
+      replace: "{{ item.line }}"
+  with_items:
+    - { regexp: '{{ placeHolder_brkrWebPortTlsList }}', line: "{{ brkrWebTLSArrStrVar }}" }
+    - { regexp: 'proxy_pass http://http-pulsar-proxy', line: "proxy_pass https://https-pulsar-proxy" }
+  when: enable_brkr_tls is defined and enable_brkr_tls|bool

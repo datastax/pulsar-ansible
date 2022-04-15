@@ -3,7 +3,7 @@
 # -------------------------------------------
 #
 # - AdminConsole release
-adminConsole_ver: "1.2.6"
+adminConsole_ver: "1.2.8"
 adminConsole_bin_name: "pulsar-admin-console-{{ adminConsole_ver }}.tar.gz"
 
 # - Node.js (needed by AdminConsole) 
@@ -67,13 +67,13 @@ placeHolder_homeCluster: "<<home_cluster>>"
 placeHolder_brokerSvcUrl: "<<broker_svc_url>>"
 placeHolder_webSvcUrl: "<<web_svc_url>>"
 placeHolder_apiVersion: "<<api_version>>"
-placeHolder_adminToken: "<<admin_token>>"
-placeHolder_adminTokenPath: "<<admin_token_path>>"
+placeHolder_clientToken: "<<client_token>>"
 placeHolder_caCertificate: "<<ca_certificate>>"
 placeHolder_acListenHost: "<<ac_host_name>>"
 placeHolder_acListenPort: "<<ac_listen_port>>"
 
 # - Nginx config template place holder
 placeHolder_brkrWebPortList: "<<pulsar_broker_webport_list>>" 
+placeHolder_brkrWebPortTlsList: "<<pulsar_broker_webport_tls_list>>"
 placeHolder_nginxListenPort: "<<ng_listen_port>>"
 placeHolder_nginxStatusPort: "<<ng_status_port>>"

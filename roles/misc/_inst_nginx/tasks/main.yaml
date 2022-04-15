@@ -14,16 +14,16 @@
 - debug: msg="{{ install_nginx }}"
   when: show_debug_msg|bool
 
-- name: Add Nginx repository
-  apt_repository:
-    repo: "deb https://nginx.org/packages/{{ ansible_distribution|lower }}/ {{ ansible_distribution_release|lower }} nginx"
-    state: present
-  when: install_nginx|bool
-
 - name: Add Nginx APT key
   apt_key:
     # keyserver: keyserver.ubuntu.com
     url: http://nginx.org/keys/nginx_signing.key
+    state: present
+  when: install_nginx|bool
+
+- name: Add Nginx repository
+  apt_repository:
+    repo: "deb https://nginx.org/packages/{{ ansible_distribution|lower }}/ {{ ansible_distribution_release|lower }} nginx"
     state: present
   when: install_nginx|bool
 

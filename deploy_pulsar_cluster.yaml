@@ -103,9 +103,7 @@
         ./cleanup.sh
         ./genUserJwtToken.sh -u {{ super_user_roles_list_str }} -c {{ cluster_name }}
         cd ../../../..
-      when: > 
-        enable_security is defined and enable_security|bool and 
-        skip_jwt_token_generation is defined and not skip_jwt_token_generation|bool
+      when: enable_brkr_authNZ is defined and enable_brkr_authNZ|bool and skip_jwt_token_generation is defined and not skip_jwt_token_generation|bool
     - name: If TLS is enabled, call a bash script to create TLS certificate files
       shell: |
         cd bash/security/intransit_encryption
@@ -119,9 +117,7 @@
           -brkr_expr_days {{ brkr_cert_expire_days }} \
           -certSubjLineStr {{ cert_subj_line }}
         cd ../../..
-      when: >
-        enable_security is defined and enable_security|bool and
-        skip_tls_certs_generatation is defined and not skip_tls_certs_generatation|bool  
+      # when: enable_brkr_tls is defined and enable_brkr_tls|bool and skip_tls_certs_generatation is defined and not skip_tls_certs_generatation|bool
 
 
 #########################

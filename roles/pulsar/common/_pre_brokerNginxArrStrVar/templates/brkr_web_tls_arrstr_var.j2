@@ -1,5 +1,5 @@
 {% set webSvcTlsList = [] %}
 {% for node in groups['broker'] %}
-{%   set ignored = webSvcTlsList.append('server ' ~ hostvars[node].private_ip ~ ':' ~ web_svc_port_tls ~ ';') %}
+{%   set ignored = webSvcTlsList.append('    server ' ~ hostvars[node].private_ip ~ ':' ~ web_svc_port_tls ~ ';') %}
 {% endfor %}
 {{ webSvcTlsList | join('\n') }}

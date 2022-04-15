@@ -10,7 +10,7 @@
   with_items:
     - "{{ tgt_pulsar_sec_dir }}/jwt/key"
     - "{{ tgt_pulsar_sec_dir }}/jwt/token"
-  when: enable_brkr_authNR is defined and enable_brkr_authNR|bool
+  when: enable_brkr_authNZ is defined and enable_brkr_authNZ|bool
 
 - name: If broker authN is enabled, copy JWT token related security files from localhost to Pulsar (broker) servers
   copy:
@@ -26,7 +26,7 @@
         dest_file: "{{ tgt_jwt_dest_homedir }}/key/{{ cluster_name }}_jwt_public.key" }
     - { src_file: "{{ local_jwt_src_homedir }}/token/{{ super_user_roles[0] }}.jwt", 
         dest_file: "{{ tgt_jwt_dest_homedir }}/token/{{ super_user_roles[0] }}.jwt" }
-  when: enable_brkr_authNR is defined and enable_brkr_authNR|bool
+  when: enable_brkr_authNZ is defined and enable_brkr_authNZ|bool
 
 - name: If broker authN/authR are enabled, configure authN/authR related settings in the broker config file
   lineinfile:
@@ -42,7 +42,7 @@
     - { regexp: '^brokerClientTlsEnabled=', line: "brokerClientTlsEnabled=true" }
     - { regexp: '^brokerClientAuthenticationPlugin=', line: "brokerClientAuthenticationPlugin=org.apache.pulsar.client.impl.auth.AuthenticationToken" }
     - { regexp: '^brokerClientAuthenticationParameters=', line: "brokerClientAuthenticationParameters=file://{{ tgt_jwt_dest_homedir }}/token/{{ super_user_roles[0] }}.jwt" }
-  when: enable_brkr_authNR is defined and enable_brkr_authNR|bool
+  when: enable_brkr_authNZ is defined and enable_brkr_authNZ|bool
 
 - name: If broker TLS is enabled, create TLS certificate related security folders on Pulsar (broker) servers
   file:
@@ -55,7 +55,7 @@
   with_items:
     - "{{ tgt_pulsar_sec_dir }}/tls/server"
     - "{{ tgt_pulsar_sec_dir }}/tls/rootca"
-  when: enable_brkr_authNR is defined and enable_brkr_authNR|bool
+  when: enable_brkr_authNZ is defined and enable_brkr_authNZ|bool
 
 - name: If broker TLS is enabled, copy TLS certificate related security files from localhost to Pulsar (broker) servers
   copy:

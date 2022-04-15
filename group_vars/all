@@ -21,7 +21,7 @@ customize_datadir: true
 # - Whether or not to download software releases from external internet URLs
 #   * true:  yes
 #   * false: copy software releases from local machine
-internet_download: true
+internet_download: false
 # - Whehter or not to put the SSH user as part of the "pulsar" group 
 ssh_user_in_pulsar_group: true
 
@@ -50,7 +50,7 @@ pulsarLS_bin_name: "lunastreaming-{% if pulsarLS_bin_opt is defined and pulsarLS
 #
 # - DataStax Luna Streaming download
 pulsarLS_download_url_base: "https://github.com/datastax/pulsar/releases/download"
-pulsarLS_bin_download_url: "{{ pulsarLS_download_url_base }}/ls{{ pulsarLS_ver_main | replace('.','') }}_{{ pulsarLS_ver_minor }}/{{ pulsarLS_bin_name }}"
+pulsarLS_bin_download_url: "{{ pulsarLS_download_url_base }}/ls{{ pulsarLS_ver_main | replace('.','') }}_{{ pulsarLS_ver_secondary }}/{{ pulsarLS_bin_name }}"
 
 
 #
@@ -88,3 +88,74 @@ dedicated_func_worker: false
 # -------------------------------------------
 #
 pulsar_client_config_file: "{{ tgt_pulsar_inst_dir }}/conf/client.conf"
+
+
+
+#
+#  Pulsar broker security related settings
+# -------------------------------------------
+#
+
+# - Wether or not to enable Pulsar JWT authentication and authorization
+enable_brkr_authNZ: true
+# - Whether or not to enable Pulsar In-Transit TLS encryption
+enable_brkr_tls: true
+
+enable_security: "{{ (enable_brkr_authNZ is defined and enable_brkr_authNZ|bool) or (enable_brkr_tls is defined and enable_brkr_tls|bool) }}"
+
+# - Pulsar super user role name list when authorization is enabled
+super_user_roles: 
+  - "cluster_admin"
+  - "cluster_admin_2"
+super_user_roles_list_str: "{{ super_user_roles | join(',') }}"
+
+# - Whether or not to skip generating JWT token files on the local host
+skip_jwt_token_generation: false
+# - Whether or not to skip generating TLS certificate files on the local host
+skip_tls_certs_generatation: false
+
+###
+# NOTE: please be careful with 2 settings. 
+#       - if these variables are set to true, existing server side JWT token 
+#         and/or TLS certificate files could be replaced by new ones, which
+#         may cause interruption of existing client connections. 
+#       - by default, these 2 settings should be always set as false!
+# - Whehter or not to force replacing the existing Pulsar server side JWT token files
+force_existing_remote_jwt_token: false
+# - Whehter or not to force replacing the existing Pulsar server side TLS certificate files
+force_existing_remote_tls_certs: false
+
+# - local folders that have the security related files for JWT tokens
+# NOTE: Please do NOT change this setting (considered as a constant)
+local_jwt_src_homedir: "{{ playbook_dir }}/bash/security/authentication/jwt/staging"
+# - local folders that have the security related files for TLS certificates
+# NOTE: Please do NOT change this setting (considered as a constant)
+local_tls_src_homedir: "{{ playbook_dir }}/bash/security/intransit_encryption/staging"
+
+# Target fodlers that have the security related fiels
+tgt_pulsar_sec_dir: "{{ tgt_pulsar_inst_dir }}/security"
+tgt_jwt_dest_homedir: "{{ tgt_pulsar_sec_dir }}/jwt"
+tgt_tls_dest_homedir: "{{ tgt_pulsar_sec_dir }}/tls"
+
+##
+# Self signed root CA related settings
+#
+# - self signed root CA public certificate name
+# NOTE: Please do NOT change this setting (considered as a constant)
+public_cacert_name: "ca.cert.pem"
+# - self signed root CA public certificate expiry days (10 years)
+rootca_cert_expire_days: 3650
+# - self singed root CA private key password
+rootca_key_password: "MyRootCACertPass"
+
+##
+# Signed (broker) server certificate related settings
+#
+# - (broker) server certificate expiry days
+brkr_cert_expire_days: 365
+# - (broker) server private key expiry days
+brkr_key_password: "MyBrkrSrvCertPass"
+
+##
+# - common subject line in the generated certificate
+cert_subj_line: "/C=US/ST=TX/L=Dallas/O=mytest.com"
