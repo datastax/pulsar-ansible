@@ -73,17 +73,17 @@
   any_errors_fatal: true
   roles: 
     # If needed, mount dedicated storage space to bookkeepers
-    - { role: pulsar/bookie/bkie_mntStorage, when: not skip_bookie_block_device_setup|bool }
+    - { role: pulsar/bookkeeper/bkie_mntStorage, when: not skip_bookie_block_device_setup|bool }
     # Config bookies 
-    - { role: pulsar/bookie/bkie_config }
+    - { role: pulsar/bookkeeper/bkie_config }
     # Start bookies
-    - { role: pulsar/bookie/bkie_startSvc }
+    - { role: pulsar/bookkeeper/bkie_startSvc }
 
 # - Sanity test of whether bookies are up and running properly
 - hosts: bookkeeper
   run_once: true
   roles:
-    - { role: pulsar/bookie/bkie_sanityCheck }
+    - { role: pulsar/bookkeeper/bkie_sanityCheck }
 
 
 #########################
@@ -103,7 +103,7 @@
         ./cleanup.sh
         ./genUserJwtToken.sh -u {{ super_user_roles_list_str }} -c {{ cluster_name }}
         cd ../../../..
-      when: enable_brkr_authNZ is defined and enable_brkr_authNZ|bool and skip_jwt_token_generation is defined and not skip_jwt_token_generation|bool
+      when: enable_brkr_authNZ is defined and enable_brkr_authNZ|bool and skip_brkr_jwt_token_generation is defined and not skip_brkr_jwt_token_generation|bool
     - name: If TLS is enabled, call a bash script to create TLS certificate files
       shell: |
         cd bash/security/intransit_encryption
@@ -117,7 +117,7 @@
           -brkr_expr_days {{ brkr_cert_expire_days }} \
           -certSubjLineStr {{ cert_subj_line }}
         cd ../../..
-      when: enable_brkr_tls is defined and enable_brkr_tls|bool and skip_tls_certs_generatation is defined and not skip_tls_certs_generatation|bool
+      when: enable_brkr_tls is defined and enable_brkr_tls|bool and skip_brkr_tls_certs_generatation is defined and not skip_brkr_tls_certs_generatation|bool
 
 
 #########################
@@ -136,7 +136,7 @@
     # Config broker non-security related settings
     - { role: pulsar/broker/brkr_config }
     # If needed, config broker security related settings
-    - { role: pulsar/broker/brkr_secConfig, when: enable_security|bool }
+    - { role: pulsar/broker/brkr_secConfig, when: enable_brkr_security|bool }
 
 # - Start brokers in serial mode
 #   NOTE: concurrent broker start seems having issue when function is enabled (as part of the broker)
@@ -162,7 +162,7 @@
     # Config pulsar client non-security related settings
     - { role: pulsar/client/clnt_config }
     # If needed, config pulsar client security related settings
-    - { role: pulsar/client/clnt_secConfig, when: enable_security|bool }
+    - { role: pulsar/client/clnt_secConfig, when: enable_brkr_security|bool }
 
 
 #########################

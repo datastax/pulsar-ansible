@@ -22,3 +22,28 @@ force_message_rf_setting: false
 cust_ensemble_size: 2
 cust_write_quorum: 1
 cust_ack_quorum: 1
+
+
+#
+#  Pulsar broker security related settings
+# -------------------------------------------
+#
+
+###
+# NOTE: please be careful with 2 settings. 
+#       - if these variables are set to true, existing server side JWT token 
+#         and/or TLS certificate files could be replaced by new ones, which
+#         may cause interruption of existing client connections. 
+#       - by default, these 2 settings should be always set as false!
+# - Whehter or not to force replacing the existing Pulsar server side JWT token files
+force_existing_brkr_jwt_token: false
+# - Whehter or not to force replacing the existing Pulsar server side TLS certificate files
+force_existing_brkr_tls_certs: false
+
+
+##
+# Other configuration items
+forceDeleteTenantAllowed: false           # default false
+forceDeleteNamespaceAllowed: false        # default false
+brokerDeleteInactiveTopicsEnabled: true   # default true 
+topicFencingTimeoutSeconds: 5             # default 0

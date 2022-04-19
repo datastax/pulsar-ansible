@@ -13,13 +13,13 @@
   become: true
   become_method: sudo
   roles: 
-    - { role: pulsar/bookie/bkie_startSvc }
+    - { role: pulsar/bookkeeper/bkie_startSvc }
 
 # - Sanity test of whether bookies are up and running properly
 - hosts: bookkeeper
   run_once: true
   roles:
-    - { role: pulsar/bookie/bkie_sanityCheck }
+    - { role: pulsar/bookkeeper/bkie_sanityCheck }
 
 # Start Pulsar broker nodes, one by one
 - hosts: broker

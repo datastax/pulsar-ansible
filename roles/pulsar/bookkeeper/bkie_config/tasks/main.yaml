@@ -1,0 +1,37 @@
+---
+- name: Create bookeeper data folders"
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    mode: "{{ file_permission_mode }}"
+  with_items:
+    - "{{ bookie_storage_mnt_paths }}"  
+
+#- debug: msg={{ hostvars[groups['cluster_srv'][0]]['zkstrDict'] }}
+- name: Modify bookkeeper main config file - {{ bk_conf_file }}
+  lineinfile:
+    path: "{{ bk_conf_file }}"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { regexp: '^zkServers=', line: "zkServers={{ zkListStrVar }}" }
+    - { regexp: '^bookiePort=', line: 'bookiePort={{ bookie_listening_port }}' }
+    - { regexp: '^httpServerPort=', line: 'httpServerPort={{ bk_stats_port }}' }
+    - { regexp: '^prometheusStatsHttpPort=', line: 'prometheusStatsHttpPort={{ bk_stats_port }}' }
+    - { regexp: '^# journalDirectories=', line: 'journalDirectories={{ bookie_storage_mnt_paths[0]}}' }
+    - { regexp: '^journalDirectories=', line: 'journalDirectories={{ bookie_storage_mnt_paths[0]}}' }
+    - { regexp: '^ledgerDirectories=', line: 'ledgerDirectories={{ bookie_storage_mnt_paths[1]}}' }
+    - { regexp: '^minorCompactionThreshold=', line: 'minorCompactionThreshold={{ minorCompactionThreshold }}' }
+    - { regexp: '^minorCompactionInterval=', line: 'minorCompactionInterval={{ minorCompactionInterval }}' }
+    - { regexp: '^majorCompactionThreshold=', line: 'majorCompactionThreshold={{ majorCompactionThreshold }}' }
+    - { regexp: '^majorCompactionInterval=', line: 'majorCompactionInterval={{ majorCompactionInterval }}' }
+    - { regexp: '^# diskUsageWarnThreshold=', line: 'diskUsageWarnThreshold={{ diskUsageWarnThreshold }}' }
+    - { regexp: '^diskUsageWarnThreshold=', line: 'diskUsageWarnThreshold={{ diskUsageWarnThreshold }}' }
+    - { regexp: '^# diskUsageLwmThreshold=', line: 'diskUsageLwmThreshold={{ diskUsageLwmThreshold }}' }
+    - { regexp: '^diskUsageLwmThreshold=', line: 'diskUsageLwmThreshold={{ diskUsageLwmThreshold }}' }
+    - { regexp: '^diskUsageThreshold=', line: 'diskUsageThreshold={{ diskUsageThreshold }}' }
+    - { regexp: '^gcWaitTime=', line: 'gcWaitTime={{ gcWaitTime }}' }
+    - { regexp: '^diskCheckInterval=', line: 'diskCheckInterval={{ diskCheckInterval }}' }
+    - { regexp: '^logSizeLimit=', line: 'logSizeLimit={{ logSizeLimit }}' }

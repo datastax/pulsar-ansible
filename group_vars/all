@@ -92,39 +92,9 @@ pulsar_client_config_file: "{{ tgt_pulsar_inst_dir }}/conf/client.conf"
 
 
 #
-#  Pulsar broker security related settings
+#  Pulsar security settings
 # -------------------------------------------
 #
-
-# - Wether or not to enable Pulsar JWT authentication and authorization
-enable_brkr_authNZ: true
-# - Whether or not to enable Pulsar In-Transit TLS encryption
-enable_brkr_tls: true
-
-enable_security: "{{ (enable_brkr_authNZ is defined and enable_brkr_authNZ|bool) or (enable_brkr_tls is defined and enable_brkr_tls|bool) }}"
-
-# - Pulsar super user role name list when authorization is enabled
-super_user_roles: 
-  - "cluster_admin"
-  - "cluster_admin_2"
-super_user_roles_list_str: "{{ super_user_roles | join(',') }}"
-
-# - Whether or not to skip generating JWT token files on the local host
-skip_jwt_token_generation: false
-# - Whether or not to skip generating TLS certificate files on the local host
-skip_tls_certs_generatation: false
-
-###
-# NOTE: please be careful with 2 settings. 
-#       - if these variables are set to true, existing server side JWT token 
-#         and/or TLS certificate files could be replaced by new ones, which
-#         may cause interruption of existing client connections. 
-#       - by default, these 2 settings should be always set as false!
-# - Whehter or not to force replacing the existing Pulsar server side JWT token files
-force_existing_remote_jwt_token: false
-# - Whehter or not to force replacing the existing Pulsar server side TLS certificate files
-force_existing_remote_tls_certs: false
-
 # - local folders that have the security related files for JWT tokens
 # NOTE: Please do NOT change this setting (considered as a constant)
 local_jwt_src_homedir: "{{ playbook_dir }}/bash/security/authentication/jwt/staging"
@@ -149,13 +119,34 @@ rootca_cert_expire_days: 3650
 rootca_key_password: "MyRootCACertPass"
 
 ##
+# - common subject line in the generated certificate
+cert_subj_line: "/C=US/ST=TX/L=Dallas/O=mytest.com"
+
+#
+# >>> Broker related security: JWT token and in-transit TLS encryption
+#
+# - Wether or not to enable Pulsar JWT authentication and authorization
+enable_brkr_authNZ: true
+# - Whether or not to enable Pulsar In-Transit TLS encryption
+enable_brkr_tls: true
+
+enable_brkr_security: "{{ (enable_brkr_authNZ is defined and enable_brkr_authNZ|bool) or (enable_brkr_tls is defined and enable_brkr_tls|bool) }}"
+
+# - Pulsar super user role name list when authorization is enabled
+super_user_roles: 
+  - "cluster_admin"
+  - "cluster_admin_2"
+super_user_roles_list_str: "{{ super_user_roles | join(',') }}"
+
+# - Whether or not to skip generating JWT token files on the local host
+skip_brkr_jwt_token_generation: false
+# - Whether or not to skip generating TLS certificate files on the local host
+skip_brkr_tls_certs_generatation: false
+
+##
 # Signed (broker) server certificate related settings
 #
 # - (broker) server certificate expiry days
 brkr_cert_expire_days: 365
 # - (broker) server private key expiry days
 brkr_key_password: "MyBrkrSrvCertPass"
-
-##
-# - common subject line in the generated certificate
-cert_subj_line: "/C=US/ST=TX/L=Dallas/O=mytest.com"

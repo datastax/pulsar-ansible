@@ -35,6 +35,7 @@
     - { regexp: '^managedLedgerDefaultWriteQuorum=', line: 'managedLedgerDefaultWriteQuorum={{ write_quorum_cnt }}' }
     - { regexp: '^managedLedgerDefaultAckQuorum=', line: 'managedLedgerDefaultAckQuorum={{ ack_quorum_cnt }}' }
     - { regexp: '^functionsWorkerEnabled=', line: 'functionsWorkerEnabled=true' }
-    # - { regexp: '^forceDeleteTenantAllowed=', line: 'forceDeleteTenantAllowed=true' }
-    # - { regexp: '^forceDeleteNamespaceAllowed=', line: 'forceDeleteNamespaceAllowed=true' }
-    # - { regexp: '^brokerDeleteInactiveTopicsEnabled=', line: 'brokerDeleteInactiveTopicsEnabled=false' }
+    - { regexp: '^forceDeleteTenantAllowed=', line: 'forceDeleteTenantAllowed={{ forceDeleteTenantAllowed }}' }
+    - { regexp: '^forceDeleteNamespaceAllowed=', line: 'forceDeleteNamespaceAllowed={{ forceDeleteNamespaceAllowed }}' }
+    - { regexp: '^brokerDeleteInactiveTopicsEnabled=', line: 'brokerDeleteInactiveTopicsEnabled={{ brokerDeleteInactiveTopicsEnabled }}' }
+    - { regexp: '^topicFencingTimeoutSeconds=', line: 'topicFencingTimeoutSeconds={{ topicFencingTimeoutSeconds }}' }

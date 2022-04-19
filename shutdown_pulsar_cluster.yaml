@@ -15,7 +15,7 @@
   any_errors_fatal: true
   # serial: 1
   roles:
-    - { role: pulsar/bookie/bkie_stopSvc }
+    - { role: pulsar/bookkeeper/bkie_stopSvc }
   post_tasks:
     - name: If requested, clean-up bookkeeper data directories
       shell: rm -rf {{ item }}

@@ -18,7 +18,7 @@
     dest: "{{ item.dest_file }}"
     owner: "{{ pulsar_user }}"
     group: "{{ pulsar_user_group }}"
-    force: "{{ force_existing_remote_jwt_token }}"
+    force: "{{ force_existing_brkr_jwt_token }}"
   with_items:
     - { src_file: "{{ local_jwt_src_homedir }}/key/{{ cluster_name }}_jwt_private.key", 
         dest_file: "{{ tgt_jwt_dest_homedir }}/key/{{ cluster_name }}_jwt_private.key" }
@@ -63,7 +63,7 @@
     dest: "{{ item.dest_file }}"
     owner: "{{ pulsar_user }}"
     group: "{{ pulsar_user_group }}"
-    force: "{{ force_existing_remote_tls_certs }}"
+    force: "{{ force_existing_brkr_tls_certs }}"
   with_items:
     - { src_file: "{{ local_tls_src_homedir }}/brokers/{{ broker_key_name }}", 
         dest_file: "{{ tgt_tls_dest_homedir }}/server/{{ broker_key_name }}" }

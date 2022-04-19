@@ -29,3 +29,22 @@ bookie_storage_mnt_paths:
 bookie_jvm_options: > 
   {% if customize_jvm is defined and customize_jvm|bool %}PULSAR_MEM="{{ pulsar_mem_bookie }}" {% endif %}
   PULSAR_LOG_DIR="{{ tgt_pulsar_log_homedir }}"
+
+####
+# - Compaction related settings
+#   NOTE: must make sure majorCompactionInterval > minorCompactionInterval > gcWaitTime
+minorCompactionThreshold: 0.4   # default 0.2
+minorCompactionInterval: 360    # default 3600 seconds (6 minutes vs 1 hour)
+majorCompactionThreshold: 0.8   # default 0.5
+majorCompactionInterval:  1200  # default 86400 seconds (20 minutes vs 1 day)
+gcWaitTime: 300000              # default 900000 milli-seconds (15 minutes)
+
+# - Max. disk utilization and entry log sizediskUsageWarnThreshold
+#   NOTE: always make sure the following conditions are met: 
+#   diskUsageWarnThreshold <= diskUsageLwmThreshold <= diskUsageThreshold
+diskUsageWarnThreshold: 0.7
+diskUsageLwmThreshold: 0.75   # default 0.90 
+diskUsageThreshold: 0.8       # default 0.95
+diskCheckInterval: 1800       # default 10000
+#   NOTE: make sure logSizeLimit is smaller than "disk capacity * (1 - diskUsageThreshold)"
+logSizeLimit: 536870912       # 500 MB; default 1073741824 (1GB)
