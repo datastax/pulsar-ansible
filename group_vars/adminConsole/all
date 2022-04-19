@@ -45,6 +45,11 @@ tgt_adminConsole_sec_dir: "{{ tgt_adminConsole_inst_dir }}/security"
 # - AdminConsole listending port (DO NOT change it. This is a constant)
 ac_listen_port: 6454
 
+# - Whehter or not to force replacing the existing AdminConsole server side JWT token files
+force_existing_adminConsole_jwt_token: true
+# - Whehter or not to force replacing the existing AdminConsole server side TLS certificate files
+force_existing_adminConsole_tls_certs: true
+
 
 #
 # Nginx specific settings
