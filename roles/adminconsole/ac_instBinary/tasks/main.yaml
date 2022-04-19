@@ -14,10 +14,10 @@
     state: present
 
 # This makes it easier to run Pulsar CLI commands under the current SSH user
-- name: If needed and for convenience, add SSH user into group {{ pulsar_user }}
+- name: If needed and for convenience, add SSH user into group {{ pulsar_user_group }}
   user:
     name: "{{ ansible_ssh_user }}"
-    groups: "{{ pulsar_user }}"
+    groups: "{{ pulsar_user_group }}"
     append: yes
   when: ssh_user_in_pulsar_group|bool
 
