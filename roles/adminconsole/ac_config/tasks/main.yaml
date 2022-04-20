@@ -29,7 +29,7 @@
   register: client_token
   when: enable_brkr_authNZ is defined and enable_brkr_authNZ|bool
 - debug: msg={{ client_token['content'] | b64decode | trim }}
-  when: show_debug_msg|bool
+  when: show_debug_msg|bool and enable_brkr_authNZ is defined and enable_brkr_authNZ|bool
 
 - name: If broker TLS is enabled, create TLS certificate related security folders on Pulsar AdminConsole host
   file:
@@ -63,6 +63,9 @@
     group: "{{ pulsar_user_group }}"
     mode: "{{ file_permission_mode_noexec }}"
 
+# - debug: msg={{ hostvars[groups['broker'][0]]['brokerSvcListStr'] }}
+#   when: show_debug_msg|bool
+
 - name: Replace Pulsar AdminConsole config setting placeholders with cluster specific information
   replace:
       path: "{{ tgt_adminConsole_inst_dir }}/dashboard/dist/config.js"
@@ -71,7 +74,7 @@
   with_items:
     - { regexp: '{{ placeHolder_homeCluster }}', line: "{{ cluster_name }}" }
     - { regexp: '{{ placeHolder_apiVersion }}', line: "{{ pulsarLS_ver_main }}" }
-    - { regexp: '{{ placeHolder_brokerSvcUrl }}', line: "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}pulsar+ssl://{{ brokerSvcTlsListStr }}{% else %}pulsar://{{ brokerSvcListStr }}{% endif %}" }
+    - { regexp: '{{ placeHolder_brokerSvcUrl }}', line: "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}pulsar+ssl://{{ hostvars[groups['broker'][0]]['brokerSvcTlsListStr'] }}{% else %}pulsar://{{ hostvars[groups['broker'][0]]['brokerSvcListStr'] }}{% endif %}" }
     - { regexp: '{{ placeHolder_clientToken }}', line: "{% if enable_brkr_authNZ is defined and enable_brkr_authNZ|bool %}{{ client_token['content'] | b64decode | trim }}{% else %}{% endif %}" }
     - { regexp: '{{ placeHolder_caCertificate }}', line: "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ tgt_adminConsole_sec_dir }}/tls/rootca/{{ public_cacert_name }}{% else %}{% endif %}" }
     
@@ -88,7 +91,7 @@
       replace: "{{ item.line }}"
   with_items:
     - { regexp: '{{ placeHolder_homeCluster }}', line: "{{ cluster_name }}" }
-    - { regexp: '{{ placeHolder_brkrWebPortList }}', line: "{{ brkrWebArrStrVar }}" }
+    - { regexp: '{{ placeHolder_brkrWebPortList }}', line: "{{ hostvars[groups['broker'][0]]['brkrWebArrStrVar'] }}" }
     - { regexp: '{{ placeHolder_acListenHost }}', line: "{{ private_ip }}" }
     - { regexp: '{{ placeHolder_acListenPort }}', line: "{{ ac_listen_port }}" }
     - { regexp: '{{ placeHolder_nginxListenPort }}', line: "{{ nginx_listen_port }}" }
