@@ -143,6 +143,17 @@ skip_brkr_jwt_token_generation: false
 # - Whether or not to skip generating TLS certificate files on the local host
 skip_brkr_tls_certs_generatation: false
 
+###
+# NOTE: please be careful with 2 settings. 
+#       - if these variables are set to true, existing server side JWT token 
+#         and/or TLS certificate files could be replaced by new ones, which
+#         may cause interruption of existing client connections. 
+#       - by default, these 2 settings should be always set as false!
+# - Whehter or not to force replacing the existing Pulsar server side JWT token files
+force_existing_brkr_jwt_token: false
+# - Whehter or not to force replacing the existing Pulsar server side TLS certificate files
+force_existing_brkr_tls_certs: false
+
 ##
 # Signed (broker) server certificate related settings
 #
