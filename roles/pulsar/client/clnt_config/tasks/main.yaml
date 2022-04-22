@@ -5,5 +5,5 @@
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items:
-    - { regexp: '^webServiceUrl=', line: "webServiceUrl=http://{{ hostvars[groups['pulsarServer'][0]]['webSvcListStr'] }}" }
-    - { regexp: '^brokerServiceUrl=', line: "brokerServiceUrl=pulsar://{{ hostvars[groups['pulsarServer'][0]]['brokerSvcListStr'] }}" }
+    - { regexp: '^webServiceUrl=', line: "webServiceUrl=http://{{ hostvars[groups['broker'][0]]['webSvcListStr'] }}" }
+    - { regexp: '^brokerServiceUrl=', line: "brokerServiceUrl=pulsar://{{ hostvars[groups['broker'][0]]['brokerSvcListStr'] }}" }

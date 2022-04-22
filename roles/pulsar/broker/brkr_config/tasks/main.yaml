@@ -26,8 +26,8 @@
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items:
-    - { regexp: '^zookeeperServers=', line: "zookeeperServers={{ zkListStrVar }}" }
-    - { regexp: '^configurationStoreServers=', line: "configurationStoreServers={{ zkListStrVar }}" }
+    - { regexp: '^zookeeperServers=', line: "zookeeperServers={{ hostvars[groups['zookeeper'][0]]['zkListStrVar'] }}" }
+    - { regexp: '^configurationStoreServers=', line: "configurationStoreServers={{ hostvars[groups['zookeeper'][0]]['zkListStrVar'] }}" }
     - { regexp: '^clusterName=', line: 'clusterName={{ cluster_name }}' }
     - { regexp: '^brokerServicePort=', line: 'brokerServicePort={{ broker_svc_port }}' }
     - { regexp: '^webServicePort=', line: 'webServicePort={{ web_svc_port }}' }

@@ -6,9 +6,9 @@
   shell: |
     {{ tgt_pulsar_inst_dir }}/bin/pulsar initialize-cluster-metadata \
     --cluster {{ cluster_name }} \
-    --zookeeper {{ zkListStrVar }} \
-    --configuration-store {{ zkListStrVar }} \
-    --web-service-url http://{{ webSvcListStr }} \
-    --broker-service-url pulsar://{{ brokerSvcListStr }} \
-    --web-service-url-tls https://{{ webSvcTlsListStr }} \
-    --broker-service-url-tls pulsar+ssl://{{ brokerSvcTlsListStr }} 
+    --zookeeper {{ hostvars[groups['zookeeper'][0]]['zkListStrVar'] }} \
+    --configuration-store {{ hostvars[groups['zookeeper'][0]]['zkListStrVar'] }} \
+    --web-service-url http://{{ hostvars[groups['broker'][0]]['webSvcListStr'] }} \
+    --broker-service-url pulsar://{{ hostvars[groups['broker'][0]]['brokerSvcListStr'] }} \
+    --web-service-url-tls https://{{ hostvars[groups['broker'][0]]['webSvcTlsListStr'] }} \
+    --broker-service-url-tls pulsar+ssl://{{ hostvars[groups['broker'][0]]['brokerSvcTlsListStr'] }} 

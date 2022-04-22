@@ -16,7 +16,7 @@
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items:
-    - { regexp: '^zkServers=', line: "zkServers={{ zkListStrVar }}" }
+    - { regexp: '^zkServers=', line: "zkServers={{ hostvars[groups['zookeeper'][0]]['zkListStrVar'] }}" }
     - { regexp: '^bookiePort=', line: 'bookiePort={{ bookie_listening_port }}' }
     - { regexp: '^httpServerPort=', line: 'httpServerPort={{ bk_stats_port }}' }
     - { regexp: '^prometheusStatsHttpPort=', line: 'prometheusStatsHttpPort={{ bk_stats_port }}' }

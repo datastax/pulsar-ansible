@@ -41,7 +41,7 @@
 - debug: msg={{ pulsar_distro_stat.stat }}
   when: show_debug_msg|bool
 
-- name: If Pulsar doesn't exist on the target host yet, copy it from local host when {{ internet_download }} is 'false'
+- name: If Pulsar doesn't exist on the target host yet, copy it from local host when 'internet_download' is false
   copy:
     src: "{{ local_bin_homedir }}/{{ pulsarLS_bin_name }}"
     dest: "{{ tgt_pkg_pular_dir }}/{{ pulsarLS_bin_name }}"
@@ -49,7 +49,7 @@
     group: "{{ pulsar_user_group }}"
   when: not pulsar_distro_stat.stat.exists and not internet_download|bool
 
-- name: If Pulsar doesn't exist on the target host yet, download Pulsar from internet when {{ internet_download }} is 'true' 
+- name: If Pulsar doesn't exist on the target host yet, download Pulsar from internet when 'internet_download' is true 
   get_url:
     url: "{{ pulsarLS_bin_download_url }}"
     dest: "{{ tgt_pkg_pular_dir }}/{{ pulsarLS_bin_name }}"

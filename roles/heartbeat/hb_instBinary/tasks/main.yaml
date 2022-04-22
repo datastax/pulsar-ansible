@@ -40,7 +40,7 @@
 - debug: msg={{ heartBeat_distro_stat.stat }}
   when: show_debug_msg|bool
 
-- name: If HeartBeat doesn't exist on the target host yet, copy it from local host when {{ internet_download }} is 'false'
+- name: If HeartBeat doesn't exist on the target host yet, copy it from local host when 'internet_download' is false
   copy:
     src: "{{ local_bin_homedir }}/{{ heartBeat_bin_name }}"
     dest: "{{ tgt_pkg_heartBeat_dir }}/{{ heartBeat_bin_name }}"
@@ -48,7 +48,7 @@
     group: "{{ pulsar_user_group }}"
   when: not heartBeat_distro_stat.stat.exists and not internet_download|bool
 
-- name: If HeartBeat doesn't exist on the target host yet, download it from internet when {{ internet_download }} is 'true' 
+- name: If HeartBeat doesn't exist on the target host yet, download it from internet when 'internet_download' is true
   get_url:
     url: "{{ heartBeat_download_url }}"
     dest: "{{ tgt_pkg_heartBeat_dir }}/{{ heartBeat_bin_name }}"
