@@ -55,6 +55,28 @@ force_existing_adminConsole_tls_certs: true
 # Nginx specific settings
 # -------------------------------------------
 #
+# - Whether or not to start Nginx using systemd serivce script
+#   NOTE: treat this as a constant (e.g. always start Nginx server from command line instead of using systemd service)
+systemd_nginx_svc: false
+nginx_bin_file: /usr/sbin/nginx
+
+# - When starting Nginx using systemd, use system default settings
+nginx_dft_config_dir: /etc/nginx
+nginx_dft_log_dir: /var/log/nginx
+nginx_dft_pid_file: /var/run/nginx.pid
+
+# - When not starting Nginx using systemd, use customized settigns
+nginx_cust_config_dir: "{{ tgt_adminConsole_inst_dir }}/nginx"
+nginx_cust_log_dir: "{{ tgt_adminConsole_inst_dir }}/nginx/logs"
+nginx_cust_pid_file: "{{ nginx_cust_config_dir }}/nginx.pid"
+
+# 
+nginx_log_dir: "{% if systemd_nginx_svc is defined and systemd_nginx_svc|bool %}{{ nginx_dft_log_dir }}{% else %}{{ nginx_cust_log_dir }}{% endif %}"
+nginx_config_dir: "{% if systemd_nginx_svc is defined and systemd_nginx_svc|bool %}{{ nginx_dft_config_dir }}{% else %}{{ nginx_cust_config_dir }}{% endif %}"
+nginx_config_file: "{{ nginx_config_dir }}/nginx.conf"
+nginx_pid_file: "{% if systemd_nginx_svc is defined and systemd_nginx_svc|bool %}{{ nginx_dft_pid_file }}{% else %}{{ nginx_cust_pid_file }}{% endif %}"
+
+
 nginx_listen_port: 9090
 nginx_status_port: 9091
 
@@ -80,5 +102,7 @@ placeHolder_acListenPort: "<<ac_listen_port>>"
 # - Nginx config template place holder
 placeHolder_brkrWebPortList: "<<pulsar_broker_webport_list>>" 
 placeHolder_brkrWebPortTlsList: "<<pulsar_broker_webport_tls_list>>"
-placeHolder_nginxListenPort: "<<ng_listen_port>>"
-placeHolder_nginxStatusPort: "<<ng_status_port>>"
+placeHolder_nginxLogDir: "<<ngx_log_dir>>"
+placeHolder_nginxPid: "<<ngx_pid>>"
+placeHolder_nginxListenPort: "<<ngx_listen_port>>"
+placeHolder_nginxStatusPort: "<<ngx_status_port>>"

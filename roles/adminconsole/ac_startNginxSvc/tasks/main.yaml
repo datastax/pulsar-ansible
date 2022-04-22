@@ -1,0 +1,29 @@
+---
+- name: Check if Nginx is already running (listening on port {{ nginx_listen_port }})
+  wait_for:
+    host: "{{ private_ip }}"
+    port: "{{ nginx_listen_port }}"
+    delay: 5
+    timeout: 10
+    msg: "Timeout waiting for port {{ nginx_listen_port }} to respond"
+  register: ngx_port_check
+  ignore_errors: yes
+
+- name: If needed, start Nginx server using systemd service script
+  service:
+    name: nginx
+    state: started
+  when: ngx_port_check.failed == true and systemd_nginx_svc is defined and systemd_nginx_svc|bool
+
+- name: Otherwise, start Nginx server using command line
+  become: true
+  become_method: sudo
+  ## NOTE: Do NOT use Ansible "become_user"! Otherwise, ansible will fail to write .async file under /home/{{ pulsar_user }}
+  # become_user: "{{ pulsar_user }}"
+  shell: "nohup sudo -u {{ pulsar_user }} {{ nginx_bin_file }} -c {{ nginx_config_file }} 2>&1 &"
+  # Async shell execution with a very large number
+  async: 3153600000 # 100 years
+  register: ngx_startSvc_cmdcat
+  when: ngx_port_check.failed == true and not (systemd_nginx_svc is defined and systemd_nginx_svc|bool)
+- debug: msg="ngx_startSvc_cmdcat - {{ ngx_startSvc_cmdcat }}"
+  when: show_debug_msg|bool and not (systemd_nginx_svc is defined and systemd_nginx_svc|bool)

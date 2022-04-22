@@ -26,9 +26,5 @@
     - { role: misc/_inst_nginx }
     - { role: adminconsole/ac_instBinary }
     - { role: adminconsole/ac_config }
-    - { role: adminconsole/ac_startSvc }
-  post_tasks:
-    - name: Start Nginx Server
-      service:
-        name: nginx
-        state: started
+    - { role: adminconsole/ac_startAcSvc }
+    - { role: adminconsole/ac_startNginxSvc }

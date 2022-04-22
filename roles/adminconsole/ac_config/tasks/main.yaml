@@ -77,16 +77,31 @@
     - { regexp: '{{ placeHolder_brokerSvcUrl }}', line: "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}pulsar+ssl://{{ hostvars[groups['pulsarServer'][0]]['brokerSvcTlsListStr'] }}{% else %}pulsar://{{ hostvars[groups['pulsarServer'][0]]['brokerSvcListStr'] }}{% endif %}" }
     - { regexp: '{{ placeHolder_clientToken }}', line: "{% if enable_brkr_authNZ is defined and enable_brkr_authNZ|bool %}{{ client_token['content'] | b64decode | trim }}{% else %}{% endif %}" }
     - { regexp: '{{ placeHolder_caCertificate }}', line: "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ tgt_adminConsole_sec_dir }}/tls/rootca/{{ public_cacert_name }}{% else %}{% endif %}" }
-    
+
+- name: If needed, create a folder to host customized nginx.conf file
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    mode: "{{ file_permission_mode }}"
+    recurse: yes
+  with_items:
+    - "{{ nginx_cust_config_dir }}"
+    - "{{ nginx_cust_log_dir }}"
+  when: not (systemd_nginx_svc is defined and systemd_nginx_svc|bool)
+
 - name: Copy Nginx Web Server config (nginx.conf) template
   template:
     src: templates/ac_nginx.conf.tmp
-    dest: "/etc/nginx/nginx.conf"
+    dest: "{{ nginx_config_file }}"
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
     mode: "{{ file_permission_mode_noexec }}"
 
 - name: Replace Nginx config setting placeholders with cluster specific information
   replace:
-      path: "/etc/nginx/nginx.conf"
+      path: "{{ nginx_config_file }}"
       regexp: "{{ item.regexp }}"
       replace: "{{ item.line }}"
   with_items:
@@ -94,12 +109,14 @@
     - { regexp: '{{ placeHolder_brkrWebPortList }}', line: "{{ hostvars[groups['pulsarServer'][0]]['brkrWebArrStrVar'] }}" }
     - { regexp: '{{ placeHolder_acListenHost }}', line: "{{ private_ip }}" }
     - { regexp: '{{ placeHolder_acListenPort }}', line: "{{ ac_listen_port }}" }
+    - { regexp: '{{ placeHolder_nginxLogDir }}', line: "{{ nginx_log_dir }}" }
+    - { regexp: '{{ placeHolder_nginxPid }}', line: "{{ nginx_pid_file }}" }
     - { regexp: '{{ placeHolder_nginxListenPort }}', line: "{{ nginx_listen_port }}" }
     - { regexp: '{{ placeHolder_nginxStatusPort }}', line: "{{ nginx_status_port }}" }
 
 - name: Replace TLS related Nginx config setting placeholders with cluster specific information
   replace:
-      path: "/etc/nginx/nginx.conf"
+      path: "{{ nginx_config_file }}"
       regexp: "{{ item.regexp }}"
       replace: "{{ item.line }}"
   with_items:

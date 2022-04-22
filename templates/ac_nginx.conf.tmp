@@ -1,6 +1,6 @@
 worker_processes  3;
-error_log  /var/log/nginx/error.log;
-pid        /var/run/nginx.pid;
+error_log  <<ngx_log_dir>>/error.log;
+pid        <<ngx_pid>>;
 events {
   worker_connections  10240;
 }
@@ -24,8 +24,8 @@ http {
     'useragent:$http_user_agent\t'
     'forwardedfor:$http_x_forwarded_for\t'
     'request_time:$request_time';
-  
-  access_log /var/log/nginx/access.log main;
+
+  access_log <<ngx_log_dir>>/access.log main;
 
   upstream backend {
     server localhost:<<ac_listen_port>>;
@@ -148,7 +148,7 @@ http {
     # }
     # <--!
 
-    listen <<ng_listen_port>> default_server;
+    listen <<ngx_listen_port>> default_server;
 
     ##################
     ## !->
@@ -169,6 +169,6 @@ http {
       deny all;
     }
 
-    listen <<ng_status_port>> ;
+    listen <<ngx_status_port>> ;
   }
 }
