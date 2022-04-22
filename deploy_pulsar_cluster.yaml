@@ -2,7 +2,7 @@
 #########################
 # PreWork
 # -----------------------
-- hosts: pulsarServer
+- hosts: LSCluster
   become: true
   become_method: sudo
   any_errors_fatal: true
@@ -161,7 +161,10 @@
   roles:
     # Config pulsar client non-security related settings
     - { role: pulsar/client/clnt_config }
-    # If needed, config pulsar client security related settings
+    # Config pulsar clients with security settings
+    # NOTE: Make sure to execute  "deploy_pulsar_cluster.yaml" playbook first, 
+    #       which will deploy the required JWT token and TLS certificate files
+    #       if Pulsar security feature is enabled !
     - { role: pulsar/client/clnt_secConfig, when: enable_brkr_security|bool }
 
 
