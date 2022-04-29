@@ -57,7 +57,7 @@ force_existing_adminConsole_tls_certs: false
 #
 # - Whether or not to start Nginx using systemd serivce script
 #   NOTE: treat this as a constant (e.g. always start Nginx server from command line instead of using systemd service)
-systemd_nginx_svc: true
+systemd_nginx_svc: false
 nginx_bin_file: /usr/sbin/nginx
 
 # - When starting Nginx using systemd, use system default settings

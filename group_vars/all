@@ -126,9 +126,9 @@ cert_subj_line: "/C=US/ST=TX/L=Dallas/O=mytest.com"
 # >>> Broker related security: JWT token and in-transit TLS encryption
 #
 # - Wether or not to enable Pulsar JWT authentication and authorization
-enable_brkr_authNZ: false
+enable_brkr_authNZ: true
 # - Whether or not to enable Pulsar In-Transit TLS encryption
-enable_brkr_tls: false
+enable_brkr_tls: true
 
 enable_brkr_security: "{{ (enable_brkr_authNZ is defined and enable_brkr_authNZ|bool) or (enable_brkr_tls is defined and enable_brkr_tls|bool) }}"
 
