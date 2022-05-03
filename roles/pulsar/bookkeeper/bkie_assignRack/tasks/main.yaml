@@ -1,6 +1,7 @@
+---
 - name: Assign bookies to racks
   shell: "{{ tgt_pulsar_inst_dir }}/bin/pulsar-admin bookies set-bookie-rack --bookie {{ private_ip }}:{{ bookie_listening_port }} --rack {{ rack_name }} --hostname {{ private_ip }}"
-  ignore_error: yes
+  ignore_errors: yes
   register: bookie_set_cmd
 - debug: msg="bookie_set_cmd - {{ bookie_set_cmd }}"
   when: show_debug_msg|bool

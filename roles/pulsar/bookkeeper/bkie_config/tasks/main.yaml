@@ -1,5 +1,5 @@
 ---
-- name: Create bookeeper data folders"
+- name: Create bookeeper data folders
   file:
     path: "{{ item }}"
     state: directory
