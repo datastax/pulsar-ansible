@@ -1,0 +1,23 @@
+---
+- name: Stop the Pulsar server component ({{ srv_component }}), if it is already running
+  become: true
+  become_method: sudo
+  become_user: "{{ pulsar_user }}"
+  shell: "{{ tgt_pulsar_inst_dir }}/bin/pulsar-daemon stop {{ srv_component }}"
+  when: srvStarted|trim|bool
+
+- name: Wait until the Pulsar server component ({{ srv_component }}) listening port(s) ({{ svr_ports }}) are gone
+  wait_for:
+    host: "{{ private_ip }}"
+    port: "{{ item }}"
+    state: stopped
+    delay: 2
+    timeout: 120
+  with_items:
+    - "{{ srv_ports }}"
+
+- name: Delete the Pulsar server component process ID file
+  file:
+    path: "{{ tgt_pulsar_inst_dir }}/bin/pulsar-{{ srv_component }}.pid"
+    state: absent
+  ignore_errors: yes

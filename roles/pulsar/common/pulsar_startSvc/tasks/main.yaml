@@ -1,0 +1,29 @@
+---
+- name: Check if Pulsar server component process ID file already exists
+  stat:
+    path: "{{ tgt_pulsar_inst_dir }}/bin/pulsar-{{ srv_component }}.pid"
+  register: srv_pid_stat
+- debug: msg="{{ srv_pid_stat }}"
+  when: show_debug_msg|bool
+
+- name: Delete obsolete server component process ID file
+  file:
+    path: "{{ tgt_pulsar_inst_dir }}/bin/pulsar-broker.pid"
+    state: absent
+  when: not srvStarted|trim|bool and srv_pid_stat.stat.exists
+
+- name: Start the Pulsar server component ({{ srv_component }}), if it is not running yet
+  become: true
+  become_method: sudo
+  become_user: "{{ pulsar_user }}"
+  shell: "{{ srv_options|trim }} {{ tgt_pulsar_inst_dir }}/bin/pulsar-daemon start {{ srv_component }}"
+  when: not srvStarted|trim|bool
+
+- name: Wait until the Pulsar server component ({{ srv_component }}) listening port(s) {{ srv_ports }} are ready
+  wait_for:
+    host: "{{ private_ip }}"
+    port: "{{ item }}"
+    delay: 2
+    timeout: 120
+  with_items:
+    - "{{ srv_ports }}"

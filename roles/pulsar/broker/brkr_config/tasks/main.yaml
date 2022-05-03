@@ -34,8 +34,11 @@
     - { regexp: '^managedLedgerDefaultEnsembleSize=', line: 'managedLedgerDefaultEnsembleSize={{ ensemble_size }}'}
     - { regexp: '^managedLedgerDefaultWriteQuorum=', line: 'managedLedgerDefaultWriteQuorum={{ write_quorum_cnt }}' }
     - { regexp: '^managedLedgerDefaultAckQuorum=', line: 'managedLedgerDefaultAckQuorum={{ ack_quorum_cnt }}' }
-    - { regexp: '^functionsWorkerEnabled=', line: 'functionsWorkerEnabled=true' }
     - { regexp: '^forceDeleteTenantAllowed=', line: 'forceDeleteTenantAllowed={{ forceDeleteTenantAllowed }}' }
     - { regexp: '^forceDeleteNamespaceAllowed=', line: 'forceDeleteNamespaceAllowed={{ forceDeleteNamespaceAllowed }}' }
     - { regexp: '^brokerDeleteInactiveTopicsEnabled=', line: 'brokerDeleteInactiveTopicsEnabled={{ brokerDeleteInactiveTopicsEnabled }}' }
     - { regexp: '^topicFencingTimeoutSeconds=', line: 'topicFencingTimeoutSeconds={{ topicFencingTimeoutSeconds }}' }
+    #### 
+    ## - Enable function worker as part of the broker (not recommended for PROD environment)
+    ##   NOTE/TBD: improve dedicated function worker deployment!
+    # - { regexp: '^functionsWorkerEnabled=', line: 'functionsWorkerEnabled=true' }

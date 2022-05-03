@@ -70,7 +70,7 @@ nginx_cust_config_dir: "{{ tgt_adminConsole_inst_dir }}/nginx"
 nginx_cust_log_dir: "{{ tgt_adminConsole_inst_dir }}/nginx/logs"
 nginx_cust_pid_file: "{{ nginx_cust_config_dir }}/nginx.pid"
 
-# 
+# - Generic Nginx config, log, and PID files
 nginx_log_dir: "{% if systemd_nginx_svc is defined and systemd_nginx_svc|bool %}{{ nginx_dft_log_dir }}{% else %}{{ nginx_cust_log_dir }}{% endif %}"
 nginx_config_dir: "{% if systemd_nginx_svc is defined and systemd_nginx_svc|bool %}{{ nginx_dft_config_dir }}{% else %}{{ nginx_cust_config_dir }}{% endif %}"
 nginx_config_file: "{{ nginx_config_dir }}/nginx.conf"

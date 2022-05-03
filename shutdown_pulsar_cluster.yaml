@@ -4,9 +4,25 @@
   become: true
   become_method: sudo
   any_errors_fatal: true
-  # serial: 1
+  vars:
+    srvStarted: True
   roles:
-    - { role: pulsar/broker/brkr_stopSvc }
+    # Check the current status of brokers
+    - { role: misc/_check_svc_status, 
+        srv_component: 'broker', 
+        srv_ports: [
+            "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ web_svc_port_tls }}{% else %}{{ web_svc_port }}{% endif %}",
+            "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ broker_svc_port_tls }}{% else %}{{ broker_svc_port }}{% endif %}"
+          ] 
+      }
+    # Stop brokers
+    - { role: pulsar/common/pulsar_stopSvc, 
+        srv_component: 'broker', 
+        srv_ports: [
+            "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ web_svc_port_tls }}{% else %}{{ web_svc_port }}{% endif %}",
+            "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ broker_svc_port_tls }}{% else %}{{ broker_svc_port }}{% endif %}"
+          ] 
+      }
 
 # Stop bookies 
 - hosts: bookkeeper
@@ -15,7 +31,14 @@
   any_errors_fatal: true
   # serial: 1
   roles:
-    - { role: pulsar/bookkeeper/bkie_stopSvc }
+    # Check the current status of bookies
+    - { role: misc/_check_svc_status, 
+        srv_component: 'bookie', 
+        srv_ports: ["{{ bookie_listening_port }}"] }
+    # Stop bookies
+    - { role: pulsar/common/pulsar_stopSvc, 
+        srv_component: 'bookie', 
+        srv_ports: ["{{ bookie_listening_port }}"] }
   post_tasks:
     - name: If requested, clean-up bookkeeper data directories
       shell: rm -rf {{ item }}
@@ -33,7 +56,14 @@
   any_errors_fatal: true
   # serial: 1
   roles:
-    - { role: pulsar/zookeeper/zkpr_stopSvc }
+    # Check the current status of bookies
+    - { role: misc/_check_svc_status, 
+        srv_component: 'zookeeper', 
+        srv_ports: ["{{ zk_clnt_port }}"] }
+    # Stop bookies
+    - { role: pulsar/common/pulsar_stopSvc, 
+        srv_component: 'zookeeper', 
+        srv_ports: ["{{ zk_clnt_port }}"] }
   post_tasks:
     - name: If requested, clean-up zookeeper data directories
       shell: rm -rf {{ tgt_pulsar_zk_data_homedir }}
@@ -41,7 +71,7 @@
         warn: no
       when: purge_pulsar is defined and purge_pulsar|bool  
 
-# Clean up old logs
+# Clean up pulsar binaries and logs
 - hosts: pulsarServer
   become: true
   become_method: sudo

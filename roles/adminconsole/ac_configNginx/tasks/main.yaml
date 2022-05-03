@@ -1,0 +1,38 @@
+---
+- name: If needed, create a folder to host customized nginx.conf file
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    mode: "{{ file_permission_mode }}"
+    recurse: yes
+  with_items:
+    - "{{ nginx_cust_config_dir }}"
+    - "{{ nginx_cust_log_dir }}"
+  when: not (systemd_nginx_svc is defined and systemd_nginx_svc|bool)
+
+- name: Copy Nginx Web Server config (nginx.conf) template
+  template:
+    src: templates/ac_nginx.conf.tmp
+    dest: "{{ nginx_config_file }}"
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    mode: "{{ file_permission_mode_noexec }}"
+
+- name: Replace Nginx config setting placeholders with cluster specific information
+  replace:
+      path: "{{ nginx_config_file }}"
+      regexp: "{{ item.regexp }}"
+      replace: "{{ item.line }}"
+  with_items:
+    - { regexp: '{{ placeHolder_homeCluster }}', line: "{{ cluster_name }}" }
+    - { regexp: '{{ placeHolder_brkrWebPortList }}', line: "{{ hostvars[groups['broker'][0]]['brkrWebArrStrVar'] }}" }
+    - { regexp: '{{ placeHolder_brkrWebPortTlsList }}', line: "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ hostvars[groups['broker'][0]]['brkrWebTLSArrStrVar'] }}{% else %}{{ hostvars[groups['broker'][0]]['brkrWebArrStrVar'] }}{% endif %}" }
+    - { regexp: '{{ placeHolder_acListenHost }}', line: "{{ private_ip }}" }
+    - { regexp: '{{ placeHolder_acListenPort }}', line: "{{ ac_listen_port }}" }
+    - { regexp: '{{ placeHolder_nginxLogDir }}', line: "{{ nginx_log_dir }}" }
+    - { regexp: '{{ placeHolder_nginxPid }}', line: "{{ nginx_pid_file }}" }
+    - { regexp: '{{ placeHolder_nginxListenPort }}', line: "{{ nginx_listen_port }}" }
+    - { regexp: '{{ placeHolder_nginxStatusPort }}', line: "{{ nginx_status_port }}" }
+    - { regexp: 'proxy_pass http*pulsar-proxy', line: "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}proxy_pass https://https-pulsar-proxy{% else %}http://http-pulsar-proxy{% endif %}" }

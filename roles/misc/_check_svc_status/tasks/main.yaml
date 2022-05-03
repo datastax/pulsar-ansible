@@ -1,0 +1,24 @@
+---
+- name: Check if the server component ({{ srv_component }}) is listening on port(s) {{ srv_ports }}
+  wait_for:
+    host: "{{ private_ip }}"
+    port: "{{ item }}"
+    delay: 5
+    timeout: 10
+    msg: "Timeout waiting for server component ({{ srv_component }}) listening on port ({{ srv_ports }})"
+  register: srv_port_check
+  with_items:
+    - "{{ srv_ports }}"
+  ignore_errors: yes
+# - debug: msg="{{ srv_port_check['results'] }}"
+#   when: show_debug_msg|bool
+
+- set_fact:
+    srvStarted: |
+      {% set started = [1] %}
+      {% for result in srv_port_check['results'] if result['failed'] %}
+        {% set ignored = started.append(0) %}
+      {% endfor %}
+      {{ started | min }}
+- debug: msg="srvStarted - {{ srvStarted|trim|bool}}"
+  when: show_debug_msg|bool

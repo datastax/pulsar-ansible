@@ -8,6 +8,13 @@
 #
 
 
+# Check if "pulsar" executable is available
+whichOpenssl=$(which openssl)
+if [[ "${whichOpenssl}" == "" || "${whichOpenssl}" == *"not found"* ]]; then
+  echo "Can't find \"openssl\" executable which is necessary to create TLS certificates"
+  exit 10
+fi
+
 usage() {
    echo
    echo "Usage: genPulsarSelfSignSSL.sh [-h] [-d] -b <broker_host_list> \
@@ -31,7 +38,7 @@ usage() {
 
 if [[ $# -eq 0 || $# -gt 15 ]]; then
    usage
-   exit 10
+   exit 20
 fi
 
 DFT_rootCertExpDays=3650
@@ -66,22 +73,22 @@ echo
 
 if [[ "${brokerHostListStr}" == ""  ]]; then
   echo "[ERROR] Broker host list string (comma separated) can't be empty" 
-  exit 20
+  exit 30
 fi
 
 if [[ "${pulsarClusterName}" == ""  ]]; then
   echo "[ERROR] Pulsar cluster name can't be empty" 
-  exit 30
+  exit 40
 fi
 
 if [[ "${rootPasswd}" == ""  ]]; then
   echo "[ERROR] The password of the self-signed root CA key can't be empty" 
-  exit 40
+  exit 50
 fi
 
 if [[ "${brkrPasswd}" == ""  ]]; then
   echo "[ERROR] The password of the (broker) server key can't be empty" 
-  exit 50
+  exit 60
 fi
 
 re='^[0-9]+$'
@@ -120,10 +127,16 @@ else
 fi
 
 if [[ ${forceDownload} -eq 1 ]]; then
+  whichWget=$(which wget)
+  if [[ "${whichWget}" == "" || "${whichWget}" == *"not found"* ]]; then
+    echo "Can't find \"wget\" executable which is necessary to download openssl.cnf file"
+    exit 70
+  fi
+
   echo
   stepCnt=$((stepCnt+1))
   echo "== STEP ${stepCnt} :: Download openssl.cnf file =="
-  wget https://raw.githubusercontent.com/apache/pulsar/master/site2/website/static/examples/openssl.cnf
+  $whichWget https://raw.githubusercontent.com/apache/pulsar/master/site2/website/static/examples/openssl.cnf
 fi
 
 echo
@@ -135,14 +148,14 @@ ROOT_CA_CERT_NAME="ca.cert.pem"
 
 echo "== STEP ${stepCnt} :: Create a root key and a X.509 certificate for self-signing purpose =="
 echo "   >> (${stepCnt}.1) Generate the self-signed root CA private key file"
-openssl genrsa -aes256 \
+$whichOpenssl genrsa -aes256 \
         -passout pass:${rootPasswd} \
         -out ${CA_HOME}/private/${ROOT_CA_KEY_NAME} \
         4096
 chmod 400 ${CA_HOME}/private/${ROOT_CA_KEY_NAME}
 
 echo "   >> (${stepCnt}.2) Generate the self-signed root CA certificate file"
-openssl req -config openssl.cnf \
+$whichOpenssl req -config openssl.cnf \
         -new -x509 -sha256 \
         -extensions v3_ca \
         -key ${CA_HOME}/private/${ROOT_CA_KEY_NAME} \
@@ -169,14 +182,14 @@ for borkerHost in $(echo $brokerHostListStr | sed "s/,/ /g"); do
    BROKER_CRT_NAME="${CA_HOME}/brokers/broker.${borkerHost2}.crt.pem"
 
    echo "   >> (${stepCnt}.1) Generate the Server Certificate private key file"
-   openssl genrsa \
+   $whichOpenssl genrsa \
             -passout pass:${brkrPasswd} \
             -out ${BROKER_KEY_NAME} \
             2048
 
    echo
    echo "   >> (${stepCnt}.2) Convert the private key file to PKCS8 format"
-   openssl pkcs8 \
+   $whichOpenssl pkcs8 \
             -topk8 -nocrypt \
             -inform PEM -outform PEM \
             -in ${BROKER_KEY_NAME} \
@@ -184,7 +197,7 @@ for borkerHost in $(echo $brokerHostListStr | sed "s/,/ /g"); do
 
    echo
    echo "   >> (${stepCnt}.3) Generate the CSR file"
-   openssl req \
+   $whichOpenssl req \
             -config openssl.cnf \
             -new -sha256 \
             -key ${BROKER_KEY_NAME} \
@@ -194,7 +207,7 @@ for borkerHost in $(echo $brokerHostListStr | sed "s/,/ /g"); do
 
    echo
    echo "   >> (${stepCnt}.4) Sign the CSR with the ROOT certificate"
-   openssl ca \
+   $whichOpenssl ca \
             -config openssl.cnf \
             -extensions server_cert \
             -notext -md sha256 -batch \

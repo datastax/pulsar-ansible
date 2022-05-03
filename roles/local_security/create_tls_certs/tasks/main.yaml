@@ -1,0 +1,16 @@
+---
+- name: If TLS is enabled, call a bash script to create TLS certificate files
+  shell: |
+    cd bash/security/intransit_encryption
+    ./cleanup.sh
+    ./genPulsarSelfSignSSL.sh \
+      -b {{ groups['broker']|join(',') }} \
+      -c {{ cluster_name }} \
+      -root_pwd {{ rootca_key_password }} \
+      -brkr_pwd {{ brkr_key_password }} \
+      -root_expr_days {{ rootca_cert_expire_days }} \
+      -brkr_expr_days {{ brkr_cert_expire_days }} \
+      -certSubjLineStr {{ cert_subj_line }}
+  register: tlsCertShell
+- debug: msg="{{ tlsCertShell }}"
+  when: show_debug_msg|bool and showLocalCmdOutput|bool

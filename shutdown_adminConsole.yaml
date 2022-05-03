@@ -1,0 +1,50 @@
+---
+# Stop and clean up Nginx server
+- hosts: adminConsole
+  become: true
+  become_method: sudo
+  any_errors_fatal: true
+  vars:
+    srvStarted: true
+  roles:
+    # Check the current status of the Nginx server
+    - { role: misc/_check_svc_status, 
+        srv_component: 'nginx', 
+        srv_ports: ["{{ nginx_listen_port }}"] }
+    # Stop the Nginx server
+    - { role: adminconsole/ac_stopNginxSvc }
+  post_tasks:
+  - name: If requested, clean-up Nginx config and log files
+    file:
+      path: "{{ item }}"
+      state: absent
+    with_items:
+      - "{{ nginx_log_dir }}"
+      - "{{ nginx_cust_config_dir }}"
+      - "{{ nginx_pid_file }}"
+    when: purge_adminConsole is defined and purge_adminConsole|bool
+
+# Stop and clean up AdminConsole application sever
+- hosts: adminConsole
+  become: true
+  become_method: sudo
+  any_errors_fatal: true
+  vars:
+    srvStarted: true
+  roles:
+    # Check the current status of the AdminConsole application server
+    - { role: misc/_check_svc_status, 
+        srv_component: 'adminConsole', 
+        srv_ports: ["{{ ac_listen_port }}"] }
+    # Stop the AdminConsole application server
+    - { role: adminconsole/ac_stopAcSvc }
+  post_tasks:
+    - name: If requested, clean-up AdminConsole binary and log files
+      file:
+        path: "{{ item }}"
+        state: absent
+      with_items:
+        - "{{ tgt_adminConsole_inst_dir }}"
+        - "{{ tgt_adminConsole_sec_dir }}"
+        # - "{{ tgt_pkg_adminConsole_dir }}"
+      when: purge_adminConsole is defined and purge_adminConsole|bool

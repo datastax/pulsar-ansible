@@ -1,0 +1,9 @@
+---
+- name: If authN/authR are enabled, call a bash script to create JWT token files
+  shell: |
+    cd bash/security/authentication/jwt
+    ./cleanup.sh
+    ./genUserJwtToken.sh -u {{ super_user_roles_list_str }} -c {{ cluster_name }}
+  register: jwtTokenShell
+- debug: msg="{{ jwtTokenShell }}"
+  when: show_debug_msg|bool and showLocalCmdOutput|bool

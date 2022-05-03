@@ -73,7 +73,7 @@ stepCnt=0
 if [[ ! -f key/${PRIV_KEY} || ! key/${PUB_KEY} || $reuseKey -eq 0 ]]; then
   echo
   stepCnt=$((stepCnt+1))
-  rm -rf "${CUR_DIR}/key/key/*"
+  rm -rf "${CUR_DIR}/key/*"
   echo "== STEP ${stepCnt} :: Create a public/private key pair =="
   $whichPulsar tokens create-key-pair \
      --output-private-key ${CUR_DIR}/key/${PRIV_KEY} \

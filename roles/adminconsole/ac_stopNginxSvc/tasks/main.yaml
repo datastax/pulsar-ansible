@@ -1,0 +1,12 @@
+---
+- name: If needed, stop the Nginx server using systemd service script
+  service:
+    name: nginx
+    state: stopped
+  when: srvStarted|trim|bool and systemd_nginx_svc is defined and systemd_nginx_svc|bool
+
+- name: Otherwise, kill the Nginx server process(es)
+  include_role:
+    role: misc/_get_svc_pids
+  vars:
+    srv_process_name: "nginx"

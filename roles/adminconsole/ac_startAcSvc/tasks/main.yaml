@@ -1,14 +1,4 @@
 ---
-- name: Check if AdminConsole is already running (listening on port 6454)
-  wait_for:
-    host: "{{ private_ip }}"
-    port: "{{ ac_listen_port }}"
-    delay: 5
-    timeout: 10
-    msg: "Timeout waiting for port {{ ac_listen_port }} to respond"
-  register: ac_port_check
-  ignore_errors: yes
-
 - name: Start AdminConsole if it is not running yet
   become: true
   become_method: sudo
@@ -18,6 +8,6 @@
   # Async shell execution with a very large number
   async: 3153600000 # 100 years
   register: ac_startSvc_cmdcat
-  when: ac_port_check.failed == true
+  when: not srvStarted|trim|bool
 - debug: msg="ac_startSvc_cmdcat - {{ ac_startSvc_cmdcat }}"
   when: show_debug_msg|bool 

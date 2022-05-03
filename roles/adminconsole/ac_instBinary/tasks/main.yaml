@@ -40,7 +40,7 @@
 - debug: msg={{ adminConsole_distro_stat.stat }}
   when: show_debug_msg|bool
 
-- name: If AdminConsole doesn't exist on the target host yet, copy it from local host
+- name: If AdminConsole doesn't exist on the target host yet, copy it from local host if requested so
   copy:
     src: "{{ local_bin_homedir }}/{{ adminConsole_bin_name }}"
     dest: "{{ tgt_pkg_adminConsole_dir }}/{{ adminConsole_bin_name }}"
@@ -48,7 +48,7 @@
     group: "{{ pulsar_user_group }}"
   when: not adminConsole_distro_stat.stat.exists and not internet_download|bool
 
-- name: If AdminConsole doesn't exist on the target host yet, download it from internet 
+- name: If AdminConsole doesn't exist on the target host yet, download it from internet if requested so
   get_url:
     url: "{{ adminConsole_download_url }}"
     dest: "{{ tgt_pkg_adminConsole_dir }}/{{ adminConsole_bin_name }}"
@@ -65,52 +65,3 @@
     keep_newer: yes
     owner: "{{ pulsar_user }}"
     group: "{{ pulsar_user_group }}"
-
-
-- name: If broker authN is enabled, create JWT token related security folders on AdminConsole host
-  file:
-    path: "{{ item }}"
-    state: directory
-    owner: "{{ pulsar_user }}"
-    group: "{{ pulsar_user_group }}"
-    mode: "{{ file_permission_mode }}"
-    recurse: yes
-  with_items:
-    - "{{ tgt_adminConsole_sec_dir }}/jwt/token"
-  when: enable_brkr_authNZ is defined and enable_brkr_authNZ|bool
-
-- name: If broker authN is enabled, copy JWT token file from localhost to Pulsar client hosts
-  copy:
-    src: "{{ item.src_file }}/"
-    dest: "{{ item.dest_file }}"
-    owner: "{{ pulsar_user }}"
-    group: "{{ pulsar_user_group }}"
-    force: "{{ force_existing_adminConsole_jwt_token }}"
-  with_items:
-    - { src_file: "{{ local_jwt_src_homedir }}/token/{{ super_user_roles[0] }}.jwt", 
-        dest_file: "{{ tgt_adminConsole_sec_dir }}/jwt/token/{{ super_user_roles[0] }}.jwt" }
-  when: enable_brkr_authNZ is defined and enable_brkr_authNZ|bool
-
-- name: If broker broker TLS is enabled, create TLS certificate related security folders on Pulsar client hosts
-  file:
-    path: "{{ item }}"
-    state: directory
-    owner: "{{ pulsar_user }}"
-    group: "{{ pulsar_user_group }}"
-    mode: "{{ file_permission_mode }}"
-    recurse: yes
-  with_items:
-    - "{{ tgt_adminConsole_sec_dir }}/tls/rootca"
-  when: enable_brkr_authNZ is defined and enable_brkr_authNZ|bool
-
-- name: If TLS is enabled, copy the trusted TLS certificate to Pulsar client hosts
-  copy:
-    src: "{{ item.src_file }}/"
-    dest: "{{ item.dest_file }}"
-    owner: "{{ pulsar_user }}"
-    group: "{{ pulsar_user_group }}"
-    force: "{{ force_existing_adminConsole_tls_certs }}"
-  with_items:
-    - { src_file: "{{ local_tls_src_homedir }}/certs/{{ public_cacert_name }}", 
-        dest_file: "{{ tgt_adminConsole_sec_dir }}/tls/rootca/{{ public_cacert_name }}" }
-  when: enable_brkr_tls is defined and enable_brkr_tls|bool

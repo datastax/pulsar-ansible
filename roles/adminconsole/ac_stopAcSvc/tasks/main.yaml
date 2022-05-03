@@ -1,0 +1,6 @@
+---
+- name: Kill the AdminConsole application server process(es)
+  include_role:
+    role: misc/_get_svc_pids
+  vars:
+    srv_process_name: "node"
