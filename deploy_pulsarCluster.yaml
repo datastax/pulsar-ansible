@@ -50,10 +50,10 @@
   vars:
     srvStarted: true
   roles: 
-#     # # If needed, mount dedicated storage space to zookeepers
-#     # - { role: pulsar/zookeeper/zkpr_mntStorage, when: not skip_zk_block_device_setup|bool }
-#     # # Config zookeepers 
-#     # - { role: pulsar/zookeeper/zkpr_config }
+    # If needed, mount dedicated storage space to zookeepers
+    - { role: pulsar/zookeeper/zkpr_mntStorage, when: not skip_zk_block_device_setup|bool }
+    # Config zookeepers 
+    - { role: pulsar/zookeeper/zkpr_config }
     # Check the current status of zookeepers
     - { role: misc/_check_svc_status, 
         srv_component: 'zookeeper', 
@@ -192,7 +192,7 @@
 
 
 #########################
-# PostWork
+# PostWork 1
 # -----------------------
 # - Update .profile for all hosts in cluster
 - hosts: pulsarServer:pulsarClient

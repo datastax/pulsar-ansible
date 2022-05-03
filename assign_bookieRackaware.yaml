@@ -1,0 +1,9 @@
+---
+# NOTE: This step must be executed after "pulsarClient" has been propery configured. 
+#       Otherwise, "pulsar-admin" connection will be directed to localhost and therefore causes connection failure
+- hosts: bookkeeper
+  become: true
+  become_method: sudo
+  any_errors_fatal: true
+  roles: 
+    - { role: pulsar/bookkeeper/bkie_assignRack, when: config_rackAwareness|bool }

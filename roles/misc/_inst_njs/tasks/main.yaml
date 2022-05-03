@@ -1,17 +1,16 @@
 ---
 # Ubuntu/APT installation
 - name: Get the current nodejs server version if it is already installed
-  shell:
-    cmd: "node -v 2>&1"
+  shell: "node -v 2>&1"
   ignore_errors: yes
   register: "_nodejs_ver"
-- debug: msg="{{ _nodejs_ver.stdout }}"
+- debug: msg="_nodejs_ver - {{ _nodejs_ver }}"
   when: show_debug_msg|bool
 
 - name: Check whether or not we need to install a newer version nodejs
   set_fact:
     install_nodejs: "{{ force_nodejs_install|bool or _nodejs_ver.rc|int != 0 or _nodejs_ver.stdout.split('v')[1] is version(tgt_nodejs_ver, '<') }}"
-- debug: msg="{{ install_nodejs }}"
+- debug: msg="install_nodejs - {{ install_nodejs }}"
   when: show_debug_msg|bool
 
 - name: Download Node.js setup script

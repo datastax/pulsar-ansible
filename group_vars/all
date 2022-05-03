@@ -75,7 +75,7 @@ tgt_pulsar_log_homedir: "{% if customize_logdir is defined and customize_logdir|
 
 
 #
-#  Function worker specific settings
+# Function worker specific settings
 # -------------------------------------------
 #
 enable_func_worker: true
@@ -84,15 +84,21 @@ dedicated_func_worker: false
 
 
 #
-#  Pulsar client specific settings
+# Pulsar client specific settings
 # -------------------------------------------
 #
 pulsar_client_config_file: "{{ tgt_pulsar_inst_dir }}/conf/client.conf"
 
 
+#
+# Configure rack awareness
+# -------------------------------------------
+#
+config_rackAwareness: true
+
 
 #
-#  Pulsar security settings
+# Pulsar security settings
 # -------------------------------------------
 #
 # - local folders that have the security related files for JWT tokens
@@ -143,7 +149,7 @@ skip_brkr_jwt_token_generation: false
 # - Whether or not to skip generating TLS certificate files on the local host
 skip_brkr_tls_certs_generatation: false
 
-###
+##
 # NOTE: please be careful with 2 settings. 
 #       - if these variables are set to true, existing server side JWT token 
 #         and/or TLS certificate files could be replaced by new ones, which

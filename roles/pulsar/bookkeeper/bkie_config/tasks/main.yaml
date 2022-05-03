@@ -9,14 +9,14 @@
   with_items:
     - "{{ bookie_storage_mnt_paths }}"  
 
-#- debug: msg={{ hostvars[groups['cluster_srv'][0]]['zkstrDict'] }}
+#- debug: msg={{ hostvars[groups['cluster_srv'][0]]['zkstrDict']|trim }}
 - name: Modify bookkeeper main config file - {{ bk_conf_file }}
   lineinfile:
     path: "{{ bk_conf_file }}"
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items:
-    - { regexp: '^zkServers=', line: "zkServers={{ hostvars[groups['zookeeper'][0]]['zkListStrVar'] }}" }
+    - { regexp: '^zkServers=', line: "zkServers={{ hostvars[groups['zookeeper'][0]]['zkListStrVar']|trim }}" }
     - { regexp: '^bookiePort=', line: 'bookiePort={{ bookie_listening_port }}' }
     - { regexp: '^httpServerPort=', line: 'httpServerPort={{ bk_stats_port }}' }
     - { regexp: '^prometheusStatsHttpPort=', line: 'prometheusStatsHttpPort={{ bk_stats_port }}' }
@@ -35,3 +35,16 @@
     - { regexp: '^gcWaitTime=', line: 'gcWaitTime={{ gcWaitTime }}' }
     - { regexp: '^diskCheckInterval=', line: 'diskCheckInterval={{ diskCheckInterval }}' }
     - { regexp: '^logSizeLimit=', line: 'logSizeLimit={{ logSizeLimit }}' }
+
+# Modify Pulsar bookkeeper config file for rack-awareness related settings
+- name: Modify bookkeeper main config file - {{ bk_conf_file }}
+  lineinfile:
+    path: "{{ bk_conf_file }}"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    # - "autoRecoveryDaemonEnabled" being true is needed in order for RackawareEnsemblePlacementPolicy to take effect
+    - { regexp: '^autoRecoveryDaemonEnabled=', line: 'autoRecoveryDaemonEnabled=true' }
+    - { regexp: '^# ensemblePlacementPolicy=', line: 'ensemblePlacementPolicy=org.apache.bookkeeper.client.RackawareEnsemblePlacementPolicy' }
+    - { regexp: '^ensemblePlacementPolicy=', line: 'ensemblePlacementPolicy=org.apache.bookkeeper.client.RackawareEnsemblePlacementPolicy' }
+  when: config_rackAwareness is defined and config_rackAwareness|bool

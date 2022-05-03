@@ -22,9 +22,9 @@ broker
 ... ...
 
 [bookkeeper]
-<public_bookie_ip1> private_ip=<private_bookie_ip1>
-<public_bookie_ip2> private_ip=<private_bookie_ip2>
-<public_bookie_ip3> private_ip=<private_bookie_ip3>
+<public_bookie_ip1> private_ip=<private_bookie_ip1> rack_name=<availability_zone_1>
+<public_bookie_ip2> private_ip=<private_bookie_ip2> rack_name=<availability_zone_2>
+<public_bookie_ip3> private_ip=<private_bookie_ip3> rack_name=<availability_zone_3>
 ... ...
 
 [broker]

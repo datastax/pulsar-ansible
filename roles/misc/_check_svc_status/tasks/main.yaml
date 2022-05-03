@@ -1,5 +1,5 @@
 ---
-- name: Check if the server component ({{ srv_component }}) is listening on port(s) {{ srv_ports }}
+- name: Check if the server component ({{ srv_component }}) is listening on port(s) ({{ srv_ports }})
   wait_for:
     host: "{{ private_ip }}"
     port: "{{ item }}"
@@ -13,12 +13,13 @@
 # - debug: msg="{{ srv_port_check['results'] }}"
 #   when: show_debug_msg|bool
 
-- set_fact:
+- name: Set the server component ({{ srv_component }}) running state (started or stopped)
+  set_fact:
     srvStarted: |
       {% set started = [1] %}
       {% for result in srv_port_check['results'] if result['failed'] %}
         {% set ignored = started.append(0) %}
       {% endfor %}
       {{ started | min }}
-- debug: msg="srvStarted - {{ srvStarted|trim|bool}}"
+- debug: msg="({{ srv_component }}) srvStarted - {{ srvStarted|trim|bool}}"
   when: show_debug_msg|bool

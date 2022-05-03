@@ -4,30 +4,26 @@
 #   <zookeeper_node_1>:2888:3888
 #   <zookeeper_node_2>:2888:3888
 #   <zookeeper_node_3>:2888:3888
-- name: Get zookeeper configuration (IP:Port:Port) list string into a temporary file "/tmp/zkArrVar"
-  template: src=zk_arr_var.j2 dest=/tmp/zkArrVar mode="{{ file_permission_mode_noexec }}"
-
-- name: Load tempoarary "/tmp/zkArrVar" file
-  shell: cat /tmp/zkArrVar
-  register: zkArrVar_cmdcat
-
-- name: Set "zookeeper" configuration (IP:Port:Port) list into a variable
+- name: Get "zookeeper" configuration (IP:Port:Port) list into a variable
   set_fact: 
-    zkArrVar={{ zkArrVar_cmdcat.stdout }}
-- debug: msg="zkArrVar - {{ zkArrVar }}"
+    zkArrVar: |
+      {% set zklist = [] %}
+      {% for node in groups['zookeeper'] %}
+      {%   set ignored = zklist.append(hostvars[node].private_ip + ':2888:3888') %}
+      {% endfor %}
+      {{ zklist }}
+- debug: msg="zkArrVar - {{ zkArrVar|trim }}"
   when: show_debug_msg|bool 
 
 # For each cluster, get a string for all zookeeper nodes with listening ports, e.g.
 #   <zookeeper_node_1>:2181,<zookeeper_node_2>:2181,<zookeeper_node_3>:2181
-- name: Get "zookeeper" (IP:Port) string into a temporary file "/tmp/zkListStrVar"
-  template: src=zk_liststr_var.j2 dest=/tmp/zkListStrVar mode="{{ file_permission_mode_noexec }}"
-
-- name: Load tempoarary file "/tmp/zkListStrVar" 
-  shell: cat /tmp/zkListStrVar
-  register: zkListStrVar_cmdcat
-
-- name: Set "zookeeper" (IP:Port) string into a variable
+- name: Get "zookeeper" (IP:Port) string into a variable
   set_fact: 
-    zkListStrVar={{ zkListStrVar_cmdcat.stdout }}
-- debug: msg="zkListStrVar - {{ zkListStrVar }}"
+    zkListStrVar: |
+      {% set zklist = [] %}
+      {% for node in groups['zookeeper'] %}
+      {%   set ignored = zklist.append(hostvars[node].private_ip ~ ':' ~ zk_clnt_port) %}
+      {% endfor %}
+      {{ zklist|join(',') }}
+- debug: msg="zkListStrVar - {{ zkListStrVar|trim }}"
   when: show_debug_msg|bool 

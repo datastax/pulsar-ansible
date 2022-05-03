@@ -3,10 +3,11 @@
   service:
     name: nginx
     state: stopped
-  when: srvStarted|trim|bool and systemd_nginx_svc is defined and systemd_nginx_svc|bool
+  when: srvStarted|trim|bool and (systemd_nginx_svc is defined and systemd_nginx_svc|bool)
 
 - name: Otherwise, kill the Nginx server process(es)
   include_role:
-    role: misc/_get_svc_pids
+    role: misc/_kill_svc_pids
   vars:
     srv_process_name: "nginx"
+  when: srvStarted|trim|bool and not (systemd_nginx_svc is defined and systemd_nginx_svc|bool)

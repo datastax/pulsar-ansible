@@ -6,9 +6,9 @@
   shell: |
     {{ tgt_pulsar_inst_dir }}/bin/pulsar initialize-cluster-metadata \
     --cluster {{ cluster_name }} \
-    --zookeeper {{ hostvars[groups['zookeeper'][0]]['zkListStrVar'] }} \
-    --configuration-store {{ hostvars[groups['zookeeper'][0]]['zkListStrVar'] }} \
-    --web-service-url http://{{ hostvars[groups['broker'][0]]['webSvcListStr'] }} \
-    --broker-service-url pulsar://{{ hostvars[groups['broker'][0]]['brokerSvcListStr'] }} \
-    --web-service-url-tls https://{{ hostvars[groups['broker'][0]]['webSvcTlsListStr'] }} \
-    --broker-service-url-tls pulsar+ssl://{{ hostvars[groups['broker'][0]]['brokerSvcTlsListStr'] }} 
+    --zookeeper {{ hostvars[groups['zookeeper'][0]]['zkListStrVar']|trim }} \
+    --configuration-store {{ hostvars[groups['zookeeper'][0]]['zkListStrVar']|trim }} \
+    --web-service-url http://{{ hostvars[groups['broker'][0]]['webSvcListStr']|trim }} \
+    --broker-service-url pulsar://{{ hostvars[groups['broker'][0]]['brokerSvcListStr']|trim }} \
+    --web-service-url-tls https://{{ hostvars[groups['broker'][0]]['webSvcTlsListStr']|trim }} \
+    --broker-service-url-tls pulsar+ssl://{{ hostvars[groups['broker'][0]]['brokerSvcTlsListStr']|trim }} 

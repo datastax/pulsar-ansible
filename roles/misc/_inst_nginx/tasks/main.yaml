@@ -1,17 +1,16 @@
 ---
 # Ubuntu/APT installation
 - name: Get the current Nginx server version if it is already installed
-  shell:
-    cmd: "nginx -version 2>&1"
+  shell: "nginx -version 2>&1"
   ignore_errors: yes
   register: "_nginx_ver"
-- debug: msg="{{ _nginx_ver.stdout }}"
+- debug: msg="_nginx_ver - {{ _nginx_ver }}"
   when: show_debug_msg|bool
 
 - name: Check whether or not we need to install a newer version Nginx
   set_fact:
     install_nginx: "{{ force_nginx_install|bool or _nginx_ver.rc|int != 0 or _nginx_ver.stdout.split('nginx/')[1] is version(tgt_nginx_ver, '<') }}"
-- debug: msg="{{ install_nginx }}"
+- debug: msg="install_nginx - {{ install_nginx }}"
   when: show_debug_msg|bool
 
 - name: Add Nginx APT key

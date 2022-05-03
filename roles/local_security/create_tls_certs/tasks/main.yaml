@@ -12,5 +12,5 @@
       -brkr_expr_days {{ brkr_cert_expire_days }} \
       -certSubjLineStr {{ cert_subj_line }}
   register: tlsCertShell
-- debug: msg="{{ tlsCertShell }}"
+- debug: msg="tlsCertShell - {{ tlsCertShell }}"
   when: show_debug_msg|bool and showLocalCmdOutput|bool

@@ -24,8 +24,18 @@ cust_write_quorum: 1
 cust_ack_quorum: 1
 
 
-##
+#
+# Configure rack awareness
+# -------------------------------------------
+#
+minNumRackPerWQ: 4            # default 2
+enforceMinNumRackPerWQ: true  # default false
+
+
+#
 # Other configuration items
+# -------------------------------------------
+#
 forceDeleteTenantAllowed: false           # default false
 forceDeleteNamespaceAllowed: false        # default false
 brokerDeleteInactiveTopicsEnabled: true   # default true 

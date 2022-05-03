@@ -3,7 +3,7 @@
   service:
     name: nginx
     state: started
-  when: not srvStarted|trim|bool and systemd_nginx_svc is defined and systemd_nginx_svc|bool
+  when: not srvStarted|trim|bool and (systemd_nginx_svc is defined and systemd_nginx_svc|bool)
 
 - name: Otherwise, start Nginx server using command line
   become: true

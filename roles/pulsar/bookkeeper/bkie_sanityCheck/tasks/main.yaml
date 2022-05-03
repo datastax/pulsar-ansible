@@ -5,5 +5,5 @@
   become_method: sudo
   shell: "{{ tgt_pulsar_inst_dir }}/bin/bookkeeper shell bookiesanity > /home/{{ ansible_ssh_user }}/bookie_sanity_check.result"
   register: bookie_shell_output
-- debug: msg="{{ bookie_shell_output }}"
+- debug: msg="bookie_shell_output - {{ bookie_shell_output }}"
   when: show_debug_msg|bool

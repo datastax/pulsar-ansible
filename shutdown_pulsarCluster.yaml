@@ -5,7 +5,7 @@
   become_method: sudo
   any_errors_fatal: true
   vars:
-    srvStarted: True
+    srvStarted: true
   roles:
     # Check the current status of brokers
     - { role: misc/_check_svc_status, 
@@ -42,11 +42,10 @@
   post_tasks:
     - name: If requested, clean-up bookkeeper data directories
       shell: rm -rf {{ item }}
-      args:
-        warn: no
+      # args:
+      #   warn: no
       with_items:
-        - "{{ tgt_pulsar_bookie_journal_data_homedir }}"
-        - "{{ tgt_pulsar_bookie_ledger_data_homedir }}"
+        - "{{ bookie_storage_mnt_paths }}"
       when: purge_pulsar is defined and purge_pulsar|bool
 
 # Stop zookeepers 
@@ -66,9 +65,9 @@
         srv_ports: ["{{ zk_clnt_port }}"] }
   post_tasks:
     - name: If requested, clean-up zookeeper data directories
-      shell: rm -rf {{ tgt_pulsar_zk_data_homedir }}
-      args:
-        warn: no
+      shell: rm -rf {{ zk_storage_mnt_path }}
+      # args:
+      #   warn: no
       when: purge_pulsar is defined and purge_pulsar|bool  
 
 # Clean up pulsar binaries and logs
@@ -84,5 +83,8 @@
     with_items:
       - "{{ tgt_pulsar_inst_dir }}"
       - "{{ tgt_pulsar_log_homedir }}"
+      - "{{ tgt_pulsar_bookie_journal_data_homedir }}"
+      - "{{ tgt_pulsar_bookie_ledger_data_homedir }}"
+      - "{{ tgt_pulsar_zk_data_homedir }}"
       # - "{{ tgt_pkg_dir }}"
     when: purge_pulsar is defined and purge_pulsar|bool

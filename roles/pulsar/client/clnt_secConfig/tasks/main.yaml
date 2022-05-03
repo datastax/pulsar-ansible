@@ -60,9 +60,9 @@
         line: "authParams={% if enable_brkr_authNZ is defined and enable_brkr_authNZ|bool %}file://{{ tgt_jwt_dest_homedir }}/token/{{ super_user_roles[0] }}.jwt{% else %} {% endif %}" }
     # TLS related settings
     - { regexp: '^webServiceUrl=', 
-        line: "webServiceUrl={% if enable_brkr_tls is defined and enable_brkr_tls|bool %}https://{{ hostvars[groups['broker'][0]]['webSvcTlsListStr'] }}{% else %}http://{{ hostvars[groups['broker'][0]]['webSvcListStr'] }}{% endif %}" }
+        line: "webServiceUrl={% if enable_brkr_tls is defined and enable_brkr_tls|bool %}https://{{ hostvars[groups['broker'][0]]['webSvcTlsListStr']|trim }}{% else %}http://{{ hostvars[groups['broker'][0]]['webSvcListStr']|trim }}{% endif %}" }
     - { regexp: '^brokerServiceUrl=', 
-        line: "brokerServiceUrl={% if enable_brkr_tls is defined and enable_brkr_tls|bool %}pulsar+ssl://{{ hostvars[groups['broker'][0]]['brokerSvcTlsListStr'] }}{% else %}pulsar://{{ hostvars[groups['broker'][0]]['brokerSvcListStr'] }}{% endif %}" }
+        line: "brokerServiceUrl={% if enable_brkr_tls is defined and enable_brkr_tls|bool %}pulsar+ssl://{{ hostvars[groups['broker'][0]]['brokerSvcTlsListStr']|trim }}{% else %}pulsar://{{ hostvars[groups['broker'][0]]['brokerSvcListStr']|trim }}{% endif %}" }
     ## Disable Pulsar server host name verification for now
     # - { regexp: '^tlsEnableHostnameVerification=', 
     #     line: "tlsEnableHostnameVerification=true" }

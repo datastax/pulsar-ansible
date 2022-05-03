@@ -73,6 +73,6 @@
   with_items:
     - { regexp: '{{ placeHolder_homeCluster }}', line: "{{ cluster_name }}" }
     - { regexp: '{{ placeHolder_apiVersion }}', line: "{{ pulsarLS_ver_main }}" }
-    - { regexp: '{{ placeHolder_brokerSvcUrl }}', line: "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}pulsar+ssl://{{ hostvars[groups['broker'][0]]['brokerSvcTlsListStr'] }}{% else %}pulsar://{{ hostvars[groups['broker'][0]]['brokerSvcListStr'] }}{% endif %}" }
-    - { regexp: '{{ placeHolder_clientToken }}', line: "{% if enable_brkr_authNZ is defined and enable_brkr_authNZ|bool %}{{ client_token['content'] | b64decode | trim }}{% else %}{% endif %}" }
+    - { regexp: '{{ placeHolder_brokerSvcUrl }}', line: "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}pulsar+ssl://{{ hostvars[groups['broker'][0]]['brokerSvcTlsListStr']|trim }}{% else %}pulsar://{{ hostvars[groups['broker'][0]]['brokerSvcListStr']|trim }}{% endif %}" }
+    - { regexp: '{{ placeHolder_clientToken }}', line: "{% if enable_brkr_authNZ is defined and enable_brkr_authNZ|bool %}{{ client_token['content']|b64decode|trim }}{% else %}{% endif %}" }
     - { regexp: '{{ placeHolder_caCertificate }}', line: "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ tgt_adminConsole_sec_dir }}/tls/rootca/{{ public_cacert_name }}{% else %}{% endif %}" }
