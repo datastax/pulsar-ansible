@@ -19,16 +19,16 @@ broker_jvm_options: >
 
 # whether or not to use customized message replication settings (E/Qw/Qa)
 force_message_rf_setting: false
-cust_ensemble_size: 2
-cust_write_quorum: 1
-cust_ack_quorum: 1
+cust_ensemble_size: 3
+cust_write_quorum: 2
+cust_ack_quorum: 2
 
 
 #
 # Configure rack awareness
 # -------------------------------------------
 #
-minNumRackPerWQ: 4            # default 2
+minNumRackPerWQ: 2            # default 2
 enforceMinNumRackPerWQ: true  # default false
 
 
