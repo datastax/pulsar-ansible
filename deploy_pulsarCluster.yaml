@@ -125,6 +125,7 @@
         when: enable_brkr_tls is defined and enable_brkr_tls|bool and 
               skip_brkr_tls_certs_generatation is defined and not skip_brkr_tls_certs_generatation|bool }
 
+
 #########################
 # Broker Related
 # -----------------------

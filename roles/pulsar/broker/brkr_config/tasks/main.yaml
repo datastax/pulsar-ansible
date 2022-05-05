@@ -35,7 +35,7 @@
 - debug: msg="ensemble_size={{ ensemble_size }}, write_quorum_cnt={{ write_quorum_cnt }}, ack_quorum_cnt={{ ack_quorum_cnt }}"
   when: show_debug_msg|bool
 
-- name: Modify Pulsar broker config file for general, non-security related settings
+- name: Modify Pulsar broker config file for mandatory settings
   lineinfile:
     path: "{{ broker_conf_file }}"
     regexp: "{{ item.regexp }}"
@@ -49,10 +49,6 @@
     - { regexp: '^managedLedgerDefaultEnsembleSize=', line: 'managedLedgerDefaultEnsembleSize={{ ensemble_size }}'}
     - { regexp: '^managedLedgerDefaultWriteQuorum=', line: 'managedLedgerDefaultWriteQuorum={{ write_quorum_cnt }}' }
     - { regexp: '^managedLedgerDefaultAckQuorum=', line: 'managedLedgerDefaultAckQuorum={{ ack_quorum_cnt }}' }
-    - { regexp: '^forceDeleteTenantAllowed=', line: 'forceDeleteTenantAllowed={{ forceDeleteTenantAllowed }}' }
-    - { regexp: '^forceDeleteNamespaceAllowed=', line: 'forceDeleteNamespaceAllowed={{ forceDeleteNamespaceAllowed }}' }
-    - { regexp: '^brokerDeleteInactiveTopicsEnabled=', line: 'brokerDeleteInactiveTopicsEnabled={{ brokerDeleteInactiveTopicsEnabled }}' }
-    - { regexp: '^topicFencingTimeoutSeconds=', line: 'topicFencingTimeoutSeconds={{ topicFencingTimeoutSeconds }}' }
     #### 
     ## - Enable function worker as part of the broker (not recommended for PROD environment)
     ##   NOTE/TBD: improve dedicated function worker deployment!
@@ -69,5 +65,13 @@
     - { regexp: '^bookkeeperClientMinNumRacksPerWriteQuorum=', 
         line: 'bookkeeperClientMinNumRacksPerWriteQuorum={% if bookieRackCnt|int < 2 %}1{% elif minNumRackPerWQ|int > bookieRackCnt|int %}{{ bookieRackCnt|int }}{% else %}{{ minNumRackPerWQ|int }}{% endif %}' }
     - { regexp: '^bookkeeperClientEnforceMinNumRacksPerWriteQuorum=', 
-        line: 'bookkeeperClientEnforceMinNumRacksPerWriteQuorum={{ enforceMinNumRackPerWQ }}' }
+        line: 'bookkeeperClientEnforceMinNumRacksPerWriteQuorum={{ enforceMinNumRackPerWQ|lower }}' }
   when: config_rackAwareness is defined and config_rackAwareness|bool
+
+- name: Modify Pulsar broker config file for misc settings
+  lineinfile:
+    path: "{{ broker_conf_file }}"
+    regexp: ^(# )?{{ item.key }}="
+    line: "{{ item.key }}={{ item.value }}"
+  with_items:
+    - "{{ lookup('dict', misc_broker_config_dict) }}"

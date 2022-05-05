@@ -36,7 +36,51 @@ enforceMinNumRackPerWQ: true  # default false
 # Other configuration items
 # -------------------------------------------
 #
-forceDeleteTenantAllowed: false           # default false
-forceDeleteNamespaceAllowed: false        # default false
-brokerDeleteInactiveTopicsEnabled: true   # default true 
-topicFencingTimeoutSeconds: 5             # default 0
+# NOTE 1: the following broker configuration parameters are automatically 
+#         covered by the playbook and you don't need to add them in this section
+#
+# - [Mandatory Settings]
+#    * zookeeperServers
+#    * configurationStoreServers
+#    * clusterName
+#    * brokerServicePort
+#    * webServicePort
+#    * managedLedgerDefaultEnsembleSize
+#    * managedLedgerDefaultWriteQuorum
+#    * managedLedgerDefaultAckQuorum
+#
+# - [Security Related Settings]
+#    * authenticationEnabled
+#    * authenticationProviders
+#    * authorizationEnabled
+#    * superUserRoles
+#    * tokenPublicKey
+#    * brokerClientTlsEnabled
+#    * brokerClientAuthenticationPlugin
+#    * brokerClientAuthenticationParameters
+#    * brokerServicePortTls
+#    * webServicePortTls
+#    * tlsKeyFilePath
+#    * tlsCertificateFilePath
+#    * tlsTrustCertsFilePath
+#    * brokerClientTlsEnabled
+#    * brokerClientTrustCertsFilePath
+#
+# - [Rack-awareness Related Settings]
+#    * bookkeeperClientRackawarePolicyEnabled
+#    * bookkeeperClientMinNumRacksPerWriteQuorum
+#    * bookkeeperClientEnforceMinNumRacksPerWriteQuorum
+#
+# NOTE 2: for this section, please follow the following rules:
+#   - use exactly the same config parameter names as in broker.conf file
+#   - for boolean value, always quote the value as a string. Otherwise, python will 
+#     change the boolean value as starting with Uppercase (e.g. True or False)
+# 
+misc_broker_config_dict: {
+  allowAutoTopicCreation: 'false',            # default false
+  allowAutoSubscriptionCreation: 'false',     # default false
+  forceDeleteTenantAllowed: 'false',          # default false
+  forceDeleteNamespaceAllowed: 'false',       # default false
+  brokerDeleteInactiveTopicsEnabled: 'false', # default true 
+  topicFencingTimeoutSeconds: '5'             # default 0
+}

@@ -86,6 +86,4 @@
     - { regexp: '^tlsTrustCertsFilePath=', line: "tlsTrustCertsFilePath={{ tgt_tls_dest_homedir }}/rootca/{{ public_cacert_name }}" }
     - { regexp: '^brokerClientTlsEnabled=', line: "brokerClientTlsEnabled=true" }
     - { regexp: '^brokerClientTrustCertsFilePath=', line: "brokerClientTrustCertsFilePath={{ tgt_tls_dest_homedir }}/rootca/{{ public_cacert_name }}" }
-    - { regexp: '^tlsProtocols=', line: "tlsProtocols=TLSv1.3,TLSv1.2" }
-    # - { regexp: '^tlsCiphers=', line: "tlsCiphers=" }
   when: enable_brkr_tls is defined and enable_brkr_tls|bool
