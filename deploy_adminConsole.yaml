@@ -17,7 +17,7 @@
 # -----------------------
 # - AdminConsole node.js server
 - hosts: adminConsole
-  become: true
+  become: "{{ sudo_needed }}"
   become_method: sudo
   any_errors_fatal: true
   gather_facts: true
@@ -36,7 +36,7 @@
 
 # - Nginx server
 - hosts: adminConsole
-  become: true
+  become: "{{ sudo_needed }}"
   become_method: sudo
   any_errors_fatal: true
   gather_facts: true

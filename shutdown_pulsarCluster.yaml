@@ -1,7 +1,7 @@
 ---
 # Stop brokers 
 - hosts: broker
-  become: true
+  become: "{{ sudo_needed }}"
   become_method: sudo
   any_errors_fatal: true
   vars:
@@ -26,7 +26,7 @@
 
 # Stop bookies 
 - hosts: bookkeeper
-  become: true
+  become: "{{ sudo_needed }}"
   become_method: sudo
   any_errors_fatal: true
   # serial: 1
@@ -50,7 +50,7 @@
 
 # Stop zookeepers 
 - hosts: zookeeper
-  become: true
+  become: "{{ sudo_needed }}"
   become_method: sudo
   any_errors_fatal: true
   # serial: 1
@@ -72,7 +72,7 @@
 
 # Clean up pulsar binaries and logs
 - hosts: pulsarServer
-  become: true
+  become: "{{ sudo_needed }}"
   become_method: sudo
   any_errors_fatal: true
   tasks:

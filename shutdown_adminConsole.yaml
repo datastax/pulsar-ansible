@@ -1,7 +1,7 @@
 ---
 # Stop and clean up Nginx server
 - hosts: adminConsole
-  become: true
+  become: "{{ sudo_needed }}"
   become_method: sudo
   any_errors_fatal: true
   vars:
@@ -26,7 +26,7 @@
 
 # Stop and clean up AdminConsole application sever
 - hosts: adminConsole
-  become: true
+  become: "{{ sudo_needed }}"
   become_method: sudo
   any_errors_fatal: true
   vars:

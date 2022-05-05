@@ -1,8 +1,5 @@
 ---
 - name: Initalize cluster metadata
-  become: true
-  become_method: sudo
-  become_user: "{{ pulsar_user }}"
   shell: |
     {{ tgt_pulsar_inst_dir }}/bin/pulsar initialize-cluster-metadata \
     --cluster {{ cluster_name }} \

@@ -2,7 +2,7 @@
 # Start Zookeeper servers
 - hosts: zookeeper
   any_errors_fatal: true
-  become: true
+  become: "{{ sudo_needed }}"
   become_method: sudo
   vars:
     srvStarted: true
@@ -20,7 +20,7 @@
 # Start Bookkeeper nodes, one by one
 - hosts: bookkeeper
   any_errors_fatal: false
-  become: true
+  become: "{{ sudo_needed }}"
   become_method: sudo
   vars:
     srvStarted: true
@@ -44,7 +44,7 @@
 # Start Pulsar broker nodes, one by one
 - hosts: broker
   any_errors_fatal: true
-  become: true
+  become: "{{ sudo_needed }}"
   become_method: sudo
   serial: 1
   vars:

@@ -3,7 +3,7 @@
 # PreWork
 # -----------------------
 - hosts: LSCluster
-  become: true
+  become: "{{ sudo_needed }}"
   become_method: sudo
   any_errors_fatal: true
   roles: 
@@ -32,7 +32,7 @@
 # Install Pulsar server binary
 # -----------------------
 - hosts: pulsarClient
-  become: true
+  become: "{{ sudo_needed }}"
   become_method: sudo
   any_errors_fatal: true
   roles: 
@@ -44,7 +44,7 @@
 # -----------------------
 # - Configure and start zookeepers
 - hosts: zookeeper
-  become: true
+  become: "{{ sudo_needed }}"
   become_method: sudo
   any_errors_fatal: true
   vars:
@@ -77,7 +77,7 @@
 # -----------------------
 # - Configure and start bookkeepers
 - hosts: bookkeeper
-  become: true
+  become: "{{ sudo_needed }}"
   become_method: sudo
   any_errors_fatal: true
   vars:
@@ -131,7 +131,7 @@
 # -----------------------
 # - Configure brokers
 - hosts: broker
-  become: true
+  become: "{{ sudo_needed }}"
   become_method: sudo
   any_errors_fatal: true
   vars:
@@ -148,7 +148,7 @@
 # - Start brokers in serial mode
 #   NOTE: concurrent broker start seems having issue when function is enabled as part of the broker
 - hosts: broker
-  become: true
+  become: "{{ sudo_needed }}"
   become_method: sudo
   any_errors_fatal: true
   serial: 1
@@ -179,7 +179,7 @@
 # -----------------------
 # - 
 - hosts: pulsarClient
-  become: true
+  become: "{{ sudo_needed }}"
   become_method: sudo
   any_errors_fatal: true
   roles:

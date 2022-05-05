@@ -6,11 +6,9 @@
   when: not srvStarted|trim|bool and (systemd_nginx_svc is defined and systemd_nginx_svc|bool)
 
 - name: Otherwise, start Nginx server using command line
-  become: true
-  become_method: sudo
   ## NOTE: Do NOT use Ansible "become_user"! Otherwise, ansible will fail to write .async file under /home/{{ pulsar_user }}
   # become_user: "{{ pulsar_user }}"
-  shell: "nohup sudo -u {{ pulsar_user }} {{ nginx_bin_file }} -c {{ nginx_config_file }} 2>&1 &"
+  shell: "nohup {% if sudo_needed|bool %}sudo -u {{ pulsar_user }} {% endif %} {{ nginx_bin_file }} -c {{ nginx_config_file }} 2>&1 &"
   # Async shell execution with a very large number
   async: 3153600000 # 100 years
   register: ngx_startSvc_cmdcat
