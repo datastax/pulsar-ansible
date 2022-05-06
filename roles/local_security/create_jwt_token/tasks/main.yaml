@@ -5,5 +5,5 @@
     ./cleanup.sh
     ./genUserJwtToken.sh -u {{ super_user_roles_list_str }} -c {{ cluster_name }}
   register: jwtTokenShell
-- debug: msg="jwtTokenShell - {{ jwtTokenShell }}"
+- debug: msg="jwtTokenShell.failed - {{ jwtTokenShell.failed }}"
   when: show_debug_msg|bool and showLocalCmdOutput|bool

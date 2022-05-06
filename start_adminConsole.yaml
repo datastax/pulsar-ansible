@@ -1,10 +1,10 @@
 ---
 # - Start the AdminConsole node.js server
 - hosts: adminConsole
+  gather_facts: true
+  any_errors_fatal: true
   become: "{{ sudo_needed }}"
   become_method: sudo
-  any_errors_fatal: true
-  gather_facts: true
   vars:
     srvStarted: true
   roles: 
@@ -17,10 +17,10 @@
 
 # - Start the Nginx server
 - hosts: adminConsole
+  gather_facts: true
+  any_errors_fatal: true
   become: "{{ sudo_needed }}"
   become_method: sudo
-  any_errors_fatal: true
-  gather_facts: true
   vars:
     srvStarted: true
   roles:

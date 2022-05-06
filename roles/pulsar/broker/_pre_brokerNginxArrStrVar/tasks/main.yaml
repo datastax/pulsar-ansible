@@ -18,7 +18,7 @@
 ##
 # For each cluster, get broker node list with web service TLS port (needed by AdminConsole Niginx)
 #   server <broker_node_1>:8443
-#   server <broker_node_2>:843
+#   server <broker_node_2>:8443
 #   server <broker_node_3>:8443
 - name: Set broker web TLS Nginx configuration list (server <broker_ip>:<web_tls_port>;) into a variable
   set_fact: 

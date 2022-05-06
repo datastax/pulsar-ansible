@@ -1,9 +1,9 @@
 ---
 # Stop brokers 
 - hosts: broker
+  any_errors_fatal: true
   become: "{{ sudo_needed }}"
   become_method: sudo
-  any_errors_fatal: true
   vars:
     srvStarted: true
   roles:
@@ -26,9 +26,9 @@
 
 # Stop bookies 
 - hosts: bookkeeper
+  any_errors_fatal: true
   become: "{{ sudo_needed }}"
   become_method: sudo
-  any_errors_fatal: true
   # serial: 1
   roles:
     # Check the current status of bookies
@@ -50,9 +50,9 @@
 
 # Stop zookeepers 
 - hosts: zookeeper
+  any_errors_fatal: true
   become: "{{ sudo_needed }}"
   become_method: sudo
-  any_errors_fatal: true
   # serial: 1
   roles:
     # Check the current status of bookies
@@ -72,9 +72,9 @@
 
 # Clean up pulsar binaries and logs
 - hosts: pulsarServer
+  any_errors_fatal: true
   become: "{{ sudo_needed }}"
   become_method: sudo
-  any_errors_fatal: true
   tasks:
   - name: If requested, clean-up pulsar binaries and logs
     file:

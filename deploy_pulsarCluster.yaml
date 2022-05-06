@@ -3,9 +3,9 @@
 # PreWork
 # -----------------------
 - hosts: LSCluster
+  any_errors_fatal: true
   become: "{{ sudo_needed }}"
   become_method: sudo
-  any_errors_fatal: true
   roles: 
     - { role: misc/_inst_openjdk }
 
@@ -14,6 +14,8 @@
 - hosts: zookeeper
   gather_facts: true
   any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
   run_once: true
   roles: 
     - { role: pulsar/zookeeper/_pre_zkArrListVar }
@@ -23,6 +25,8 @@
 - hosts: broker
   gather_facts: true
   any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
   run_once: true
   roles: 
     - { role: pulsar/broker/_pre_brokerListVar }
@@ -32,9 +36,9 @@
 # Install Pulsar server binary
 # -----------------------
 - hosts: pulsarClient
+  any_errors_fatal: true
   become: "{{ sudo_needed }}"
   become_method: sudo
-  any_errors_fatal: true
   roles: 
     - { role: pulsar/common/pulsar_instBinary }
 
@@ -44,9 +48,9 @@
 # -----------------------
 # - Configure and start zookeepers
 - hosts: zookeeper
+  any_errors_fatal: true
   become: "{{ sudo_needed }}"
   become_method: sudo
-  any_errors_fatal: true
   vars:
     srvStarted: true
   roles: 
@@ -67,6 +71,8 @@
 # - Initialzie Pulsar cluster metadata after zookeepers are up and running
 - hosts: zookeeper
   any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
   run_once: true
   roles: 
     - { role: pulsar/zookeeper/zkpr_initMetadata }
@@ -77,9 +83,9 @@
 # -----------------------
 # - Configure and start bookkeepers
 - hosts: bookkeeper
+  any_errors_fatal: true
   become: "{{ sudo_needed }}"
   become_method: sudo
-  any_errors_fatal: true
   vars:
     srvStarted: true
   roles: 
@@ -99,6 +105,9 @@
 
 # - Sanity test of whether bookies are up and running properly
 - hosts: bookkeeper
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
   run_once: true
   roles:
     - { role: pulsar/bookkeeper/bkie_sanityCheck }
@@ -131,38 +140,26 @@
 # -----------------------
 # - Configure brokers
 - hosts: broker
+  any_errors_fatal: true
   become: "{{ sudo_needed }}"
   become_method: sudo
-  any_errors_fatal: true
   vars:
     hostNameStr2: "{{ private_ip | replace('.', '-') }}"
     broker_key_name: "broker.{{ hostNameStr2 }}.key-pk8.pem"
     broker_cert_name: "broker.{{ hostNameStr2 }}.crt.pem"
+    srvStarted: true
   roles: 
     # Config broker non-security related settings
     - { role: pulsar/broker/brkr_config }
     # If needed, config broker security related settings
     - { role: pulsar/broker/brkr_secConfig, when: enable_brkr_security|bool }
-
-
-# - Start brokers in serial mode
-#   NOTE: concurrent broker start seems having issue when function is enabled as part of the broker
-- hosts: broker
-  become: "{{ sudo_needed }}"
-  become_method: sudo
-  any_errors_fatal: true
-  serial: 1
-  vars:
-    srvStarted: true
-  roles: 
     # Check the current status of brokers
     - { role: misc/_check_svc_status, 
         srv_component: 'broker', 
         srv_ports: [
             "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ web_svc_port_tls }}{% else %}{{ web_svc_port }}{% endif %}",
             "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ broker_svc_port_tls }}{% else %}{{ broker_svc_port }}{% endif %}"
-          ] 
-      }
+          ] }
     # Start brokers
     - { role: pulsar/common/pulsar_startSvc, 
         srv_component: 'broker', 
@@ -170,18 +167,28 @@
         srv_ports: [
             "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ web_svc_port_tls }}{% else %}{{ web_svc_port }}{% endif %}",
             "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ broker_svc_port_tls }}{% else %}{{ broker_svc_port }}{% endif %}"
-          ] 
-      }
+          ] }
 
+# # - Start brokers in serial mode
+# #   NOTE: concurrent broker start seems having issue when function is enabled as part of the broker
+# - hosts: broker
+#   become: "{{ sudo_needed }}"
+#   become_method: sudo
+#   any_errors_fatal: true
+#   serial: 1
+#   vars:
+#     srvStarted: true
+#   roles: 
+ 
 
 #########################
 # Configure Pular clients
 # -----------------------
 # - 
 - hosts: pulsarClient
+  any_errors_fatal: true
   become: "{{ sudo_needed }}"
   become_method: sudo
-  any_errors_fatal: true
   roles:
     # Config pulsar client non-security related settings
     - { role: pulsar/client/clnt_config }
@@ -197,6 +204,9 @@
 # -----------------------
 # - Update .profile for all hosts in cluster
 - hosts: pulsarServer:pulsarClient
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
   tasks:
   - name: Add Pulsar executeables in $PATH system variable
     lineinfile:
