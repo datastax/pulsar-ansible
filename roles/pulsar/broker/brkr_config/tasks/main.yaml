@@ -17,7 +17,7 @@
     bookieRackCnt: |
       {% set rack_list = [] %}
       {% set count = [0] %}
-      {% for node in groups['bookkeeper'] if hostvars[node].rack_name not in rack_list %}
+      {% for node in groups['bookkeeper'] %}
       {%   set ignored = rack_list.append(hostvars[node].rack_name) %}
       {%   if count.append(count.pop() + 1) %}{% endif %}
       {% endfor %}
@@ -25,7 +25,6 @@
       {{ count.pop() }}
 - debug: msg="bookieRackCnt - {{ bookieRackCnt }}"
   when: show_debug_msg|bool
-
 
 - name: Set ensemble size, write, and ack quorum count
   set_fact:
@@ -41,18 +40,17 @@
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items:
-    - { regexp: '^zookeeperServers=', line: "zookeeperServers={{ hostvars[groups['zookeeper'][0]]['zkListStrVar']|trim }}" }
-    - { regexp: '^configurationStoreServers=', line: "configurationStoreServers={{ hostvars[groups['zookeeper'][0]]['zkListStrVar']|trim }}" }
-    - { regexp: '^clusterName=', line: 'clusterName={{ cluster_name }}' }
-    - { regexp: '^brokerServicePort=', line: 'brokerServicePort={{ broker_svc_port }}' }
-    - { regexp: '^webServicePort=', line: 'webServicePort={{ web_svc_port }}' }
-    - { regexp: '^managedLedgerDefaultEnsembleSize=', line: 'managedLedgerDefaultEnsembleSize={{ ensemble_size }}'}
-    - { regexp: '^managedLedgerDefaultWriteQuorum=', line: 'managedLedgerDefaultWriteQuorum={{ write_quorum_cnt }}' }
-    - { regexp: '^managedLedgerDefaultAckQuorum=', line: 'managedLedgerDefaultAckQuorum={{ ack_quorum_cnt }}' }
+    - { regexp: "^zookeeperServers=", line: "zookeeperServers={{ hostvars[groups['zookeeper'][0]]['zkListStrVar']|trim }}" }
+    - { regexp: "^configurationStoreServers=", line: "configurationStoreServers={{ hostvars[groups['zookeeper'][0]]['zkListStrVar']|trim }}" }
+    - { regexp: "^clusterName=", line: "clusterName={{ cluster_name }}" }
+    - { regexp: "^brokerServicePort=", line: "brokerServicePort={{ broker_svc_port }}" }
+    - { regexp: "^webServicePort=", line: "webServicePort={{ web_svc_port }}" }
+    - { regexp: "^managedLedgerDefaultEnsembleSize=", line: "managedLedgerDefaultEnsembleSize={{ ensemble_size }}"}
+    - { regexp: "^managedLedgerDefaultWriteQuorum=", line: "managedLedgerDefaultWriteQuorum={{ write_quorum_cnt }}" }
+    - { regexp: "^managedLedgerDefaultAckQuorum=", line: "managedLedgerDefaultAckQuorum={{ ack_quorum_cnt }}" }
     #### 
-    ## - Enable function worker as part of the broker (not recommended for PROD environment)
-    ##   NOTE/TBD: improve dedicated function worker deployment!
-    # - { regexp: '^functionsWorkerEnabled=', line: 'functionsWorkerEnabled=true' }
+    # Make sure that functions workers are not started as part of the broker (not recommended for PROD environment)
+    - { regexp: "^functionsWorkerEnabled=", line: "functionsWorkerEnabled=false" }
 
 - name: Modify Pulsar broker config file for rack-awareness related settings
   lineinfile:
@@ -60,18 +58,18 @@
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items:
-    - { regexp: '^bookkeeperClientRackawarePolicyEnabled=', 
-        line: 'bookkeeperClientRackawarePolicyEnabled=true' }
-    - { regexp: '^bookkeeperClientMinNumRacksPerWriteQuorum=', 
-        line: 'bookkeeperClientMinNumRacksPerWriteQuorum={% if bookieRackCnt|int < 2 %}1{% elif minNumRackPerWQ|int > bookieRackCnt|int %}{{ bookieRackCnt|int }}{% else %}{{ minNumRackPerWQ|int }}{% endif %}' }
-    - { regexp: '^bookkeeperClientEnforceMinNumRacksPerWriteQuorum=', 
-        line: 'bookkeeperClientEnforceMinNumRacksPerWriteQuorum={{ enforceMinNumRackPerWQ|lower }}' }
+    - { regexp: "^bookkeeperClientRackawarePolicyEnabled=", 
+        line: "bookkeeperClientRackawarePolicyEnabled=true" }
+    - { regexp: "^bookkeeperClientMinNumRacksPerWriteQuorum=", 
+        line: "bookkeeperClientMinNumRacksPerWriteQuorum={% if bookieRackCnt|int < 2 %}1{% elif minNumRackPerWQ|int > bookieRackCnt|int %}{{ bookieRackCnt|int }}{% else %}{{ minNumRackPerWQ|int }}{% endif %}" }
+    - { regexp: "^bookkeeperClientEnforceMinNumRacksPerWriteQuorum=", 
+        line: "bookkeeperClientEnforceMinNumRacksPerWriteQuorum={{ enforceMinNumRackPerWQ|lower }}" }
   when: config_rackAwareness is defined and config_rackAwareness|bool
 
 - name: Modify Pulsar broker config file for misc settings
   lineinfile:
     path: "{{ broker_conf_file }}"
-    regexp: ^(# )?{{ item.key }}="
+    regexp: "^(#\\s?)?{{ item.key }}="
     line: "{{ item.key }}={{ item.value }}"
   with_items:
     - "{{ lookup('dict', misc_broker_config_dict) }}"

@@ -17,89 +17,102 @@ fi
 
 usage() {
    echo
-   echo "Usage: genPulsarSelfSignSSL.sh [-h] [-d] -b <broker_host_list> \
-                                        -c <pulsar_cluster_name> \
-                                        -root_pwd <rootPasswd> \
-                                        -brkr_pwd <brkrPasswd> \
-                                        [-root_expr_days <rootCertExpDays>] \
-                                        [-brkr_expr_days <brokre_cert_expire_days>] \
+   echo "Usage: genPulsarSelfSignSSL.sh [-h] [-d] [-r]\
+                                        -clst_name <pulsar_cluster_name> \
+                                        -host_type <srv_host_type> \
+                                        -host_list <srv_host_list> \
+                                        -ca_key_pwd <rooCaKeytPasswd> \
+                                        -srv_key_pwd <srvKeyPasswd> \
+                                        [-ca_cert_expr_days <rootCertExpDays>] \
+                                        [-srv_cert_expr_days <srvCertExpDays>] \
                                         [-certSubjLineStr <certificate_subject_line_string>]"
    echo "       -h   : show usage info"
    echo "       [-d] : force downloding and overwriting the local openssl.cnf file"
-   echo "       -b <broker_host_list> : broker hostname or IP list string (comma separated)"
-   echo "       -c <pulsar_cluster_name> : Pulsar cluster name"
-   echo "       -root_pwd <rootPasswd> : the password of the self-signed root CA key"
-   echo "       -brkr_pwd <brkrPasswd> : the password of the (broker) server key"
-   echo "       [-root_expr_days <rootCertExpDays>] : the expiration days of the self-signed root CA certificate (default 10 years)"
-   echo "       [-brkr_expr_days <brokre_cert_expire_days>] : the expiration days of the signed (broker) server certificate (default 1 year)"
+   echo "       [-r] : reuse existing root CA key and certificate if they already exist"
+   echo "       -clst_name <pulsar_cluster_name> : Pulsar cluster name"
+   echo "       -host_type <srv_host_type>: Pulsar server host type that needs to set up TLS certificates (e.g. broker, functions_worker)"
+   echo "       -host_list <srv_host_list> : Puslar server host name or IP list string (comma separated)"
+   echo "       -ca_key_pwd <rooCaKeytPasswd> : the password of the self-signed root CA key"
+   echo "       -srv_key_pwd <srvKeyPasswd> : the password of the Pulsar server key"
+   echo "       [-ca_cert_expr_days <rootCertExpDays>] : the expiration days of the self-signed root CA certificate (default 10 years)"
+   echo "       [-srv_cert_expr_days <srvCertExpDays> : the expiration days of the signed Pulsar server certificate (default 1 year)"
    echo "       [-certSubjLineStr <certificate_subject_line_string>] : the subject line string of the certificate"
    echo
 }
 
-if [[ $# -eq 0 || $# -gt 15 ]]; then
+if [[ $# -eq 0 || $# -gt 18 ]]; then
    usage
    exit 20
 fi
 
 DFT_rootCertExpDays=3650
-DFT_brkrCertExpDays=365
+DFT_srvCertExpDays=365
 DFT_certSubjLineStr="/C=US/ST=TX/L=Dallas/O=mytest.com"
 
 forceDownload=0
-brokerHostListStr=""
+reuseCa=0
+srvHostType=""
+srvHostListStr=""
 pulsarClusterName=""
-rootPasswd=""
-brkrPasswd=""
+caKeyPasswd=""
+srvKeyPasswd=""
 rootCertExpDays=
-brkrCertExpDays=
+srvCertExpDays=
 certSubjLineStr=
 while [[ "$#" -gt 0 ]]; do
    case $1 in
       -h) usage; exit 0 ;;
       -d) forceDownload=1; ;;
-      -b) brokerHostListStr="$2"; shift ;;
-      -c) pulsarClusterName="$2"; shift ;;
-      -root_pwd) rootPasswd="$2"; shift ;;
-      -brkr_pwd) brkrPasswd="$2"; shift ;;
-      -root_expr_days) rootCertExpDays="$2"; shift;;
-      -brkr_expr_days) brkrCertExpDays="$2"; shift;;
+      -r) reuseCa=1; ;;
+      -clst_name) pulsarClusterName="$2"; shift ;;
+      -host_type) srvHostType="$2"; shift ;;
+      -host_list) srvHostListStr="$2"; shift ;;
+      -ca_key_pwd) caKeyPasswd="$2"; shift ;;
+      -srv_key_pwd) srvKeyPasswd="$2"; shift ;;
+      -ca_cert_expr_days) rootCertExpDays="$2"; shift;;
+      -srv_cert_expr_days) srvCertExpDays="$2"; shift;;
       -certSubjLineStr) certSubjLineStr="$2"; shift;;
-      *) echo "Unknown parameter passed: $1"; exit 20 ;;
+      *) echo "Unknown parameter passed: $1"; exit 30 ;;
    esac
    shift
 done
 
 echo
 
-if [[ "${brokerHostListStr}" == ""  ]]; then
-  echo "[ERROR] Broker host list string (comma separated) can't be empty" 
-  exit 30
+if [[ "${srvHostType}" == ""  ]]; then
+  echo "[ERROR] Pulsar server host type can't be empty" 
+  exit 40
+fi
+
+if [[ "${srvHostListStr}" == ""  ]]; then
+  echo "[ERROR] Pulsar server host list string (comma separated) can't be empty" 
+  exit 50
 fi
 
 if [[ "${pulsarClusterName}" == ""  ]]; then
   echo "[ERROR] Pulsar cluster name can't be empty" 
-  exit 40
-fi
-
-if [[ "${rootPasswd}" == ""  ]]; then
-  echo "[ERROR] The password of the self-signed root CA key can't be empty" 
-  exit 50
-fi
-
-if [[ "${brkrPasswd}" == ""  ]]; then
-  echo "[ERROR] The password of the (broker) server key can't be empty" 
   exit 60
 fi
 
+if [[ "${caKeyPasswd}" == ""  ]]; then
+  echo "[ERROR] The password of the self-signed root CA key can't be empty" 
+  exit 70
+fi
+
+if [[ "${srvKeyPasswd}" == ""  ]]; then
+  echo "[ERROR] The password of the Pulsar server key can't be empty" 
+  exit 80
+fi
+
 re='^[0-9]+$'
-if [[ "${rootCertExpDays}" == "" || ! rootCertExpDays =~ $re ]]; then
-  echo "[WARN] The expiration days of the self-signed root CA certificate is invalid. Use the default setting of 3650 days" 
+if ! [[ ${rootCertExpDays} =~ $re ]]; then
+  echo "[WARN] The expiration days of the root CA certificate is invalid. Use the default setting of 3650 days" 
   rootCertExpDays=${DFT_rootCertExpDays}
 fi
 
-if [[ "${brkrCertExpDays}" == "" || ! brkrCertExpDays =~ $re ]]; then
-  echo "[WARN] The expiration days of the signed (broker) server certificate is invalid. Use the default setting of 365 days" 
-  brkrCertExpDays=${DFT_brkrCertExpDays}
+if ! [[ ${srvCertExpDays} =~ $re ]]; then
+  echo "[WARN] The expiration days of the Pulsar server certificate is invalid. Use the default setting of 365 days" 
+  srvCertExpDays=${DFT_srvCertExpDays}
 fi
 
 if [[ "${certSubjLineStr}" == ""  ]]; then
@@ -112,7 +125,7 @@ cd staging
 
 export CA_HOME=$(pwd)
 
-mkdir -p private certs crl newcerts brokers
+mkdir -p private crl newcerts certs/${srvHostType}s
 chmod 700 private/
 touch index.txt index.txt.attr
 echo 1000 > serial
@@ -130,7 +143,7 @@ if [[ ${forceDownload} -eq 1 ]]; then
   whichWget=$(which wget)
   if [[ "${whichWget}" == "" || "${whichWget}" == *"not found"* ]]; then
     echo "Can't find \"wget\" executable which is necessary to download openssl.cnf file"
-    exit 70
+    exit 90
   fi
 
   echo
@@ -139,51 +152,51 @@ if [[ ${forceDownload} -eq 1 ]]; then
   $whichWget https://raw.githubusercontent.com/apache/pulsar/master/site2/website/static/examples/openssl.cnf
 fi
 
-echo
-stepCnt=$((stepCnt+1))
-
 # NOTE: the self signed root ca key and certificate names must be as below
 ROOT_CA_KEY_NAME="ca.key.pem"
 ROOT_CA_CERT_NAME="ca.cert.pem"
 
-echo "== STEP ${stepCnt} :: Create a root key and a X.509 certificate for self-signing purpose =="
-echo "   >> (${stepCnt}.1) Generate the self-signed root CA private key file"
-$whichOpenssl genrsa -aes256 \
-        -passout pass:${rootPasswd} \
-        -out ${CA_HOME}/private/${ROOT_CA_KEY_NAME} \
-        4096
-chmod 400 ${CA_HOME}/private/${ROOT_CA_KEY_NAME}
+if [[ ! -f private/${ROOT_CA_KEY_NAME} || ! certs/${ROOT_CA_CERT_NAME} || $reuseCa -eq 0 ]]; then
+  echo
+  stepCnt=$((stepCnt+1))
+  echo "== STEP ${stepCnt} :: Create a root key and a X.509 certificate for self-signing purpose =="
+  echo "   >> (${stepCnt}.1) Generate the self-signed root CA private key file"
+  $whichOpenssl genrsa -aes256 \
+          -passout pass:${caKeyPasswd} \
+          -out ${CA_HOME}/private/${ROOT_CA_KEY_NAME} \
+          4096
+  chmod 400 ${CA_HOME}/private/${ROOT_CA_KEY_NAME}
 
-echo "   >> (${stepCnt}.2) Generate the self-signed root CA certificate file"
-$whichOpenssl req -config openssl.cnf \
-        -new -x509 -sha256 \
-        -extensions v3_ca \
-        -key ${CA_HOME}/private/${ROOT_CA_KEY_NAME} \
-        -out ${CA_HOME}/certs/${ROOT_CA_CERT_NAME} \
-        -days ${rootCertExpDays} \
-        -subj ${certSubjLineStr} \
-        -passin pass:${rootPasswd}
-chmod 444 ${CA_HOME}/certs/${ROOT_CA_CERT_NAME}
-
+  echo "   >> (${stepCnt}.2) Generate the self-signed root CA certificate file"
+  $whichOpenssl req -config openssl.cnf \
+          -new -x509 -sha256 \
+          -extensions v3_ca \
+          -key ${CA_HOME}/private/${ROOT_CA_KEY_NAME} \
+          -out ${CA_HOME}/certs/${ROOT_CA_CERT_NAME}  \
+          -days ${rootCertExpDays} \
+          -subj ${certSubjLineStr} \
+          -passin pass:${caKeyPasswd}
+  chmod 444 ${CA_HOME}/certs/${ROOT_CA_CERT_NAME}
+fi
 
 echo
 stepCnt=$((stepCnt+1))
-echo "== STEP ${stepCnt} :: Generate and sign the Broker Server certificate for all specified Pulsar hosts =="
+echo "== STEP ${stepCnt} :: Generate and sign the Pulsar server Server certificate for all specified Pulsar hosts =="
 
-for borkerHost in $(echo $brokerHostListStr | sed "s/,/ /g"); do
-   echo "   [Host:  $borkerHost]"
+for srvHost in $(echo $srvHostListStr | sed "s/,/ /g"); do
+   echo "   [Host:  $srvHost]"
    
-   # replace '.' with '-' in the broker host name or IP
-   borkerHost2=${borkerHost//./-}
+   # replace '.' with '-' in the Pulsar server host name or IP
+   srvHost2=${srvHost//./-}
 
-   BROKER_KEY_NAME="${CA_HOME}/brokers/broker.${borkerHost2}.key.pem"
-   BROKER_KEY_PK8_NAME="${CA_HOME}/brokers/broker.${borkerHost2}.key-pk8.pem"
-   BROKER_CSR_NAME="${CA_HOME}/brokers/broker.${borkerHost2}.csr.pem"
-   BROKER_CRT_NAME="${CA_HOME}/brokers/broker.${borkerHost2}.crt.pem"
+   BROKER_KEY_NAME="${CA_HOME}/certs/${srvHostType}s/${srvHostType}.${srvHost2}.key.pem"
+   BROKER_KEY_PK8_NAME="${CA_HOME}/certs/${srvHostType}s/${srvHostType}.${srvHost2}.key-pk8.pem"
+   BROKER_CSR_NAME="${CA_HOME}/certs/${srvHostType}s/${srvHostType}.${srvHost2}.csr.pem"
+   BROKER_CRT_NAME="${CA_HOME}/certs/${srvHostType}s/${srvHostType}.${srvHost2}.crt.pem"
 
    echo "   >> (${stepCnt}.1) Generate the Server Certificate private key file"
    $whichOpenssl genrsa \
-            -passout pass:${brkrPasswd} \
+            -passout pass:${srvKeyPasswd} \
             -out ${BROKER_KEY_NAME} \
             2048
 
@@ -202,8 +215,8 @@ for borkerHost in $(echo $brokerHostListStr | sed "s/,/ /g"); do
             -new -sha256 \
             -key ${BROKER_KEY_NAME} \
             -out ${BROKER_CSR_NAME} \
-            -subj "${certSubjLineStr}/CN=${borkerHost}" \
-            -passin pass:${brkrPasswd}
+            -subj "${certSubjLineStr}/CN=${srvHost}" \
+            -passin pass:${srvKeyPasswd}
 
    echo
    echo "   >> (${stepCnt}.4) Sign the CSR with the ROOT certificate"
@@ -211,10 +224,10 @@ for borkerHost in $(echo $brokerHostListStr | sed "s/,/ /g"); do
             -config openssl.cnf \
             -extensions server_cert \
             -notext -md sha256 -batch \
-            -days ${brkrCertExpDays} \
+            -days ${srvCertExpDays} \
             -in ${BROKER_CSR_NAME} \
             -out ${BROKER_CRT_NAME} \
-            -passin pass:${rootPasswd}
+            -passin pass:${caKeyPasswd}
    echo
    echo
 done
@@ -224,9 +237,9 @@ cd ..
 exit 0
 
 
-## Old code for reading broker host list from an external file
+## Old code for reading Puslar server host list from an external file
 # ------------
-# brokerListFileFullPath="$(cd $(dirname $brokerListFile); pwd)/$(basename $brokerListFile)"
+# srvListFileFullPath="$(cd $(dirname $srvListFile); pwd)/$(basename $srvListFile)"
 # while IFS= read -r line
 # do
-# done < "$brokerListFileFullPath"
+# done < "$srvListFileFullPath"

@@ -13,5 +13,13 @@
   async: 3153600000 # 100 years
   register: ngx_startSvc_cmdcat
   when: not srvStarted|trim|bool and not (systemd_nginx_svc is defined and systemd_nginx_svc|bool)
-- debug: msg="ngx_startSvc_cmdcat - {{ ngx_startSvc_cmdcat }}"
+- debug: msg="ngx_startSvc_cmdcat.failed - {{ ngx_startSvc_cmdcat.failed }}"
   when: show_debug_msg|bool and not (systemd_nginx_svc is defined and systemd_nginx_svc|bool)
+
+- name: Wait until Nginx server is ready
+  wait_for:
+    host: "{{ private_ip }}"
+    port: "{{ nginx_listen_port }}"
+    delay: 2
+    timeout: 120
+  when: not srvStarted|trim|bool

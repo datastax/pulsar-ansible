@@ -7,5 +7,13 @@
   async: 3153600000 # 100 years
   register: ac_startSvc_cmdcat
   when: not srvStarted|trim|bool
-- debug: msg="ac_startSvc_cmdcat - {{ ac_startSvc_cmdcat }}"
+- debug: msg="ac_startSvc_cmdcat.failed - {{ ac_startSvc_cmdcat.failed }}"
   when: show_debug_msg|bool 
+
+- name: Wait until AdminConsole is ready
+  wait_for:
+    host: "{{ private_ip }}"
+    port: "{{ ac_listen_port }}"
+    delay: 2
+    timeout: 120
+  when: not srvStarted|trim|bool

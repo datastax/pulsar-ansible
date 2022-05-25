@@ -33,6 +33,7 @@
     - "{{ tgt_pkg_pular_dir }}"
     - "{{ tgt_pulsar_inst_dir }}"
     - "{{ tgt_pulsar_log_homedir }}"
+    - "{{ tgt_pulsar_gc_log_homedir }}"
 
 - name: Check if Pulsar binary already exists
   stat:

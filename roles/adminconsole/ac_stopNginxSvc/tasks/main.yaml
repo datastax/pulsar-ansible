@@ -11,3 +11,12 @@
   vars:
     srv_process_name: "nginx"
   when: srvStarted|trim|bool and not (systemd_nginx_svc is defined and systemd_nginx_svc|bool)
+
+- name: Wait until Nginx server is gone
+  wait_for:
+    host: "{{ private_ip }}"
+    port: "{{ nginx_listen_port }}"
+    state: stopped
+    delay: 2
+    timeout: 120
+  when: srvStarted|trim|bool

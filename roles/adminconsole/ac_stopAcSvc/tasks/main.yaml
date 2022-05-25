@@ -4,3 +4,12 @@
     role: misc/_kill_svc_pids
   vars:
     srv_process_name: "node"
+
+- name: Wait until AdminConsole application server is gone
+  wait_for:
+    host: "{{ private_ip }}"
+    port: "{{ ac_listen_port }}"
+    state: stopped
+    delay: 2
+    timeout: 120
+  when: srvStarted|trim|bool

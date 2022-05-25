@@ -1,6 +1,7 @@
 ---
 - name: Stop the Pulsar server component ({{ srv_component }}), if it is already running
-  shell: "{{ tgt_pulsar_inst_dir }}/bin/pulsar-daemon stop {{ srv_component }}"
+  # NOTE: replace "functions_worker" to "functions-worker"
+  shell: "{{ tgt_pulsar_inst_dir }}/bin/pulsar-daemon stop {{ srv_component | replace('_', '-') }}"
   when: srvStarted|trim|bool
 
 - name: Wait until the Pulsar server component ({{ srv_component }}) is gone

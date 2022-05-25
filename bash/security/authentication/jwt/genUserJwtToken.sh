@@ -17,35 +17,41 @@ fi
 
 usage() {
    echo
-   echo "Usage: genUserJwtToken.sh [-h] [-r] -u <pulsar_user_name_list> -c <pulsar_cluster_name>"
+   echo "Usage: genUserJwtToken.sh [-h] [-r] \
+                                   -clst_name <pulsar_cluster_name> \
+                                   -host_type <srv_host_type> \
+                                   -user_list <tokenUserList>"
    echo "       -h   : show usage info"
    echo "       [-r] : reuse existing token generation key pair if it already exists"
-   echo "       -u <pulsar_user_name> : Pulsar user name list (comma separated)"
-   echo "       -c <pulsar_cluster_name> : Pulsar cluster name"
+   echo "       -clst_name <pulsar_cluster_name> : Pulsar cluster name"
+   echo "       -host_type <srv_host_type>: Pulsar server host type that needs to set up JWT tokens (e.g. broker, functions_worker)"
+   echo "       -user_list <tokenUserList> : User name list (comma separated) that need JWT tokens"
    echo
 }
 
-if [[ $# -eq 0 || $# -gt 5 ]]; then
+if [[ $# -eq 0 || $# -gt 7 ]]; then
    usage
    exit 20
 fi
 
 reuseKey=0
-pulsarUserNameList=""
+srvHostType=""
 pulsarClusterName=""
+tokenUserNameList=""
 while [[ "$#" -gt 0 ]]; do
    case $1 in
       -h) usage; exit 0 ;;
       -r) reuseKey=1; ;;
-      -u) pulsarUserNameList="$2"; shift ;;
-      -c) pulsarClusterName="$2"; shift ;;
+      -clst_name) pulsarClusterName="$2"; shift ;;
+      -host_type) srvHostType="$2"; shift ;;
+      -user_list) tokenUserNameList="$2"; shift ;;
       *) echo "Unknown parameter passed: $1"; exit 20 ;;
    esac
    shift
 done
 
-if [[ "${pulsarUserNameList}" == ""  ]]; then
-  echo "Pulsar user name list can't be empty" 
+if [[ "${srvHostType}" == ""  ]]; then
+  echo "[ERROR] Pulsar server host type can't be empty" 
   exit 30
 fi
 
@@ -54,8 +60,10 @@ if [[ "${pulsarClusterName}" == ""  ]]; then
   exit 40
 fi
 
-# echo $pulsarUserNameList
-# echo $pulsarClusterName
+if [[ "${tokenUserNameList=""}" == ""  ]]; then
+  echo "Token user name list can't be empty" 
+  exit 50
+fi
 
 PRIV_KEY="${pulsarClusterName}_jwt_private.key"
 PUB_KEY="${pulsarClusterName}_jwt_public.key"
@@ -63,7 +71,7 @@ PUB_KEY="${pulsarClusterName}_jwt_public.key"
 mkdir -p staging
 cd staging
 
-mkdir -p key token
+mkdir -p key token/${srvHostType}s
 
 CUR_DIR=$(pwd)
 stepCnt=0
@@ -84,13 +92,13 @@ echo
 stepCnt=$((stepCnt+1))
 echo "== STEP ${stepCnt} :: Create a JWT token for each of the specificed users =="
 
-for pulsarUserName in $(echo ${pulsarUserNameList} | sed "s/,/ /g"); do
-  echo "   >> JWT token for user: ${pulsarUserName}"
+for userName in $(echo ${tokenUserNameList} | sed "s/,/ /g"); do
+  echo "   >> JWT token for user: ${userName}"
   $whichPulsar tokens create \
       --private-key  ${CUR_DIR}/key/${PRIV_KEY} \
-      --subject ${pulsarUserName} > ${CUR_DIR}/token/${pulsarUserName}.jwt
+      --subject ${userName} > ${CUR_DIR}/token/${srvHostType}s/${userName}.jwt
 done
 
-cd ..
+cd ../..
 
 exit 0

@@ -1,0 +1,9 @@
+---
+- name: Create VM type breadcrumb file
+  lineinfile:
+    path: "{{ tgt_pulsar_inst_dir }}/pulsar_vm_type.txt"
+    line: "{{ pulsar_vm_type}}"
+    create: "yes"
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    mode: "{{ file_permission_mode_noexec }}"

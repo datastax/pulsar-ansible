@@ -26,13 +26,13 @@
       regexp: "{{ item.regexp }}"
       replace: "{{ item.line }}"
   with_items:
-    - { regexp: '{{ placeHolder_homeCluster }}', line: "{{ cluster_name }}" }
-    - { regexp: '{{ placeHolder_brkrWebPortList }}', line: "{{ hostvars[groups['broker'][0]]['brkrWebArrStrVar'] }}" }
-    - { regexp: '{{ placeHolder_brkrWebPortTlsList }}', line: "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ hostvars[groups['broker'][0]]['brkrWebTLSArrStrVar'] }}{% else %}{{ hostvars[groups['broker'][0]]['brkrWebArrStrVar'] }}{% endif %}" }
-    - { regexp: '{{ placeHolder_acListenHost }}', line: "{{ private_ip }}" }
-    - { regexp: '{{ placeHolder_acListenPort }}', line: "{{ ac_listen_port }}" }
-    - { regexp: '{{ placeHolder_nginxLogDir }}', line: "{{ nginx_log_dir }}" }
-    - { regexp: '{{ placeHolder_nginxPid }}', line: "{{ nginx_pid_file }}" }
-    - { regexp: '{{ placeHolder_nginxListenPort }}', line: "{{ nginx_listen_port }}" }
-    - { regexp: '{{ placeHolder_nginxStatusPort }}', line: "{{ nginx_status_port }}" }
-    - { regexp: 'proxy_pass http*pulsar-proxy', line: "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}proxy_pass https://https-pulsar-proxy{% else %}http://http-pulsar-proxy{% endif %}" }
+    - { regexp: "{{ placeHolder_homeCluster }}", line: "{{ cluster_name }}" }
+    - { regexp: "{{ placeHolder_brkrWebPortList }}", line: "{{ hostvars[groups['broker'][0]]['brkrWebArrStrVar'] }}" }
+    - { regexp: "{{ placeHolder_brkrWebPortTlsList }}", line: "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ hostvars[groups['broker'][0]]['brkrWebTLSArrStrVar'] }}{% else %}{{ hostvars[groups['broker'][0]]['brkrWebArrStrVar'] }}{% endif %}" }
+    - { regexp: "{{ placeHolder_acListenHost }}", line: "{{ private_ip }}" }
+    - { regexp: "{{ placeHolder_acListenPort }}", line: "{{ ac_listen_port }}" }
+    - { regexp: "{{ placeHolder_nginxLogDir }}", line: "{{ nginx_log_dir }}" }
+    - { regexp: "{{ placeHolder_nginxPid }}", line: "{{ nginx_pid_file }}" }
+    - { regexp: "{{ placeHolder_nginxListenPort }}", line: "{{ nginx_listen_port }}" }
+    - { regexp: "{{ placeHolder_nginxStatusPort }}", line: "{{ nginx_status_port }}" }
+    - { regexp: "proxy_pass http*pulsar-proxy", line: "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}proxy_pass https://https-pulsar-proxy{% else %}http://http-pulsar-proxy{% endif %}" }

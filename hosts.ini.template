@@ -1,3 +1,7 @@
+[all:vars]
+ansible_python_interpreter=/usr/bin/python3
+cluster_name="MyCluster"
+
 [LSCluster:children]
 pulsarServer
 adminConsole
@@ -5,6 +9,7 @@ heartBeat
 
 [LSCluster:vars]
 ansible_python_interpreter=/usr/bin/python3
+cluster_name=MyCluster
 
 [pulsarClient:children]
 pulsarServer
@@ -14,6 +19,7 @@ pulsarStandAloneClient
 zookeeper
 bookkeeper
 broker
+functions_worker
 
 [zookeeper]
 <public_zk_ip1> private_ip=<private_zk_ip1>
@@ -31,6 +37,12 @@ broker
 <public_broker_ip1> private_ip=<private_broker_ip1>
 <public_broker_ip2> private_ip=<private_broker_ip2>
 <public_broker_ip3> private_ip=<private_broker_ip3>
+... ...
+
+[functions_worker]
+<public_function_worker_ip1> private_ip=<private_function_worker_ip1>
+<public_function_worker_ip2> private_ip=<private_function_worker_ip2>
+<public_function_worker_ip3> private_ip=<private_function_worker_ip3>
 ... ...
 
 [adminConsole]

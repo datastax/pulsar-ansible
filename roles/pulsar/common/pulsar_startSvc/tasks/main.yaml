@@ -12,8 +12,11 @@
     state: absent
   when: not srvStarted|trim|bool and srv_pid_stat.stat.exists
 
+- debug: msg="{{ srv_options|trim }}"
+  when: show_debug_msg|bool
 - name: Start the Pulsar server component ({{ srv_component }}), if it is not running yet
-  shell: "{{ srv_options|trim }} {{ tgt_pulsar_inst_dir }}/bin/pulsar-daemon start {{ srv_component }}"
+  # NOTE: replace "functions_worker" to "functions-worker"
+  shell: "{{ srv_options|trim }} {{ tgt_pulsar_inst_dir }}/bin/pulsar-daemon start {{ srv_component | replace('_', '-') }}"
   when: not srvStarted|trim|bool
 
 - name: Wait until the Pulsar server component ({{ srv_component }}) is ready

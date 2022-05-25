@@ -32,15 +32,15 @@
     - { role: pulsar/broker/_pre_brokerListVar }
 
 
-#########################
-# Install Pulsar server binary
-# -----------------------
-- hosts: pulsarClient
-  any_errors_fatal: true
-  become: "{{ sudo_needed }}"
-  become_method: sudo
-  roles: 
-    - { role: pulsar/common/pulsar_instBinary }
+# #########################
+# # Install Pulsar server binary
+# # -----------------------
+# - hosts: pulsarClient
+#   any_errors_fatal: true
+#   become: "{{ sudo_needed }}"
+#   become_method: sudo
+#   roles: 
+#     - { role: pulsar/common/pulsar_instBinary }
 
 
 #########################
@@ -53,20 +53,18 @@
   become_method: sudo
   vars:
     srvStarted: true
+    srv_component: 'zookeeper'
+    srv_ports: ["{{ zk_clnt_port }}"]
   roles: 
     # If needed, mount dedicated storage space to zookeepers
     - { role: pulsar/zookeeper/zkpr_mntStorage, when: not skip_zk_block_device_setup|bool }
     # Config zookeepers 
+    - { role: pulsar/common/pulsar_srvBreadCrumb, pulsar_vm_type: "{{ srv_component }}" }
     - { role: pulsar/zookeeper/zkpr_config }
     # Check the current status of zookeepers
-    - { role: misc/_check_svc_status, 
-        srv_component: 'zookeeper', 
-        srv_ports: ["{{ zk_clnt_port }}"] }
+    - { role: misc/_check_svc_status }
     # Start zookepers
-    - { role: pulsar/common/pulsar_startSvc, 
-        srv_component: 'zookeeper', 
-        srv_options: "{{ zk_jvm_options }}",
-        srv_ports: ["{{ zk_clnt_port }}"] }
+    - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ zk_jvm_options }}" }
 
 # - Initialzie Pulsar cluster metadata after zookeepers are up and running
 - hosts: zookeeper
@@ -83,25 +81,24 @@
 # -----------------------
 # - Configure and start bookkeepers
 - hosts: bookkeeper
+  gather_facts: true
   any_errors_fatal: true
   become: "{{ sudo_needed }}"
   become_method: sudo
   vars:
     srvStarted: true
+    srv_component: 'bookie'
+    srv_ports: ["{{ bookie_listening_port }}"]
   roles: 
     # If needed, mount dedicated storage space to bookkeepers
     - { role: pulsar/bookkeeper/bkie_mntStorage, when: not skip_bookie_block_device_setup|bool }
     # Config bookies 
+    - { role: pulsar/common/pulsar_srvBreadCrumb, pulsar_vm_type: "{{ srv_component }}" }
     - { role: pulsar/bookkeeper/bkie_config }
     # Check the current status of bookies
-    - { role: misc/_check_svc_status, 
-        srv_component: 'bookie', 
-        srv_ports: ["{{ bookie_listening_port }}"] }
+    - { role: misc/_check_svc_status }
     # Start bookies
-    - { role: pulsar/common/pulsar_startSvc, 
-        srv_component: 'bookie', 
-        srv_options: "{{ bookie_jvm_options }}",
-        srv_ports: ["{{ bookie_listening_port }}"] }
+    - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ bookie_jvm_options }}" }
 
 # - Sanity test of whether bookies are up and running properly
 - hosts: bookkeeper
@@ -114,71 +111,37 @@
 
 
 #########################
-# Generate security related files (only relevant when Pulsar security is enabled). 
-# - JWT tokens and keys
-# - TLS certificates and keys
-#
-# NOTE: this step will run bash script locally. This means that the localhost
-#       can't be Windows based machine. Linux or Mac machine are fine.
-# -----------------------
-- hosts: localhost
-  connection: local
-  vars:
-    showLocalCmdOutput: true
-  roles:
-    - { role: local_security/create_jwt_token, 
-        when: enable_brkr_authNZ is defined and enable_brkr_authNZ|bool and 
-              skip_brkr_jwt_token_generation is defined and not skip_brkr_jwt_token_generation|bool
-      }
-    - { role: local_security/create_tls_certs,
-        when: enable_brkr_tls is defined and enable_brkr_tls|bool and 
-              skip_brkr_tls_certs_generatation is defined and not skip_brkr_tls_certs_generatation|bool }
-
-
-#########################
 # Broker Related
 # -----------------------
 # - Configure brokers
 - hosts: broker
+  gather_facts: true
   any_errors_fatal: true
   become: "{{ sudo_needed }}"
   become_method: sudo
   vars:
     hostNameStr2: "{{ private_ip | replace('.', '-') }}"
-    broker_key_name: "broker.{{ hostNameStr2 }}.key-pk8.pem"
-    broker_cert_name: "broker.{{ hostNameStr2 }}.crt.pem"
     srvStarted: true
+    srv_component: 'broker'
+    srv_key_name: "{{ srv_component }}.{{ hostNameStr2 }}.key-pk8.pem"
+    srv_cert_name: "{{ srv_component }}.{{ hostNameStr2 }}.crt.pem"
+    srv_ports: [
+        "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ web_svc_port_tls }}{% else %}{{ web_svc_port }}{% endif %}",
+        "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ broker_svc_port_tls }}{% else %}{{ broker_svc_port }}{% endif %}"
+      ]
   roles: 
     # Config broker non-security related settings
+    - { role: pulsar/common/pulsar_srvBreadCrumb, pulsar_vm_type: "{{ srv_component }}" }
     - { role: pulsar/broker/brkr_config }
     # If needed, config broker security related settings
     - { role: pulsar/broker/brkr_secConfig, when: enable_brkr_security|bool }
     # Check the current status of brokers
-    - { role: misc/_check_svc_status, 
-        srv_component: 'broker', 
-        srv_ports: [
-            "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ web_svc_port_tls }}{% else %}{{ web_svc_port }}{% endif %}",
-            "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ broker_svc_port_tls }}{% else %}{{ broker_svc_port }}{% endif %}"
-          ] }
+    - { role: misc/_check_svc_status }
     # Start brokers
-    - { role: pulsar/common/pulsar_startSvc, 
-        srv_component: 'broker', 
-        srv_options: "{{ broker_jvm_options }}",
-        srv_ports: [
-            "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ web_svc_port_tls }}{% else %}{{ web_svc_port }}{% endif %}",
-            "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ broker_svc_port_tls }}{% else %}{{ broker_svc_port }}{% endif %}"
-          ] }
-
-# # - Start brokers in serial mode
-# #   NOTE: concurrent broker start seems having issue when function is enabled as part of the broker
-# - hosts: broker
-#   become: "{{ sudo_needed }}"
-#   become_method: sudo
-#   any_errors_fatal: true
-#   serial: 1
-#   vars:
-#     srvStarted: true
-#   roles: 
+    - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ broker_jvm_options }}" }
+## OLD comment of starting brokers when function workers are enabled as part of the broker: 
+#  - Start brokers in serial mode
+#  - Concurrent broker start seems having issue when function is enabled as part of the broker
  
 
 #########################
@@ -190,25 +153,52 @@
   become: "{{ sudo_needed }}"
   become_method: sudo
   roles:
-    # Config pulsar client non-security related settings
+    # Config non-security related settings for Pulsar clients
     - { role: pulsar/client/clnt_config }
-    # Config pulsar clients with security settings
-    # NOTE: Make sure to execute  "deploy_pulsar_cluster.yaml" playbook first, 
-    #       which will deploy the required JWT token and TLS certificate files
-    #       if Pulsar security feature is enabled !
+    # Config security related settings for Pulsar clients
     - { role: pulsar/client/clnt_secConfig, when: enable_brkr_security|bool }
 
 
 #########################
 # PostWork
 # -----------------------
-# - Update .profile for all hosts in cluster
-- hosts: pulsarServer:pulsarClient
+# - Update Pulsar server log file ownership and mode
+#   NOTE: this is needed to avoid pulsar CLI command output errors
+- hosts: pulsarServer
   any_errors_fatal: true
   become: "{{ sudo_needed }}"
   become_method: sudo
   tasks:
-  - name: Add Pulsar executeables in $PATH system variable
+  - name: Find all Pulsar server log files
+    find:
+      paths: "{{ tgt_pulsar_log_homedir }}"
+      patterns: "*"
+    register: pulsar_log_files
+
+  - name: Update Pulsar server log folder ownership and mode
+    file:
+      path: "{{ item.path }}"
+      state: file
+      owner: "{{ pulsar_user }}"
+      group: "{{ pulsar_user_group }}"
+      mode: "{{ file_permission_mode_noexec }}"
+    with_items: 
+      - "{{ pulsar_log_files.files }}"
+
+  - name: Update Pulsar server log folder ownership and mode
+    ignore_errors: yes
+    file:
+      path: "{{ tgt_pulsar_inst_dir }}/logs/pulsar.log"
+      state: file
+      owner: "{{ pulsar_user }}"
+      group: "{{ pulsar_user_group }}"
+      mode: "{{ file_permission_mode_noexec }}"
+
+# - Update .profile for all hosts in cluster
+- hosts: pulsarClient
+  any_errors_fatal: true
+  tasks:
+  - name: Add Pulsar executables in $PATH system variable
     lineinfile:
       # dest: ~/.bash_profile
       dest: ~/.profile
@@ -217,3 +207,41 @@
     with_items:
       - export PULSAR_HOME={{ tgt_pulsar_inst_dir }}
       - export PATH="$PULSAR_HOME/bin:$PATH"
+
+
+#################
+# NOTE: Functions worker deployment still has some issues 
+#       that prevent succesful function worker process start
+# ----------------------------
+#
+#########################
+# Dedicated Functions Worker Related
+# -----------------------
+# NOTE: this ansible playbook ONLY supports running dedicated function
+#       workers, aka, not as part of the brokers
+#
+# - Configure and start function workers
+- hosts: functions_worker
+  gather_facts: true
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  vars:
+    hostNameStr2: "{{ private_ip | replace('.', '-') }}"
+    srvStarted: true
+    srv_component: 'functions_worker'
+    srv_key_name: "{{ srv_component }}.{{ hostNameStr2 }}.key-pk8.pem"
+    srv_cert_name: "{{ srv_component }}.{{ hostNameStr2 }}.crt.pem"
+    srv_ports: [
+        "{% if enable_fwrkr_tls is defined and enable_fwrkr_tls|bool %}{{ funcs_worker_port_tls }}{% else %}{{ funcs_worker_port }}{% endif %}",
+      ]
+  roles: 
+    # Config functions worker non-security related settings
+    - { role: pulsar/common/pulsar_srvBreadCrumb, pulsar_vm_type: "{{ srv_component }}" }
+    - { role: pulsar/functions_worker/fwrkr_config }
+    # If needed, config functions worker security related settings
+    - { role: pulsar/functions_worker/fwrkr_secConfig, when: enable_fwrkr_security|bool }
+    # Check the current status of functions worker
+    - { role: misc/_check_svc_status }
+    # Start functions worker
+    - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ funcs_worker_jvm_options }}" }

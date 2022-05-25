@@ -1,4 +1,26 @@
 ---
+#################
+# NOTE: Functions worker deployment still has some issues 
+#       that prevent succesful function worker process start
+# ----------------------------
+#
+# # Stop functions worker 
+# - hosts: functions_worker
+#   any_errors_fatal: true
+#   become: "{{ sudo_needed }}"
+#   become_method: sudo
+#   vars:
+#     srvStarted: true
+#     srv_component: 'functions_worker'
+#     srv_ports: [
+#       "{% if enable_fwrkr_tls|bool %}{{ funcs_worker_port_tls }}{% else %}{{ funcs_worker_port }}{% endif %}"
+#     ]
+#   roles:
+#     # Check the current status of function workers
+#     - { role: misc/_check_svc_status }
+#     # Stop function workers
+#     - { role: pulsar/common/pulsar_stopSvc }
+
 # Stop brokers 
 - hosts: broker
   any_errors_fatal: true
@@ -6,23 +28,16 @@
   become_method: sudo
   vars:
     srvStarted: true
+    srv_component: 'broker'
+    srv_ports: [
+        "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ web_svc_port_tls }}{% else %}{{ web_svc_port }}{% endif %}",
+        "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ broker_svc_port_tls }}{% else %}{{ broker_svc_port }}{% endif %}"
+      ]
   roles:
     # Check the current status of brokers
-    - { role: misc/_check_svc_status, 
-        srv_component: 'broker', 
-        srv_ports: [
-            "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ web_svc_port_tls }}{% else %}{{ web_svc_port }}{% endif %}",
-            "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ broker_svc_port_tls }}{% else %}{{ broker_svc_port }}{% endif %}"
-          ] 
-      }
+    - { role: misc/_check_svc_status }
     # Stop brokers
-    - { role: pulsar/common/pulsar_stopSvc, 
-        srv_component: 'broker', 
-        srv_ports: [
-            "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ web_svc_port_tls }}{% else %}{{ web_svc_port }}{% endif %}",
-            "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ broker_svc_port_tls }}{% else %}{{ broker_svc_port }}{% endif %}"
-          ] 
-      }
+    - { role: pulsar/common/pulsar_stopSvc }
 
 # Stop bookies 
 - hosts: bookkeeper
@@ -30,22 +45,23 @@
   become: "{{ sudo_needed }}"
   become_method: sudo
   # serial: 1
+  vars:
+    srvStarted: true
+    srv_component: 'bookie'
+    srv_ports: ["{{ bookie_listening_port }}"]
   roles:
     # Check the current status of bookies
-    - { role: misc/_check_svc_status, 
-        srv_component: 'bookie', 
-        srv_ports: ["{{ bookie_listening_port }}"] }
+    - { role: misc/_check_svc_status }
     # Stop bookies
-    - { role: pulsar/common/pulsar_stopSvc, 
-        srv_component: 'bookie', 
-        srv_ports: ["{{ bookie_listening_port }}"] }
+    - { role: pulsar/common/pulsar_stopSvc }
   post_tasks:
     - name: If requested, clean-up bookkeeper data directories
       shell: rm -rf {{ item }}
       # args:
       #   warn: no
       with_items:
-        - "{{ bookie_storage_mnt_paths }}"
+        - "{{ tgt_pulsar_bookie_journal_data_homedirs }}"
+        - "{{ tgt_pulsar_bookie_ledger_data_homedirs }}"
       when: purge_pulsar is defined and purge_pulsar|bool
 
 # Stop zookeepers 
@@ -54,21 +70,23 @@
   become: "{{ sudo_needed }}"
   become_method: sudo
   # serial: 1
+  vars:
+    srvStarted: true
+    srv_component: 'zookeeper'
+    srv_ports: ["{{ zk_clnt_port }}"]
   roles:
     # Check the current status of bookies
-    - { role: misc/_check_svc_status, 
-        srv_component: 'zookeeper', 
-        srv_ports: ["{{ zk_clnt_port }}"] }
+    - { role: misc/_check_svc_status }
     # Stop bookies
-    - { role: pulsar/common/pulsar_stopSvc, 
-        srv_component: 'zookeeper', 
-        srv_ports: ["{{ zk_clnt_port }}"] }
+    - { role: pulsar/common/pulsar_stopSvc }
   post_tasks:
     - name: If requested, clean-up zookeeper data directories
-      shell: rm -rf {{ zk_storage_mnt_path }}
+      shell: rm -rf {{ item }}
       # args:
       #   warn: no
-      when: purge_pulsar is defined and purge_pulsar|bool  
+      with_items:
+        - "{{ tgt_pulsar_zk_data_homedir }}"
+      when: purge_pulsar is defined and purge_pulsar|bool 
 
 # Clean up pulsar binaries and logs
 - hosts: pulsarServer
@@ -83,8 +101,5 @@
     with_items:
       - "{{ tgt_pulsar_inst_dir }}"
       - "{{ tgt_pulsar_log_homedir }}"
-      - "{{ tgt_pulsar_bookie_journal_data_homedir }}"
-      - "{{ tgt_pulsar_bookie_ledger_data_homedir }}"
-      - "{{ tgt_pulsar_zk_data_homedir }}"
       # - "{{ tgt_pkg_dir }}"
     when: purge_pulsar is defined and purge_pulsar|bool

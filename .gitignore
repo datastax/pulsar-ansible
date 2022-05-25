@@ -4,3 +4,5 @@ bash/security/intransit_encryption/staging
 bash/security/authentication/jwt/staging
 bash/security/intransit_encryption/broker.list
 update_pulsar_sec.yaml
+hosts.ini.hostname
+hosts.ini.ip

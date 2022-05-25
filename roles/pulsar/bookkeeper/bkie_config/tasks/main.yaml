@@ -7,7 +7,8 @@
     group: "{{ pulsar_user_group }}"
     mode: "{{ file_permission_mode }}"
   with_items:
-    - "{{ bookie_storage_mnt_paths }}"  
+    - "{{ tgt_pulsar_bookie_journal_data_homedirs }}"
+    - "{{ tgt_pulsar_bookie_ledger_data_homedirs }}"
 
 #- debug: msg={{ hostvars[groups['cluster_srv'][0]]['zkstrDict']|trim }}
 - name: Modify bookkeeper config file for mandatory settings
@@ -16,12 +17,12 @@
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items:
-    - { regexp: '^zkServers=', line: "zkServers={{ hostvars[groups['zookeeper'][0]]['zkListStrVar']|trim }}" }
-    - { regexp: '^bookiePort=', line: 'bookiePort={{ bookie_listening_port }}' }
-    - { regexp: '^httpServerPort=', line: 'httpServerPort={{ bk_stats_port }}' }
-    - { regexp: '^prometheusStatsHttpPort=', line: 'prometheusStatsHttpPort={{ bk_stats_port }}' }
-    - { regexp: '^(# )?journalDirectories=', line: 'journalDirectories={{ bookie_storage_mnt_paths[0]}}' }
-    - { regexp: '^ledgerDirectories=', line: 'ledgerDirectories={{ bookie_storage_mnt_paths[1]}}' }
+    - { regexp: "^zkServers=", line: "zkServers={{ hostvars[groups['zookeeper'][0]]['zkListStrVar']|trim }}" }
+    - { regexp: "^bookiePort=", line: "bookiePort={{ bookie_listening_port }}" }
+    - { regexp: "^httpServerPort=", line: "httpServerPort={{ bk_stats_port }}" }
+    - { regexp: "^prometheusStatsHttpPort=", line: "prometheusStatsHttpPort={{ bk_stats_port }}" }
+    - { regexp: "^(#\\s?)?journalDirectories=", line: "journalDirectories={{ tgt_pulsar_bookie_journal_data_homedirs | join(',') }}" }
+    - { regexp: "^ledgerDirectories=", line: "ledgerDirectories={{ tgt_pulsar_bookie_ledger_data_homedirs | join(',') }}" }
 
 - name: Modify bookkeeper config file for rack-awareness related settings
   lineinfile:
@@ -29,16 +30,15 @@
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items:
-    # - "autoRecoveryDaemonEnabled" being true is needed in order for RackawareEnsemblePlacementPolicy to take effect
-    - { regexp: '^autoRecoveryDaemonEnabled=', line: 'autoRecoveryDaemonEnabled=true' }
-    - { regexp: '^(# )?ensemblePlacementPolicy=', line: 'ensemblePlacementPolicy=org.apache.bookkeeper.client.RackawareEnsemblePlacementPolicy' }
-    # - { regexp: '^ensemblePlacementPolicy=', line: 'ensemblePlacementPolicy=org.apache.bookkeeper.client.RackawareEnsemblePlacementPolicy' }
+    # "autoRecoveryDaemonEnabled" being true is needed in order for RackawareEnsemblePlacementPolicy to take effect
+    - { regexp: "^autoRecoveryDaemonEnabled=", line: "autoRecoveryDaemonEnabled=true" }
+    - { regexp: "^(#\\s?)?ensemblePlacementPolicy=", line: "ensemblePlacementPolicy=org.apache.bookkeeper.client.RackawareEnsemblePlacementPolicy" }
   when: config_rackAwareness is defined and config_rackAwareness|bool
 
 - name: Modify Pulsar bookkeeper config file for misc settings
   lineinfile:
     path: "{{ bk_conf_file }}"
-    regexp: "^(# )?{{ item.key }}="
+    regexp: "^(#\\s?)?{{ item.key }}="
     line: "{{ item.key }}={{ item.value }}"
   with_items:
     - "{{ lookup('dict', misc_bookie_config_dict) }}"

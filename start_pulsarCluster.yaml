@@ -6,16 +6,13 @@
   become_method: sudo
   vars:
     srvStarted: true
+    srv_component: 'zookeeper'
+    srv_ports: ["{{ zk_clnt_port }}"]
   roles: 
     # Check the current status of zookeepers
-    - { role: misc/_check_svc_status, 
-        srv_component: 'zookeeper', 
-        srv_ports: ["{{ zk_clnt_port }}"] }
+    - { role: misc/_check_svc_status }
     # Start zookepers
-    - { role: pulsar/common/pulsar_startSvc, 
-        srv_component: 'zookeeper', 
-        srv_options: "{{ zk_jvm_options }}",
-        srv_ports: ["{{ zk_clnt_port }}"] }
+    - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ zk_jvm_options }}" }
 
 # Start Bookkeeper nodes, one by one
 - hosts: bookkeeper
@@ -24,16 +21,13 @@
   become_method: sudo
   vars:
     srvStarted: true
+    srv_component: 'bookie'
+    srv_ports: ["{{ bookie_listening_port }}"]
   roles: 
     # Check the current status of bookies
-    - { role: misc/_check_svc_status, 
-        srv_component: 'bookie', 
-        srv_ports: ["{{ bookie_listening_port }}"] }
+    - { role: misc/_check_svc_status }
     # Start bookies
-    - { role: pulsar/common/pulsar_startSvc, 
-        srv_component: 'bookie', 
-        srv_options: "{{ bookie_jvm_options }}",
-        srv_ports: ["{{ bookie_listening_port }}"] }
+    - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ bookie_jvm_options }}" }
 
 # - Sanity test of whether bookies are up and running properly
 - hosts: bookkeeper
@@ -49,21 +43,13 @@
   serial: 1
   vars:
     srvStarted: true
+    srv_component: 'broker'
+    srv_ports: [
+        "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ web_svc_port_tls }}{% else %}{{ web_svc_port }}{% endif %}",
+        "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ broker_svc_port_tls }}{% else %}{{ broker_svc_port }}{% endif %}"
+      ] 
   roles: 
     # Check the current status of brokers
-    - { role: misc/_check_svc_status, 
-        srv_component: 'broker', 
-        srv_ports: [
-            "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ web_svc_port_tls }}{% else %}{{ web_svc_port }}{% endif %}",
-            "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ broker_svc_port_tls }}{% else %}{{ broker_svc_port }}{% endif %}"
-          ] 
-      }
+    - { role: misc/_check_svc_status }
     # Start brokers
-    - { role: pulsar/common/pulsar_startSvc, 
-        srv_component: 'broker', 
-        srv_options: "{{ broker_jvm_options }}",
-        srv_ports: [
-            "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ web_svc_port_tls }}{% else %}{{ web_svc_port }}{% endif %}",
-            "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ broker_svc_port_tls }}{% else %}{{ broker_svc_port }}{% endif %}"
-          ] 
-      }
+    - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ broker_jvm_options }}" }

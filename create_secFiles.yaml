@@ -1,0 +1,57 @@
+---
+#########################
+
+# Generate Pulsar broker security related files (only relevant when Pulsar broker security is enabled). 
+# - JWT tokens and keys
+# - TLS certificates and keys
+#
+# NOTE: this step will run bash script locally. This means that the localhost
+#       can't be Windows based machine. Linux or Mac machine are fine.
+# -----------------------
+- hosts: localhost
+  connection: local
+  vars:
+    showLocalCmdOutput: true
+    srv_component: 'broker'
+    srv_host_list: "{{ groups['broker']|join(',') }}"
+  roles:
+    - { role: local_security/create_jwt_token, 
+        brkr_super_user_roles_list: "{{ brkr_super_user_roles_list_str }}",
+        when: srv_host_list != "" and 
+              enable_brkr_authNZ is defined and enable_brkr_authNZ|bool and 
+              skip_brkr_jwt_token_generation is defined and not skip_brkr_jwt_token_generation|bool
+      }
+    - { role: local_security/create_tls_certs,        
+        srv_key_password: "{{ brkr_key_password }}",
+        srv_cert_expire_days: "{{ brkr_cert_expire_days }}",
+        when: srv_host_list != "" and 
+              enable_brkr_tls is defined and enable_brkr_tls|bool and 
+              skip_brkr_tls_certs_generatation is defined and not skip_brkr_tls_certs_generatation|bool }
+
+
+#########################
+# Generate Pulsar functions worker security related files (only relevant when Pulsar functions worker security is enabled). 
+# - JWT tokens and keys
+# - TLS certificates and keys
+#
+# NOTE: this step will run bash script locally. This means that the localhost
+#       can't be Windows based machine. Linux or Mac machine are fine.
+# -----------------------
+- hosts: localhost
+  connection: local
+  vars:
+    showLocalCmdOutput: true
+    srv_component: 'functions_worker'
+    srv_host_list: "{{ groups['functions_worker']|join(',') }}"
+  roles:
+    - { role: local_security/create_jwt_token, 
+        brkr_super_user_roles_list: "{{ fwrkr_super_user_roles_list_str }}",
+        when: enable_fwrkr_authNZ is defined and enable_fwrkr_authNZ|bool and 
+              skip_fwrkr_jwt_token_generation is defined and not skip_fwrkr_jwt_token_generation|bool
+      }
+    - { role: local_security/create_tls_certs,  
+        srv_key_password: "{{ fwrkr_key_password }}",
+        srv_cert_expire_days: "{{ fwrkr_cert_expire_days }}",
+        when: srv_host_list != "" and 
+              enable_fwrkr_tls is defined and enable_fwrkr_tls|bool and 
+              skip_fwrkr_tls_certs_generatation is defined and not skip_fwrkr_tls_certs_generatation|bool }

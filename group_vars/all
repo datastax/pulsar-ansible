@@ -9,7 +9,7 @@ cluster_name: "MyCluster"
 # - System user and group for running Pulsar on remote server hosts
 pulsar_user: pulsar
 pulsar_user_group: pulsar
-allow_group_write_mode: false
+allow_group_write_mode: true
 file_permission_mode: "{% if allow_group_write_mode is defined and allow_group_write_mode|bool %}0775{% else %}0755{% endif %}"
 file_permission_mode_noexec: "{% if allow_group_write_mode is defined and allow_group_write_mode|bool %}0664{% else %}0644{% endif %}"
 
@@ -17,6 +17,8 @@ file_permission_mode_noexec: "{% if allow_group_write_mode is defined and allow_
 customize_jvm: true
 # - Whether or not to use a log home directory that is different from the default (<PULSAR_HOME>/data)
 customize_logdir: true
+# - Whether or not to use a GC log home directory that is different from the default (<PULSAR_HOME>/logs)
+customize_gc_logdir: true
 # - Whether or not to use a data home directory that is different from the default (<PULSAR_HOME>/data)
 customize_datadir: true
 # - Whether or not to download software releases from external internet URLs
@@ -74,14 +76,8 @@ tgt_pulsar_inst_dir: /opt/pulsar
 # - Target log directories
 tgt_pulsar_log_homedir: "{% if customize_logdir is defined and customize_logdir|bool %}/var/log/pulsar{% else %}{{ tgt_pulsar_inst_dir }}/logs{% endif %}"
 
-
-#
-# Function worker specific settings
-# -------------------------------------------
-#
-enable_func_worker: true
-dedicated_func_worker: false
-
+# - Target GC log directory
+tgt_pulsar_gc_log_homedir: "{% if customize_gc_logdir is defined and customize_gc_logdir|bool %}/var/log/pulsar/gclog{% else %}{{ tgt_pulsar_inst_dir }}/logs{% endif %}"
 
 
 #
@@ -129,27 +125,6 @@ rootca_key_password: "MyRootCACertPass"
 # - common subject line in the generated certificate
 cert_subj_line: "/C=US/ST=TX/L=Dallas/O=mytest.com"
 
-#
-# >>> Broker related security: JWT token and in-transit TLS encryption
-#
-# - Wether or not to enable Pulsar JWT authentication and authorization
-enable_brkr_authNZ: true
-# - Whether or not to enable Pulsar In-Transit TLS encryption
-enable_brkr_tls: true
-
-enable_brkr_security: "{{ (enable_brkr_authNZ is defined and enable_brkr_authNZ|bool) or (enable_brkr_tls is defined and enable_brkr_tls|bool) }}"
-
-# - Pulsar super user role name list when authorization is enabled
-super_user_roles: 
-  - "cluster_admin"
-  - "cluster_admin_2"
-super_user_roles_list_str: "{{ super_user_roles | join(',') }}"
-
-# - Whether or not to skip generating JWT token files on the local host
-skip_brkr_jwt_token_generation: false
-# - Whether or not to skip generating TLS certificate files on the local host
-skip_brkr_tls_certs_generatation: false
-
 ##
 # NOTE: please be careful with 2 settings. 
 #       - if these variables are set to true, existing server side JWT token 
@@ -157,9 +132,30 @@ skip_brkr_tls_certs_generatation: false
 #         may cause interruption of existing client connections. 
 #       - by default, these 2 settings should be always set as false!
 # - Whehter or not to force replacing the existing Pulsar server side JWT token files
-force_existing_brkr_jwt_token: false
+force_tgt_jwt_token: false
 # - Whehter or not to force replacing the existing Pulsar server side TLS certificate files
-force_existing_brkr_tls_certs: false
+force_tgt_tls_certs: false
+
+#
+# >>> Broker related security: JWT token and in-transit TLS encryption
+#
+# - Wether or not to enable Pulsar JWT authentication and authorization
+enable_brkr_authNZ: false
+# - Whether or not to enable Pulsar In-Transit TLS encryption
+enable_brkr_tls: false
+
+enable_brkr_security: "{{ (enable_brkr_authNZ is defined and enable_brkr_authNZ|bool) or (enable_brkr_tls is defined and enable_brkr_tls|bool) }}"
+
+# - Pulsar super user role name list when authorization is enabled
+brkr_super_user_roles: 
+  - "cluster_brkr_admin"
+  - "cluster_brkr_admin_2"
+brkr_super_user_roles_list_str: "{{ brkr_super_user_roles | join(',') }}"
+
+# - Whether or not to skip generating JWT token files on the local host
+skip_brkr_jwt_token_generation: false
+# - Whether or not to skip generating TLS certificate files on the local host
+skip_brkr_tls_certs_generatation: false
 
 ##
 # Signed (broker) server certificate related settings
@@ -168,3 +164,32 @@ force_existing_brkr_tls_certs: false
 brkr_cert_expire_days: 365
 # - (broker) server private key expiry days
 brkr_key_password: "MyBrkrSrvCertPass"
+
+#
+# >>> Functions worker related security: JWT token and in-transit TLS encryption
+#
+# - Wether or not to enable Pulsar functions worker JWT authentication and authorization
+enable_fwrkr_authNZ: false
+# - Whether or not to enable Pulsar functions worker In-Transit TLS encryption
+enable_fwrkr_tls: false
+
+enable_fwrkr_security: "{{ (enable_fwrkr_authNZ is defined and enable_fwrkr_authNZ|bool) or (enable_fwrkr_tls is defined and enable_fwrkr_tls|bool) }}"
+
+# - Pulsar functions worker super user role name list when authorization is enabled
+fwrkr_super_user_roles: 
+  - "cluster_fwrkr_admin"
+  - "cluster_fwrkr_admin_2"
+fwrkr_super_user_roles_list_str: "{{ fwrkr_super_user_roles | join(',') }}"
+
+# - Whether or not to skip generating Pulsar functions worker JWT token files on the local host
+skip_fwrkr_jwt_token_generation: false
+# - Whether or not to skip generating Pulsar functions worker TLS certificate files on the local host
+skip_fwrkr_tls_certs_generatation: false
+
+##
+# Pulsar functions worker server: signed certificate related settings
+#
+# - (functions worker) server certificate expiry days
+fwrkr_cert_expire_days: 730
+# - (functions worker) server private key expiry days
+fwrkr_key_password: "MyFwrkrSrvCertPass"

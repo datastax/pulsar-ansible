@@ -5,10 +5,10 @@
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items:
-    - { regexp: '^dataDir=', line: 'dataDir={{ zk_storage_mnt_path }}' }
-    - { regexp: '^clientPort=', line: 'clientPort={{ zk_clnt_port }}' }
-    - { regexp: '^admin.enableServer=', line: 'admin.enableServer={{ zk_admin_srv_enable|lower}}' }
-    - { regexp: '^admin.serverPort=', line: 'admin.serverPort={{ zk_admin_srv_port }}' }
+    - { regexp: "^dataDir=", line: "dataDir={{ zk_storage_mnt_path }}" }
+    - { regexp: "^clientPort=", line: "clientPort={{ zk_clnt_port }}" }
+    - { regexp: "^admin.enableServer=", line: "admin.enableServer={{ zk_admin_srv_enable|lower}}" }
+    - { regexp: "^admin.serverPort=", line: "admin.serverPort={{ zk_admin_srv_port }}" }
 
 # Optional: to make it easy for running zookeeper commands
 - name: Modify zookeeper config to add 4lw words whitelist
@@ -33,10 +33,10 @@
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items:
-    - { regexp: '^metricsProvider.httpPort=', line: 'metricsProvider.httpPort={{ zk_stats_port }}' }
+    - { regexp: "^metricsProvider.httpPort=", line: "metricsProvider.httpPort={{ zk_stats_port }}" }
   when: pulsarLS_ver_signifant is version('2.8', '>=')
 
-- name: Modify zookeeper config fiile to add zookeeper node list
+- name: Modify zookeeper config file to add zookeeper node list
   lineinfile:
     path: "{{ zk_conf_file }}"
     line: "server.{{ item.0 + 1 }}={{ item.1 }}"

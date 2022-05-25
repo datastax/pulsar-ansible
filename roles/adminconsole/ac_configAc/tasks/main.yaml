@@ -1,5 +1,8 @@
 ---
-- name: If broker authN is enabled, create JWT token related security folders on Pulsar AdminConsole Host
+#########################
+# Create broker security related folders for client connection on Pular AdminConsole hosts
+# ------------------------
+- name: If broker authN is enabled, create JWT token related security folders on Pulsar AdminConsole hosts
   file:
     path: "{{ item }}"
     state: directory
@@ -11,27 +14,7 @@
     - "{{ tgt_adminConsole_sec_dir }}/jwt/token"
   when: enable_brkr_authNZ is defined and enable_brkr_authNZ|bool
 
-- name: If broker authN is enabled, copy JWT token file to Pulsar AdminConsole host
-  copy:
-    src: "{{ item.src_file }}/"
-    dest: "{{ item.dest_file }}"
-    owner: "{{ pulsar_user }}"
-    group: "{{ pulsar_user_group }}"
-    force: "{{ force_existing_adminConsole_jwt_token }}"
-  with_items:
-    - { src_file: "{{ local_jwt_src_homedir }}/token/{{ super_user_roles[0] }}.jwt", 
-        dest_file: "{{ tgt_adminConsole_sec_dir }}/jwt/token/{{ super_user_roles[0] }}.jwt" }
-  when: enable_brkr_authNZ is defined and enable_brkr_authNZ|bool
-
-- name: Put the JWT token value in varaible
-  slurp:
-    src: "{{ tgt_adminConsole_sec_dir }}/jwt/token/{{ super_user_roles[0] }}.jwt"
-  register: client_token
-  when: enable_brkr_authNZ is defined and enable_brkr_authNZ|bool
-# - debug: msg={{ client_token['content'] | b64decode | trim }}
-#   when: show_debug_msg|bool and enable_brkr_authNZ is defined and enable_brkr_authNZ|bool
-
-- name: If broker TLS is enabled, create TLS certificate related security folders on Pulsar AdminConsole host
+- name: If broker TLS is enabled, create TLS certificate related security folders on Pulsar AdminConsole hosts
   file:
     path: "{{ item }}"
     state: directory
@@ -42,6 +25,22 @@
   with_items:
     - "{{ tgt_adminConsole_sec_dir }}/tls/rootca"
   when: enable_brkr_tls is defined and enable_brkr_tls|bool
+
+
+#########################
+# Copy locally generated security files to Pulsar client hosts
+# ------------------------
+- name: If broker authN is enabled, copy JWT token file to Pulsar AdminConsole host
+  copy:
+    src: "{{ item.src_file }}/"
+    dest: "{{ item.dest_file }}"
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    force: "{{ force_existing_adminConsole_jwt_token }}"
+  with_items:
+    - { src_file: "{{ local_jwt_src_homedir }}/token/brokers/{{ brkr_super_user_roles[0] }}.jwt", 
+        dest_file: "{{ tgt_adminConsole_sec_dir }}/jwt/token/{{ brkr_super_user_roles[0] }}.jwt" }
+  when: enable_brkr_authNZ is defined and enable_brkr_authNZ|bool
 
 - name: If TLS is enabled, copy the trusted TLS certificate to Pulsar AdminConsole host
   copy:
@@ -55,6 +54,18 @@
         dest_file: "{{ tgt_adminConsole_sec_dir }}/tls/rootca/{{ public_cacert_name }}" }
   when: enable_brkr_tls is defined and enable_brkr_tls|bool
 
+
+#########################
+# Configure AdminConsole application server
+# ------------------------
+- name: Put the JWT token value in varaible
+  slurp:
+    src: "{{ tgt_adminConsole_sec_dir }}/jwt/token/{{ brkr_super_user_roles[0] }}.jwt"
+  register: client_token
+  when: enable_brkr_authNZ is defined and enable_brkr_authNZ|bool
+# - debug: msg={{ client_token['content'] | b64decode | trim }}
+#   when: show_debug_msg|bool and enable_brkr_authNZ is defined and enable_brkr_authNZ|bool
+
 - name: Copy Pulsar AdminConsole dashboard config (config.js) template
   template:
     src: templates/ac_config.js.tmp
@@ -63,16 +74,14 @@
     group: "{{ pulsar_user_group }}"
     mode: "{{ file_permission_mode_noexec }}"
 
-# - debug: msg={{ hostvars[groups['broker'][0]]['brokerSvcListStr'] }}
-#   when: show_debug_msg|bool
 - name: Replace Pulsar AdminConsole config setting placeholders with cluster specific information
   replace:
       path: "{{ tgt_adminConsole_inst_dir }}/dashboard/dist/config.js"
       regexp: "{{ item.regexp }}"
       replace: "{{ item.line }}"
   with_items:
-    - { regexp: '{{ placeHolder_homeCluster }}', line: "{{ cluster_name }}" }
-    - { regexp: '{{ placeHolder_apiVersion }}', line: "{{ pulsarLS_ver_main }}" }
-    - { regexp: '{{ placeHolder_brokerSvcUrl }}', line: "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}pulsar+ssl://{{ hostvars[groups['broker'][0]]['brokerSvcTlsListStr']|trim }}{% else %}pulsar://{{ hostvars[groups['broker'][0]]['brokerSvcListStr']|trim }}{% endif %}" }
-    - { regexp: '{{ placeHolder_clientToken }}', line: "{% if enable_brkr_authNZ is defined and enable_brkr_authNZ|bool %}{{ client_token['content']|b64decode|trim }}{% else %}{% endif %}" }
-    - { regexp: '{{ placeHolder_caCertificate }}', line: "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ tgt_adminConsole_sec_dir }}/tls/rootca/{{ public_cacert_name }}{% else %}{% endif %}" }
+    - { regexp: "{{ placeHolder_homeCluster }}", line: "{{ cluster_name }}" }
+    - { regexp: "{{ placeHolder_apiVersion }}", line: "{{ pulsarLS_ver_main }}" }
+    - { regexp: "{{ placeHolder_brokerSvcUrl }}", line: "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}pulsar+ssl://{{ hostvars[groups['broker'][0]]['brokerSvcTlsListStr']|trim }}{% else %}pulsar://{{ hostvars[groups['broker'][0]]['brokerSvcListStr']|trim }}{% endif %}" }
+    - { regexp: "{{ placeHolder_clientToken }}", line: "{% if enable_brkr_authNZ is defined and enable_brkr_authNZ|bool %}{{ client_token['content']|b64decode|trim }}{% else %}{% endif %}" }
+    - { regexp: "{{ placeHolder_caCertificate }}", line: "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ tgt_adminConsole_sec_dir }}/tls/rootca/{{ public_cacert_name }}{% else %}{% endif %}" }
