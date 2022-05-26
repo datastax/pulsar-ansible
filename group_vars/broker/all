@@ -18,7 +18,7 @@ broker_jvm_options: >
   PULSAR_EXTRA_OPTS="-XX:+PerfDisableSharedMem"
   PULSAR_GC_LOG=" "
   PULSAR_GC="-Xlog:gc:{{ tgt_pulsar_gc_log_homedir }}/pulsar_gc_%p.log:time,uptime:filecount=10,filesize=20M"
-  PULSAR_LOG_DIR="{{ tgt_pulsar_log_homedir }}"
+  PULSAR_LOG_DIR="{{ tgt_pulsar_log_homedir }}/broker"
 
 # whether or not to use customized message replication settings (E/Qw/Qa)
 force_message_rf_setting: false
@@ -31,8 +31,10 @@ cust_ack_quorum: 2
 # Configure rack awareness
 # -------------------------------------------
 #
-minNumRackPerWQ: 2            # default 2
 enforceMinNumRackPerWQ: true  # default false
+# NOTE: this HAS to be bigger than the available rack count. 
+#       otherwise, creating topic will always fail
+minNumRackPerWQ: 2            # default 
 
 
 #

@@ -1,0 +1,25 @@
+---
+- name: Find all Pulsar server log files
+  find:
+    paths: "{{ tgt_pulsar_log_homedir }}"
+    patterns: "*"
+  register: pulsar_log_files
+
+- name: Update Pulsar server log folder ownership and mode
+  file:
+    path: "{{ item.path }}"
+    state: file
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    mode: "{{ file_permission_mode_noexec }}"
+  with_items: 
+    - "{{ pulsar_log_files.files }}"
+
+- name: Update Pulsar server log folder ownership and mode
+  ignore_errors: yes
+  file:
+    path: "{{ tgt_pulsar_inst_dir }}/logs/pulsar.log"
+    state: file
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    mode: "{{ file_permission_mode_noexec }}"

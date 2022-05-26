@@ -1,0 +1,73 @@
+---
+##
+##  NOTE: DO not change the sequence of the tasks!
+##        Make sure "02.deploy_pulsarCluster.yaml" and 
+##           "03.assign_bookieRackaware" playbooks have been executed beforehand!
+##
+
+#########################
+# Assign bookie rack awareness
+# -----------------------
+- hosts: bookkeeper
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  roles: 
+    - { role: pulsar/bookkeeper/bkie_assignRack, when: config_rackAwareness is defined and config_rackAwareness|bool }
+
+# - Get zookeeper list in deseried formats and save them in variables
+#   They are needed in later steps for Pulsar configurations
+- hosts: zookeeper
+  gather_facts: true
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  run_once: true
+  roles: 
+    - { role: pulsar/zookeeper/_pre_zkArrListVar }
+
+# - Get broker list in deseried formats and save them in variables
+#   They are needed in later steps for Pulsar configurations
+- hosts: broker
+  gather_facts: true
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  run_once: true
+  roles: 
+    - { role: pulsar/broker/_pre_brokerListVar }
+
+
+#########################
+# Dedicated Functions Worker Related
+# -----------------------
+# NOTE: this ansible playbook ONLY supports running dedicated function
+#       workers, aka, not as part of the brokers
+#
+# - Configure and start function workers
+- hosts: functions_worker
+  gather_facts: true
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  vars:
+    hostNameStr2: "{{ private_ip | replace('.', '-') }}"
+    srvStarted: true
+    srv_component: 'functions_worker'
+    srv_key_name: "{{ srv_component }}.{{ hostNameStr2 }}.key-pk8.pem"
+    srv_cert_name: "{{ srv_component }}.{{ hostNameStr2 }}.crt.pem"
+    srv_ports: [
+        "{% if enable_fwrkr_tls is defined and enable_fwrkr_tls|bool %}{{ funcs_worker_port_tls }}{% else %}{{ funcs_worker_port }}{% endif %}",
+      ]
+  roles: 
+    # Config functions worker non-security related settings
+    - { role: pulsar/common/pulsar_srvBreadCrumb, pulsar_vm_type: "{{ srv_component }}" }
+    - { role: pulsar/functions_worker/fwrkr_config }
+    # If needed, config functions worker security related settings
+    - { role: pulsar/functions_worker/fwrkr_secConfig, when: enable_fwrkr_security|bool }
+    # Check the current status of functions worker
+    - { role: misc/_check_svc_status }
+    # Start functions worker
+    - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ funcs_worker_jvm_options }}" }
+    # Update log file permission
+    - { role: pulsar/common/pulsar_fixLogPermission }

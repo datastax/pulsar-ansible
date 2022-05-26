@@ -1,6 +1,10 @@
 ---
-#########################
+##
+##  NOTE: DO not change the sequence of the tasks!
+##        This is needed when broker or function worker security is enabled!
+##
 
+#########################
 # Generate Pulsar broker security related files (only relevant when Pulsar broker security is enabled). 
 # - JWT tokens and keys
 # - TLS certificates and keys

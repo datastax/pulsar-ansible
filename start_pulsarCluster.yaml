@@ -53,3 +53,12 @@
     - { role: misc/_check_svc_status }
     # Start brokers
     - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ broker_jvm_options }}" }
+
+# - Update Pulsar server log file ownership and mode
+#   NOTE: this is needed to avoid pulsar CLI command output errors
+- hosts: pulsarServer:!functions_worker
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  roles:
+    - { role: pulsar/common/pulsar_fixLogPermission }

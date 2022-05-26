@@ -11,21 +11,6 @@
 - debug: msg="bookieCnt - {{ bookieCnt }}"
   when: show_debug_msg|bool
 
-# Get the bookie rack count which is required to calculate rack-awareness settings
-- name: Set the bookie rack count into a variable
-  set_fact:
-    bookieRackCnt: |
-      {% set rack_list = [] %}
-      {% set count = [0] %}
-      {% for node in groups['bookkeeper'] %}
-      {%   set ignored = rack_list.append(hostvars[node].rack_name) %}
-      {%   if count.append(count.pop() + 1) %}{% endif %}
-      {% endfor %}
-      {# {{ rack_list|unique|count }} #}
-      {{ count.pop() }}
-- debug: msg="bookieRackCnt - {{ bookieRackCnt }}"
-  when: show_debug_msg|bool
-
 - name: Set ensemble size, write, and ack quorum count
   set_fact:
     ensemble_size: "{% if force_message_rf_setting is defined and force_message_rf_setting|bool %}{{ cust_ensemble_size }}{% elif bookieCnt|int >= 3 %}3{% else %}{{ bookieCnt|int }}{% endif %}"
@@ -61,7 +46,7 @@
     - { regexp: "^bookkeeperClientRackawarePolicyEnabled=", 
         line: "bookkeeperClientRackawarePolicyEnabled=true" }
     - { regexp: "^bookkeeperClientMinNumRacksPerWriteQuorum=", 
-        line: "bookkeeperClientMinNumRacksPerWriteQuorum={% if bookieRackCnt|int < 2 %}1{% elif minNumRackPerWQ|int > bookieRackCnt|int %}{{ bookieRackCnt|int }}{% else %}{{ minNumRackPerWQ|int }}{% endif %}" }
+        line: "bookkeeperClientMinNumRacksPerWriteQuorum={{ minNumRackPerWQ }}" }
     - { regexp: "^bookkeeperClientEnforceMinNumRacksPerWriteQuorum=", 
         line: "bookkeeperClientEnforceMinNumRacksPerWriteQuorum={{ enforceMinNumRackPerWQ|lower }}" }
   when: config_rackAwareness is defined and config_rackAwareness|bool

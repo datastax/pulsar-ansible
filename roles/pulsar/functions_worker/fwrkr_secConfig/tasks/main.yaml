@@ -110,7 +110,7 @@
     - { regexp: "^authenticationProviders:", line: "authenticationProviders: ['org.apache.pulsar.broker.authentication.AuthenticationProviderToken']" }
     - { regexp: "^authorizationEnabled:", line: "authorizationEnabled: true" }
     - { regexp: "^superUserRoles:", line: "superUserRoles: [{{ fwrkr_super_user_roles_list_str }}]" }
-    - { regexp: "^tokenPublicKey:", line: "tokenPublicKey=file://{{ tgt_jwt_dest_homedir }}key/{{ cluster_name }}_jwt_public.key" }
+    - { regexp: "^tokenPublicKey:", line: "tokenPublicKey: file://{{ tgt_jwt_dest_homedir }}key/{{ cluster_name }}_jwt_public.key" }
   when: enable_fwrkr_authNZ is defined and enable_fwrkr_authNZ|bool
 
 - name: If functions worker's own TLS is enabled, configure TLS related settings in the functions worker config file

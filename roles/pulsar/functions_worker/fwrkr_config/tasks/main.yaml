@@ -26,7 +26,7 @@
     - { regexp: "^configurationStoreServers:", line: "configurationStoreServers: {{ hostvars[groups['zookeeper'][0]]['zkListStrVar']|trim }}" }
     - { regexp: "^pulsarFunctionsCluster:", line: "pulsarFunctionsCluster: {{ cluster_name }}" }
     - { regexp: "^numFunctionPackageReplicas:", line: "numFunctionPackageReplicas: {% if fwrkrCnt|trim|int > funcs_worker_package_replica %}{{ funcs_worker_package_replica }}{% elif fwrkrCnt|trim|int == 1 %}1{% else %}2{% endif %}" }
-    # - { regexp: "^(#\\s?)?additionalJavaRuntimeArguments:", line: "additionalJavaRuntimeArguments: ['{{  pulsar_extra_jvm_opts }}']" }
+    - { regexp: "^(#\\s?)?additionalJavaRuntimeArguments:", line: "additionalJavaRuntimeArguments: ['{{  pulsar_extra_jvm_opts }}']" }
     # Broker authN/authR related settings (used for functions worker connection to a broker)
     - { regexp: "^(#\\s?)?brokerClientAuthenticationEnabled:", 
         line: "brokerClientAuthenticationEnabled: {% if enable_brkr_authNZ is not defined %}false{% else %}{{ enable_brkr_authNZ|bool|lower }}{% endif %}" }

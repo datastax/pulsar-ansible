@@ -1,0 +1,20 @@
+# Get the bookie rack count which is required to calculate rack-awareness settings
+- name: Set the bookie rack count into a variable
+  set_fact:
+    bookieRackCnt: |
+      {% set rack_list = [] %}
+      {% for node in groups['bookkeeper'] %}
+      {%   set ignored = rack_list.append(hostvars[node].rack_name) %}
+      {% endfor %}
+      {{ rack_list|unique|count }}
+- debug: msg="bookieRackCnt - {{ bookieRackCnt|trim }}"
+  when: show_debug_msg|bool
+
+# Validity check to make sure available bookie rack count is enough for "minNumRackPerWQ" when "enforceMinNumRackPerWQ" is enabled
+- name: Validity check for rack awareness config. Stop execution if doesn't pass the check
+  assert: 
+    that: false
+    fail_msg: "'minNumRackPerWQ' ({{ minNumRackPerWQ }}) is greater than the available bookie rack count ({{ bookieRackCnt|trim }}), when 'enforceMinNumRackPerWQ' is true!"
+  when: |
+    enforceMinNumRackPerWQ is defined and enforceMinNumRackPerWQ|bool and
+    minNumRackPerWQ is defined and minNumRackPerWQ|int > bookieRackCnt|trim|int

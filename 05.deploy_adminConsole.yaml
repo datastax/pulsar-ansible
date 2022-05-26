@@ -1,4 +1,9 @@
 ---
+##
+##  NOTE: DO not change the sequence of the tasks!
+##        Make sure "02.deploy_pulsarCluster.yaml" playbook has been executed beforehand!
+##
+
 #########################
 # PreWork
 # -----------------------

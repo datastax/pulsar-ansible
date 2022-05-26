@@ -1,26 +1,4 @@
 ---
-#################
-# NOTE: Functions worker deployment still has some issues 
-#       that prevent succesful function worker process start
-# ----------------------------
-#
-# # Stop functions worker 
-# - hosts: functions_worker
-#   any_errors_fatal: true
-#   become: "{{ sudo_needed }}"
-#   become_method: sudo
-#   vars:
-#     srvStarted: true
-#     srv_component: 'functions_worker'
-#     srv_ports: [
-#       "{% if enable_fwrkr_tls|bool %}{{ funcs_worker_port_tls }}{% else %}{{ funcs_worker_port }}{% endif %}"
-#     ]
-#   roles:
-#     # Check the current status of function workers
-#     - { role: misc/_check_svc_status }
-#     # Stop function workers
-#     - { role: pulsar/common/pulsar_stopSvc }
-
 # Stop brokers 
 - hosts: broker
   any_errors_fatal: true
@@ -89,7 +67,7 @@
       when: purge_pulsar is defined and purge_pulsar|bool 
 
 # Clean up pulsar binaries and logs
-- hosts: pulsarServer
+- hosts: pulsarServer:!functions_worker
   any_errors_fatal: true
   become: "{{ sudo_needed }}"
   become_method: sudo
@@ -100,6 +78,8 @@
       state: absent
     with_items:
       - "{{ tgt_pulsar_inst_dir }}"
-      - "{{ tgt_pulsar_log_homedir }}"
+      - "{{ tgt_pulsar_log_homedir }}/zookeeper"
+      - "{{ tgt_pulsar_log_homedir }}/broker"
+      - "{{ tgt_pulsar_log_homedir }}/bookkeeper"
       # - "{{ tgt_pkg_dir }}"
     when: purge_pulsar is defined and purge_pulsar|bool

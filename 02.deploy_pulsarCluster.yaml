@@ -1,4 +1,8 @@
 ---
+##
+##  NOTE: DO not change the sequence of the tasks!
+##
+
 #########################
 # PreWork
 # -----------------------
@@ -8,6 +12,18 @@
   become_method: sudo
   roles: 
     - { role: misc/_inst_openjdk }
+
+# - When bookie rack-awareness is needed, check the validity of 
+#   the rack-awareness related configuration settings
+- hosts: bookkeeper
+  gather_facts: true
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  run_once: true
+  roles: 
+    - { role: pulsar/bookkeeper/_pre_bkieRackMinNumCheck, 
+        when: config_rackAwareness is defined and config_rackAwareness|bool }
 
 # - Get zookeeper list in deseried formats and save them in variables
 #   They are needed in later steps for Pulsar configurations
@@ -32,15 +48,15 @@
     - { role: pulsar/broker/_pre_brokerListVar }
 
 
-# #########################
-# # Install Pulsar server binary
-# # -----------------------
-# - hosts: pulsarClient
-#   any_errors_fatal: true
-#   become: "{{ sudo_needed }}"
-#   become_method: sudo
-#   roles: 
-#     - { role: pulsar/common/pulsar_instBinary }
+#########################
+# Install Pulsar server binary
+# -----------------------
+- hosts: pulsarClient
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  roles: 
+    - { role: pulsar/common/pulsar_instBinary }
 
 
 #########################
@@ -160,39 +176,17 @@
 
 
 #########################
-# PostWork
+# Post work
 # -----------------------
 # - Update Pulsar server log file ownership and mode
 #   NOTE: this is needed to avoid pulsar CLI command output errors
-- hosts: pulsarServer
+- hosts: pulsarServer:!functions_worker
   any_errors_fatal: true
   become: "{{ sudo_needed }}"
   become_method: sudo
-  tasks:
-  - name: Find all Pulsar server log files
-    find:
-      paths: "{{ tgt_pulsar_log_homedir }}"
-      patterns: "*"
-    register: pulsar_log_files
-
-  - name: Update Pulsar server log folder ownership and mode
-    file:
-      path: "{{ item.path }}"
-      state: file
-      owner: "{{ pulsar_user }}"
-      group: "{{ pulsar_user_group }}"
-      mode: "{{ file_permission_mode_noexec }}"
-    with_items: 
-      - "{{ pulsar_log_files.files }}"
-
-  - name: Update Pulsar server log folder ownership and mode
-    ignore_errors: yes
-    file:
-      path: "{{ tgt_pulsar_inst_dir }}/logs/pulsar.log"
-      state: file
-      owner: "{{ pulsar_user }}"
-      group: "{{ pulsar_user_group }}"
-      mode: "{{ file_permission_mode_noexec }}"
+  roles:
+    - { role: pulsar/common/pulsar_fixLogPermission }
+  
 
 # - Update .profile for all hosts in cluster
 - hosts: pulsarClient
@@ -200,48 +194,11 @@
   tasks:
   - name: Add Pulsar executables in $PATH system variable
     lineinfile:
-      # dest: ~/.bash_profile
       dest: ~/.profile
       state: present
-      line: "{{ item }}"
+      regexp: "{{ item.regexp }}"
+      line: "{{ item.line }}"
     with_items:
-      - export PULSAR_HOME={{ tgt_pulsar_inst_dir }}
-      - export PATH="$PULSAR_HOME/bin:$PATH"
-
-
-#################
-# NOTE: Functions worker deployment still has some issues 
-#       that prevent succesful function worker process start
-# ----------------------------
-#
-#########################
-# Dedicated Functions Worker Related
-# -----------------------
-# NOTE: this ansible playbook ONLY supports running dedicated function
-#       workers, aka, not as part of the brokers
-#
-# - Configure and start function workers
-- hosts: functions_worker
-  gather_facts: true
-  any_errors_fatal: true
-  become: "{{ sudo_needed }}"
-  become_method: sudo
-  vars:
-    hostNameStr2: "{{ private_ip | replace('.', '-') }}"
-    srvStarted: true
-    srv_component: 'functions_worker'
-    srv_key_name: "{{ srv_component }}.{{ hostNameStr2 }}.key-pk8.pem"
-    srv_cert_name: "{{ srv_component }}.{{ hostNameStr2 }}.crt.pem"
-    srv_ports: [
-        "{% if enable_fwrkr_tls is defined and enable_fwrkr_tls|bool %}{{ funcs_worker_port_tls }}{% else %}{{ funcs_worker_port }}{% endif %}",
-      ]
-  roles: 
-    # Config functions worker non-security related settings
-    - { role: pulsar/common/pulsar_srvBreadCrumb, pulsar_vm_type: "{{ srv_component }}" }
-    - { role: pulsar/functions_worker/fwrkr_config }
-    # If needed, config functions worker security related settings
-    - { role: pulsar/functions_worker/fwrkr_secConfig, when: enable_fwrkr_security|bool }
-    # Check the current status of functions worker
-    - { role: misc/_check_svc_status }
-    # Start functions worker
-    - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ funcs_worker_jvm_options }}" }
+      - { regexp: "^PULSAR_HOME=", line: "PULSAR_HOME={{ tgt_pulsar_inst_dir }}" }
+      # No match add the line at EOF
+      - { regexp: "NO-MATCH", line: "PATH=\"$PULSAR_HOME/bin:$PATH\"" }
