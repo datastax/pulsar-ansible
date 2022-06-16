@@ -31,7 +31,7 @@ cust_ack_quorum: 2
 # Configure rack awareness
 # -------------------------------------------
 #
-enforceMinNumRackPerWQ: true  # default false
+enforceMinNumRackPerWQ: false   # default false
 # NOTE: this HAS to be bigger than the available rack count. 
 #       otherwise, creating topic will always fail
 minNumRackPerWQ: 2            # default 

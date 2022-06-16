@@ -38,8 +38,10 @@ openjdk_ver: 11
 # - DataStax LunaStreaming release
 # pulsarLS_ver_main: "2.8.0"
 # pulsarLS_ver_secondary: "1.1.30"
-pulsarLS_ver_main: "2.8.3"
-pulsarLS_ver_secondary: "1.0.7"
+# pulsarLS_ver_main: "2.8.3"
+# pulsarLS_ver_secondary: "1.0.7"
+pulsarLS_ver_main: "2.10"
+pulsarLS_ver_secondary: "0.5"
 pulsarLS_ver_signifant: "{{ pulsarLS_ver_main.split('.')[0] }}.{{ pulsarLS_ver_main.split('.')[1] }}"
 pulsarLS_ver: "{{ pulsarLS_ver_main }}.{{ pulsarLS_ver_secondary }}"
 # valid luna streaming binary options: "core", "", "all"

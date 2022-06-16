@@ -1,7 +1,7 @@
 ---
 - name: Initalize cluster metadata
   shell: |
-    {{ tgt_pulsar_inst_dir }}/bin/pulsar initialize-cluster-metadata \
+    {% if sudo_needed|bool %}sudo -u {{ pulsar_user }} {% endif %}{{ srv_options|trim }} {{ tgt_pulsar_inst_dir }}/bin/pulsar initialize-cluster-metadata \
     --cluster {{ cluster_name }} \
     --zookeeper {{ hostvars[groups['zookeeper'][0]]['zkListStrVar']|trim }} \
     --configuration-store {{ hostvars[groups['zookeeper'][0]]['zkListStrVar']|trim }} \

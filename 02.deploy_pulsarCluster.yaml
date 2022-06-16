@@ -89,7 +89,7 @@
   become_method: sudo
   run_once: true
   roles: 
-    - { role: pulsar/zookeeper/zkpr_initMetadata }
+    - { role: pulsar/zookeeper/zkpr_initMetadata, srv_options: "{{ zk_jvm_options }}" }
 
 
 #########################
@@ -123,7 +123,7 @@
   become_method: sudo
   run_once: true
   roles:
-    - { role: pulsar/bookkeeper/bkie_sanityCheck }
+    - { role: pulsar/bookkeeper/bkie_sanityCheck, srv_options: "{{ bookie_jvm_options_b }}" }
 
 
 #########################
@@ -177,17 +177,7 @@
 
 #########################
 # Post work
-# -----------------------
-# - Update Pulsar server log file ownership and mode
-#   NOTE: this is needed to avoid pulsar CLI command output errors
-- hosts: pulsarServer:!functions_worker
-  any_errors_fatal: true
-  become: "{{ sudo_needed }}"
-  become_method: sudo
-  roles:
-    - { role: pulsar/common/pulsar_fixLogPermission }
-  
-
+# -----------------------  
 # - Update .profile for all hosts in cluster
 - hosts: pulsarClient
   any_errors_fatal: true
