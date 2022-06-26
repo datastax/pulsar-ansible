@@ -32,32 +32,33 @@
     srv_component: 'zookeeper'
     srv_ports: ["{{ zk_clnt_port }}"]
     srv_options: "{{ zk_jvm_options }}"
-    bkup_subfolder_name: "{{ ansible_date_time.epoch }}"
-    skip_update: true
+    bkup_subfolder_name: "VersionChange-{{ ansible_date_time.epoch }}"
+    skip_version_update: true
   pre_tasks:
     - name: Check if the Pulsar service is up and running. Set the service status accordingly.
       include_role:
         name: misc/_check_ver_upd_validity
     - debug: 
         msg: "({{ srv_component }}) Skip Pulsar version update: srvStarted={{ srvStarted|trim|bool }}, invalid_version={{ invalid_version|bool }}(curVer: {{ cur_pulsar_ver }}, tgtVer:{{ pulsarLS_ver }})"
-      when: skip_update|bool
+      when: skip_version_update|bool
     #   fail: 
     #     msg: "Existing Pulsar version {{ cur_pulsar_ver }} is no less than the target version {{ pulsarLS_ver }}. Aborting update ..."
   roles:
     # Get Pulsar binary tarball file of the target version to the server host machine
     - { role: pulsar/common/pulsar_getBinary }
     # Stop zookeepers
-    - { role: pulsar/common/pulsar_stopSvc, when: not skip_update|bool }
+    - { role: pulsar/common/pulsar_stopSvc, when: not skip_version_update|bool }
     # Backup existing configuration files
-    - { role: pulsar/common/pulsar_bkupConfig, when: not skip_update|bool }
+    - { role: pulsar/common/pulsar_bkupConfig, cfg_bkup_operation: 'version_update',
+        when: not skip_version_update|bool }
     # Clean up the old binary files (in order to avoid mixed libraries), but no data directories
-    - { role: pulsar/common/pulsar_resetBinaryNoData, when: not skip_update|bool}
+    - { role: pulsar/common/pulsar_resetBinaryNoData, when: not skip_version_update|bool}
     # Install the Pulsar binary of the target version
-    - { role: pulsar/common/pulsar_instBinary, keep_newer_files: no, when: not skip_update|bool }
+    - { role: pulsar/common/pulsar_instBinary, keep_newer_files: no, when: not skip_version_update|bool }
     # Restore function worker config file from the backup
-    - { role: pulsar/common/pulsar_restoreConfig, when: not skip_update|bool }
+    - { role: pulsar/common/pulsar_restoreConfig, when: not skip_version_update|bool }
     # Start zookeepers
-    - { role: pulsar/common/pulsar_startSvc, srvStarted: false, when: not skip_update|bool }
+    - { role: pulsar/common/pulsar_startSvc, srvStarted: false, when: not skip_version_update|bool }
 
 
 ##########################
@@ -74,30 +75,31 @@
     srv_component: 'bookie'
     srv_ports: ["{{ bookie_listening_port }}"]
     srv_options: "{{ bookie_jvm_options }}"
-    bkup_subfolder_name: "{{ ansible_date_time.epoch }}"
-    skip_update: true
+    bkup_subfolder_name: "VersionChange-{{ ansible_date_time.epoch }}"
+    skip_version_update: true
   pre_tasks:
     - name: Check if the Pulsar service is up and running. Set the service status accordingly.
       include_role:
         name: misc/_check_ver_upd_validity
     - debug: 
         msg: "({{ srv_component }}) Skip Pulsar version update: srvStarted={{ srvStarted|trim|bool }}, invalid_version={{ invalid_version|bool }}(curVer: {{ cur_pulsar_ver }}, tgtVer:{{ pulsarLS_ver }})"
-      when: skip_update|bool
+      when: skip_version_update|bool
   roles: 
     # Get Pulsar binary tarball file of the target version to the server host machine
     - { role: pulsar/common/pulsar_getBinary }
     # Stop bookkeepers
-    - { role: pulsar/common/pulsar_stopSvc, when: not skip_update|bool }
+    - { role: pulsar/common/pulsar_stopSvc, when: not skip_version_update|bool }
     # Backup existing configuration files 
-    - { role: pulsar/common/pulsar_bkupConfig, when: not skip_update|bool }
+    - { role: pulsar/common/pulsar_bkupConfig, cfg_bkup_operation: 'version_update',
+        when: not skip_version_update|bool }
     # Clean up the old binary files (in order to avoid mixed libraries), but no data directories
-    - { role: pulsar/common/pulsar_resetBinaryNoData, when: not skip_update|bool}
+    - { role: pulsar/common/pulsar_resetBinaryNoData, when: not skip_version_update|bool}
     # Install the Pulsar binary of the target version
-    - { role: pulsar/common/pulsar_instBinary, keep_newer_files: no, when: not skip_update|bool }
+    - { role: pulsar/common/pulsar_instBinary, keep_newer_files: no, when: not skip_version_update|bool }
     # Restore existingconfig files from the backup, assuming no config file changes between versions
-    - { role: pulsar/common/pulsar_restoreConfig, when: not skip_update|bool }
+    - { role: pulsar/common/pulsar_restoreConfig, when: not skip_version_update|bool }
     # Start bookkeepers
-    - { role: pulsar/common/pulsar_startSvc, srvStarted: false, when: not skip_update|bool }
+    - { role: pulsar/common/pulsar_startSvc, srvStarted: false, when: not skip_version_update|bool }
 
 # - Sanity test of whether bookies are up and running properly
 - hosts: bookkeeper
@@ -125,30 +127,31 @@
         "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ broker_svc_port_tls }}{% else %}{{ broker_svc_port }}{% endif %}"
       ]
     srv_options: "{{ broker_jvm_options }}"
-    bkup_subfolder_name: "{{ ansible_date_time.epoch }}"
-    skip_update: true
+    bkup_subfolder_name: "VersionChange-{{ ansible_date_time.epoch }}"
+    skip_version_update: true
   pre_tasks:
     - name: Check if the Pulsar service is up and running. Set the service status accordingly.
       include_role:
         name: misc/_check_ver_upd_validity
     - debug: 
         msg: "({{ srv_component }}) Skip Pulsar version update: srvStarted={{ srvStarted|trim|bool }}, invalid_version={{ invalid_version|bool }}(curVer: {{ cur_pulsar_ver }}, tgtVer:{{ pulsarLS_ver }})"
-      when: skip_update|bool
+      when: skip_version_update|bool
   roles: 
     # Get Pulsar binary tarball file of the target version to the server host machine
     - { role: pulsar/common/pulsar_getBinary }
     # Stop brokers
-    - { role: pulsar/common/pulsar_stopSvc, when: not skip_update|bool }
+    - { role: pulsar/common/pulsar_stopSvc, when: not skip_version_update|bool }
     # Backup existing configuration files 
-    - { role: pulsar/common/pulsar_bkupConfig, when: not skip_update|bool }
+    - { role: pulsar/common/pulsar_bkupConfig, cfg_bkup_operation: 'version_update',
+        when: not skip_version_update|bool }
     # Clean up the old binary files (in order to avoid mixed libraries), but no data directories
-    - { role: pulsar/common/pulsar_resetBinaryNoData, when: not skip_update|bool}
+    - { role: pulsar/common/pulsar_resetBinaryNoData, when: not skip_version_update|bool}
     # Install the Pulsar binary of the target version
-    - { role: pulsar/common/pulsar_instBinary, keep_newer_files: no, when: not skip_update|bool }
+    - { role: pulsar/common/pulsar_instBinary, keep_newer_files: no, when: not skip_version_update|bool }
     # Restore existingconfig files from the backup, assuming no config file changes between versions
-    - { role: pulsar/common/pulsar_restoreConfig, when: not skip_update|bool }
+    - { role: pulsar/common/pulsar_restoreConfig, when: not skip_version_update|bool }
     # Start brokers
-    - { role: pulsar/common/pulsar_startSvc, srvStarted: false, when: not skip_update|bool }
+    - { role: pulsar/common/pulsar_startSvc, srvStarted: false, when: not skip_version_update|bool }
 
 
 ##########################
@@ -167,8 +170,8 @@
       "{% if enable_fwrkr_tls|bool %}{{ funcs_worker_port_tls }}{% else %}{{ funcs_worker_port }}{% endif %}"
     ]
     srv_options: "{{ funcs_worker_jvm_options }}"
-    bkup_subfolder_name: "{{ ansible_date_time.epoch }}"
-    skip_update: true
+    bkup_subfolder_name: "VersionChange-{{ ansible_date_time.epoch }}"
+    skip_version_update: true
   pre_tasks:
     - name: Check if the Pulsar service is up and running. Set the service status accordingly.
       include_role:
@@ -176,25 +179,25 @@
       when: deploy_functions_worker == 'dedicated'
     - debug: 
         msg: "({{ srv_component }}) Skip Pulsar version update: srvStarted={{ srvStarted|trim|bool }}, invalid_version={{ invalid_version|bool }}(curVer: {{ cur_pulsar_ver }}, tgtVer:{{ pulsarLS_ver }})"
-      when: deploy_functions_worker == 'dedicated' and skip_update|bool
+      when: deploy_functions_worker == 'dedicated' and skip_version_update|bool
   roles:
     # Get Pulsar binary tarball file of the target version to the server host machine
     - { role: pulsar/common/pulsar_getBinary }
     # Stop function workers
     - { role: pulsar/common/pulsar_stopSvc, 
-        when: deploy_functions_worker == 'dedicated' and not skip_update|bool }
+        when: deploy_functions_worker == 'dedicated' and not skip_version_update|bool }
     # Backup existing configuration files 
-    - { role: pulsar/common/pulsar_bkupConfig, 
-        when: deploy_functions_worker == 'dedicated' and not skip_update|bool }
+    - { role: pulsar/common/pulsar_bkupConfig, cfg_bkup_operation: 'version_update',
+        when: deploy_functions_worker == 'dedicated' and not skip_version_update|bool }
     # Clean up the old binary files (in order to avoid mixed libraries), but no data directories
     - { role: pulsar/common/pulsar_resetBinaryNoData, 
-        when: deploy_functions_worker == 'dedicated' and not skip_update|bool }
+        when: deploy_functions_worker == 'dedicated' and not skip_version_update|bool }
     # Install the Pulsar binary of the target version
     - { role: pulsar/common/pulsar_instBinary, keep_newer_files: no, 
-        when: deploy_functions_worker == 'dedicated' and not skip_update|bool }
+        when: deploy_functions_worker == 'dedicated' and not skip_version_update|bool }
     # Restore existingconfig files from the backup, assuming no config file changes between versions
     - { role: pulsar/common/pulsar_restoreConfig, 
-        when: deploy_functions_worker == 'dedicated' and not skip_update|bool }
+        when: deploy_functions_worker == 'dedicated' and not skip_version_update|bool }
     # Start function workers
     - { role: pulsar/common/pulsar_startSvc, srvStarted: false,  
-        when: deploy_functions_worker == 'dedicated' and not skip_update|bool }
+        when: deploy_functions_worker == 'dedicated' and not skip_version_update|bool }

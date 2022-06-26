@@ -12,7 +12,7 @@
   become: "{{ sudo_needed }}"
   become_method: sudo
   roles: 
-    - { role: pulsar/bookkeeper/_pre_bkieRackMinNumCheck, 
+    - { role: pulsar/common/pulsar_bkieRackMinNumCheck, 
         run_once: true,
         when: config_rackAwareness is defined and config_rackAwareness|bool }
     - { role: pulsar/bookkeeper/bkie_assignRack, 

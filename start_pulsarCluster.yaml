@@ -53,7 +53,7 @@
     # Start brokers
     - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ broker_jvm_options }}" }
 
-  # Start dedicated function workers, if relevant
+# Start dedicated function workers, if relevant
 - hosts: functions_worker
   gather_facts: true
   any_errors_fatal: true

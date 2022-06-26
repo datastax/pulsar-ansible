@@ -36,10 +36,10 @@ ssh_user_in_pulsar_group: true
 openjdk_ver: 11
 
 # - DataStax LunaStreaming release
-pulsarLS_ver_main: "2.8.3"
-pulsarLS_ver_secondary: "1.0.13"
-# pulsarLS_ver_main: "2.10"
-# pulsarLS_ver_secondary: "0.6"
+# pulsarLS_ver_main: "2.8.3"
+# pulsarLS_ver_secondary: "1.0.13"
+pulsarLS_ver_main: "2.10"
+pulsarLS_ver_secondary: "0.6"
 pulsarLS_ver_signifant: "{{ pulsarLS_ver_main.split('.')[0] }}.{{ pulsarLS_ver_main.split('.')[1] }}"
 pulsarLS_ver: "{{ pulsarLS_ver_main }}.{{ pulsarLS_ver_secondary }}"
 # valid luna streaming binary options: "core", "", "all"
@@ -95,7 +95,10 @@ pulsar_client_config_file: "{{ tgt_pulsar_inst_dir }}/conf/client.conf"
 # -------------------------------------------
 #
 config_rackAwareness: true
-
+enforceMinNumRackPerWQ: false   # default false
+# NOTE: this HAS to be bigger than the available rack count. 
+#       otherwise, creating topic will always fail
+minNumRackPerWQ: 2            # default 
 
 #
 # How to deploy functions workers
@@ -119,7 +122,8 @@ deploy_functions_worker: "none"
 # - This will impact all Pulsar components, server and client
 # -------------------------------------------
 #
-immediate_flush: true
+immediate_flush: false
+# immediate_flush: true
 
 
 #

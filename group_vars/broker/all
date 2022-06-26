@@ -28,16 +28,6 @@ cust_ack_quorum: 2
 
 
 #
-# Configure rack awareness
-# -------------------------------------------
-#
-enforceMinNumRackPerWQ: false   # default false
-# NOTE: this HAS to be bigger than the available rack count. 
-#       otherwise, creating topic will always fail
-minNumRackPerWQ: 2            # default 
-
-
-#
 # Transaction support
 # -------------------------------------------
 #
@@ -89,10 +79,11 @@ enable_transaction: true
 #     change the boolean value as starting with Uppercase (e.g. True or False)
 # 
 misc_broker_config_dict: {
-  # allowAutoTopicCreation: 'false',            # default false
-  # allowAutoSubscriptionCreation: 'false',     # default false
-  forceDeleteTenantAllowed: 'false',          # default false
-  forceDeleteNamespaceAllowed: 'false',       # default false
-  brokerDeleteInactiveTopicsEnabled: 'false', # default true 
-  topicFencingTimeoutSeconds: '5'             # default 0
+  forceDeleteTenantAllowed: 'false'             # default false
+  , forceDeleteNamespaceAllowed: 'false'        # default false
+  #, allowAutoTopicCreation: 'false'            # default false
+  #, allowAutoSubscriptionCreation: 'false'     # default false
+  , brokerDeleteInactiveTopicsEnabled: 'false'  # default true 
+  , topicFencingTimeoutSeconds: '5'             # default 0
+  , webSocketServiceEnabled: 'true'             # default false
 }

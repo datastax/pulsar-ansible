@@ -3,9 +3,9 @@
   include_role:
     name: pulsar/common/pulsar_chkCurVer
 
-- name: Check if the Pulsar service is up and running. Set the service status accordingly.
-  include_role:
-    name: misc/_check_svc_status
+# - name: Check if the Pulsar service is up and running. Set the service status accordingly.
+#   include_role:
+#     name: misc/_check_svc_status
 
 - name: Check if the target version is valid to update to
   set_fact:
@@ -13,4 +13,5 @@
 
 - name: Check whether to skip update
   set_fact:
-    skip_update: "{{ invalid_version|bool or not srvStarted|trim|bool }}"
+    # skip_version_update: "{{ invalid_version|bool or not srvStarted|trim|bool }}"
+    skip_version_update: "{{ invalid_version|bool  }}"

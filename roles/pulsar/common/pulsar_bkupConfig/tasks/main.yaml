@@ -1,5 +1,4 @@
 ---
-
 - name: Create config backup folders, with sub-folders named as the current date in string format
   file:
     path: "{{ item }}"
@@ -10,6 +9,12 @@
     recurse: yes
   with_items:
     - "{{ tgt_pulsar_conf_bkup_homedir }}/{{ bkup_subfolder_name }}"
+
+- name: Create a note file stating the version change
+  copy: 
+    dest: "{{ tgt_pulsar_conf_bkup_homedir }}/{{ bkup_subfolder_name }}/version_change.txt"
+    content: "{{ cur_pulsar_ver }} --> {{ pulsarLS_ver }}" 
+  when: cfg_bkup_operation == 'version_update'
 
 - name: Copy Pulsar config files and related security files to the backup folder
   copy:
