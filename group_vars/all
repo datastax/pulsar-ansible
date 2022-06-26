@@ -36,12 +36,10 @@ ssh_user_in_pulsar_group: true
 openjdk_ver: 11
 
 # - DataStax LunaStreaming release
-# pulsarLS_ver_main: "2.8.0"
-# pulsarLS_ver_secondary: "1.1.30"
-# pulsarLS_ver_main: "2.8.3"
-# pulsarLS_ver_secondary: "1.0.7"
-pulsarLS_ver_main: "2.10"
-pulsarLS_ver_secondary: "0.5"
+pulsarLS_ver_main: "2.8.3"
+pulsarLS_ver_secondary: "1.0.13"
+# pulsarLS_ver_main: "2.10"
+# pulsarLS_ver_secondary: "0.6"
 pulsarLS_ver_signifant: "{{ pulsarLS_ver_main.split('.')[0] }}.{{ pulsarLS_ver_main.split('.')[1] }}"
 pulsarLS_ver: "{{ pulsarLS_ver_main }}.{{ pulsarLS_ver_secondary }}"
 # valid luna streaming binary options: "core", "", "all"
@@ -75,6 +73,9 @@ tgt_pkg_homedir: /opt/packages
 tgt_pkg_pular_dir: "{{ tgt_pkg_homedir }}/pulsar"
 tgt_pulsar_inst_dir: /opt/pulsar
 
+# - Target config backup directory
+tgt_pulsar_conf_bkup_homedir: "/opt/pulsar_cfgbkup"
+
 # - Target log directories
 tgt_pulsar_log_homedir: "{% if customize_logdir is defined and customize_logdir|bool %}/var/log/pulsar{% else %}{{ tgt_pulsar_inst_dir }}/logs{% endif %}"
 
@@ -94,6 +95,31 @@ pulsar_client_config_file: "{{ tgt_pulsar_inst_dir }}/conf/client.conf"
 # -------------------------------------------
 #
 config_rackAwareness: true
+
+
+#
+# How to deploy functions workers
+# - none: don't deploy functions workers
+# - shared: deploy functions workers as part of brokers
+# - dedicated: deploy functions workers on dedicated instances
+#
+# NOTE: shared functions worker deployment is NOT recommended 
+#       for PROD deployment!
+# -------------------------------------------
+#
+deploy_functions_worker: "none"
+# deploy_functions_worker: "shared"
+# deploy_functions_worker: "dedicated"
+
+
+#
+# Log flush behavior (immediate flush or not)
+# - Default value: false
+#   turning to true is good for debug purpose; but will impact performance
+# - This will impact all Pulsar components, server and client
+# -------------------------------------------
+#
+immediate_flush: true
 
 
 #

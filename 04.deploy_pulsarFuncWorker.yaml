@@ -5,15 +5,16 @@
 ##           "03.assign_bookieRackaware" playbooks have been executed beforehand!
 ##
 
-#########################
-# Assign bookie rack awareness
-# -----------------------
-- hosts: bookkeeper
+- hosts: functions_worker
+  gather_facts: true
   any_errors_fatal: true
   become: "{{ sudo_needed }}"
   become_method: sudo
-  roles: 
-    - { role: pulsar/bookkeeper/bkie_assignRack, when: config_rackAwareness is defined and config_rackAwareness|bool }
+  tasks:
+    - name: Abort deploying dedicated function workers if not set so
+      fail: 
+        msg: "Skipping dedicated function worker deployment since \"deploy_functions_worker\" is {{ deploy_functions_worker }}"
+      when: deploy_functions_worker is defined and deploy_functions_worker != 'dedicated'
 
 # - Get zookeeper list in deseried formats and save them in variables
 #   They are needed in later steps for Pulsar configurations
@@ -36,7 +37,6 @@
   run_once: true
   roles: 
     - { role: pulsar/broker/_pre_brokerListVar }
-
 
 #########################
 # Dedicated Functions Worker Related
@@ -69,5 +69,3 @@
     - { role: misc/_check_svc_status }
     # Start functions worker
     - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ funcs_worker_jvm_options }}" }
-    # Update log file permission
-    - { role: pulsar/common/pulsar_fixLogPermission }

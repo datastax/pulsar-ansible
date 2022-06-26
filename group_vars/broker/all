@@ -38,6 +38,13 @@ minNumRackPerWQ: 2            # default
 
 
 #
+# Transaction support
+# -------------------------------------------
+#
+enable_transaction: true
+
+
+#
 # Other configuration items
 # -------------------------------------------
 #

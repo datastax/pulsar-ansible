@@ -1,0 +1,8 @@
+---
+- name: Delete all Pulsar binary files (including subfolders), but excluding data subdirectory if so
+  shell: |
+    cd {{ tgt_pulsar_inst_dir }} 
+    {% if sudo_needed|bool %}sudo -u {{ pulsar_user }} {% endif %} find . -not -path '.' -not -path './data' -not -path './data/*' -exec rm -rf {} +
+  register: reset_bin_cmdcat
+- debug: msg="reset_bin_cmdcat.failed - {{ reset_bin_cmdcat.failed }}"
+  when: show_debug_msg|bool 

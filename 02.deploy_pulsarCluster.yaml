@@ -4,7 +4,7 @@
 ##
 
 #########################
-# PreWork
+# Install Java and Pulsar binaries
 # -----------------------
 - hosts: LSCluster
   any_errors_fatal: true
@@ -13,6 +13,20 @@
   roles: 
     - { role: misc/_inst_openjdk }
 
+- hosts: pulsarClient
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  roles: 
+    # Get Pulsar binary tarball file of the target version to the server host machine
+    - { role: pulsar/common/pulsar_getBinary }
+    # "keep_newer_files: yes" means not to overwrite existing Pulsar files
+    - { role: pulsar/common/pulsar_instBinary, keep_newer_files: yes }
+
+
+#########################
+# PreWork
+# -----------------------
 # - When bookie rack-awareness is needed, check the validity of 
 #   the rack-awareness related configuration settings
 - hosts: bookkeeper
@@ -46,17 +60,6 @@
   run_once: true
   roles: 
     - { role: pulsar/broker/_pre_brokerListVar }
-
-
-#########################
-# Install Pulsar server binary
-# -----------------------
-- hosts: pulsarClient
-  any_errors_fatal: true
-  become: "{{ sudo_needed }}"
-  become_method: sudo
-  roles: 
-    - { role: pulsar/common/pulsar_instBinary }
 
 
 #########################
@@ -155,9 +158,18 @@
     - { role: misc/_check_svc_status }
     # Start brokers
     - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ broker_jvm_options }}" }
-## OLD comment of starting brokers when function workers are enabled as part of the broker: 
-#  - Start brokers in serial mode
-#  - Concurrent broker start seems having issue when function is enabled as part of the broker
+    ## OLD comment of starting brokers when function workers are enabled as part of the broker: 
+    #  - Start brokers in serial mode
+    #  - Concurrent broker start seems having issue when function is enabled as part of the broker
+
+# - Initialzie transaction coordinator metadata when needed
+- hosts: broker
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  run_once: true
+  roles: 
+    - { role: pulsar/broker/brkr_initTransMeta, srv_options: "{{ broker_jvm_options }}" }
  
 
 #########################
@@ -178,6 +190,20 @@
 #########################
 # Post work
 # -----------------------  
+# - Update Pulsar component log flush behavior
+- hosts: pulsarClient
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  tasks:
+  - name: Update Pulsar log flush behavior 
+    lineinfile:
+      dest: "{{ tgt_pulsar_inst_dir }}/conf/log4j2.yaml"
+      state: present
+      regexp: "^\\s*immediateFlush:"
+      line: "      immediateFlush: true"
+    when: immediate_flush is defined and immediate_flush|bool
+
 # - Update .profile for all hosts in cluster
 - hosts: pulsarClient
   any_errors_fatal: true

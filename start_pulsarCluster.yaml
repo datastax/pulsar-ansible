@@ -14,7 +14,7 @@
     # Start zookepers
     - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ zk_jvm_options }}" }
 
-# Start Bookkeeper nodes, one by one
+# Start Bookkeeper nodes
 - hosts: bookkeeper
   any_errors_fatal: false
   become: "{{ sudo_needed }}"
@@ -33,14 +33,13 @@
 - hosts: bookkeeper
   run_once: true
   roles:
-    - { role: pulsar/bookkeeper/bkie_sanityCheck }
+    - { role: pulsar/bookkeeper/bkie_sanityCheck, srv_options: "{{ bookie_jvm_options_b }}" }
 
-# Start Pulsar broker nodes, one by one
+# Start Pulsar broker nodes
 - hosts: broker
   any_errors_fatal: true
   become: "{{ sudo_needed }}"
   become_method: sudo
-  serial: 1
   vars:
     srvStarted: true
     srv_component: 'broker'
@@ -54,11 +53,24 @@
     # Start brokers
     - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ broker_jvm_options }}" }
 
-# - Update Pulsar server log file ownership and mode
-#   NOTE: this is needed to avoid pulsar CLI command output errors
-- hosts: pulsarServer:!functions_worker
+  # Start dedicated function workers, if relevant
+- hosts: functions_worker
+  gather_facts: true
   any_errors_fatal: true
   become: "{{ sudo_needed }}"
   become_method: sudo
+  vars:
+    hostNameStr2: "{{ private_ip | replace('.', '-') }}"
+    srvStarted: true
+    srv_component: 'functions_worker'
+    srv_key_name: "{{ srv_component }}.{{ hostNameStr2 }}.key-pk8.pem"
+    srv_cert_name: "{{ srv_component }}.{{ hostNameStr2 }}.crt.pem"
+    srv_ports: [
+        "{% if enable_fwrkr_tls is defined and enable_fwrkr_tls|bool %}{{ funcs_worker_port_tls }}{% else %}{{ funcs_worker_port }}{% endif %}",
+      ]
   roles:
-    - { role: pulsar/common/pulsar_fixLogPermission }
+    - { role: misc/_check_svc_status, 
+        when: deploy_functions_worker == 'dedicated' }
+    # Start functions worker
+    - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ funcs_worker_jvm_options }}", 
+        when: deploy_functions_worker == 'dedicated' }

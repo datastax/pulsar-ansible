@@ -1,0 +1,6 @@
+---
+- name: Initalize transaction coordinator metadata
+  shell: |
+    {% if sudo_needed|bool %}sudo -u {{ pulsar_user }} {% endif %}{{ srv_options|trim }} {{ tgt_pulsar_inst_dir }}/bin/pulsar initialize-transaction-coordinator-metadata \
+    --cluster {{ cluster_name }} \
+    --configuration-store {{ hostvars[groups['zookeeper'][0]]['zkListStrVar']|trim }}

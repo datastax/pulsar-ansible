@@ -1,0 +1,25 @@
+---
+
+- name: Create config backup folders, with sub-folders named as the current date in string format
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    mode: "{{ file_permission_mode }}"
+    recurse: yes
+  with_items:
+    - "{{ tgt_pulsar_conf_bkup_homedir }}/{{ bkup_subfolder_name }}"
+
+- name: Copy Pulsar config files and related security files to the backup folder
+  copy:
+    remote_src: yes
+    src: "{{ tgt_pulsar_inst_dir }}/{{ item }}"
+    dest: "{{ tgt_pulsar_conf_bkup_homedir }}/{{ bkup_subfolder_name }}"
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    # Don't overwrite existing config backup files 
+    force: no
+  with_items:
+    - conf
+    - security

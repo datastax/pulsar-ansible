@@ -33,9 +33,19 @@
     - { regexp: "^managedLedgerDefaultEnsembleSize=", line: "managedLedgerDefaultEnsembleSize={{ ensemble_size }}"}
     - { regexp: "^managedLedgerDefaultWriteQuorum=", line: "managedLedgerDefaultWriteQuorum={{ write_quorum_cnt }}" }
     - { regexp: "^managedLedgerDefaultAckQuorum=", line: "managedLedgerDefaultAckQuorum={{ ack_quorum_cnt }}" }
-    #### 
-    # Make sure that functions workers are not started as part of the broker (not recommended for PROD environment)
-    - { regexp: "^functionsWorkerEnabled=", line: "functionsWorkerEnabled=false" }
+    - { regexp: "^transactionCoordinatorEnabled=", line: "transactionCoordinatorEnabled={{ enable_transaction }}" }
+
+- name: Modify Pulsar broker config file to enable shared functions worker
+  lineinfile:
+    path: "{{ broker_conf_file }}"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:    
+    # NOTE: Function workers can be started as part of brokres. However, 
+    # 1) This is only recommended for DEV purpose.
+    # 2) For PROD and/or PERF TESTING environment, it is always recommended to deploy dedicated function workers
+    - { regexp: "^functionsWorkerEnabled=", line: "functionsWorkerEnabled=true" }
+  when: deploy_functions_worker is defined and deploy_functions_worker == 'shared'
 
 - name: Modify Pulsar broker config file for rack-awareness related settings
   lineinfile:

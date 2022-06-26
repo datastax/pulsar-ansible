@@ -1,9 +1,10 @@
 ---
-# Stop dedicated function workers, if relevant 
+# Restart dedicated function brokers, one by one, if relevant
 - hosts: functions_worker
   any_errors_fatal: true
   become: "{{ sudo_needed }}"
   become_method: sudo
+  serial: 1
   vars:
     srvStarted: true
     srv_component: 'functions_worker'
@@ -12,15 +13,23 @@
     ]
   roles:
     # Check the current status of function workers
-    - { role: misc/_check_svc_status, when: deploy_functions_worker == 'dedicated' }
+    - { role: misc/_check_svc_status,
+        when: deploy_functions_worker is defined and deploy_functions_worker == 'dedicated' }
     # Stop function workers
-    - { role: pulsar/common/pulsar_stopSvc, when: deploy_functions_worker == 'dedicated' }
+    - { role: pulsar/common/pulsar_stopSvc, srvStarted: true, 
+        when: deploy_functions_worker is defined and deploy_functions_worker == 'dedicated' }
+    # Start function workers
+    - { role: pulsar/common/pulsar_startSvc,  
+        srvStarted: false, 
+        srv_options: "{{ funcs_worker_jvm_options }}",
+        when: deploy_functions_worker is defined and deploy_functions_worker == 'dedicated' }
 
-# Stop brokers 
+# Restart brokers, one by one
 - hosts: broker
   any_errors_fatal: true
   become: "{{ sudo_needed }}"
   become_method: sudo
+  serial: 1
   vars:
     srvStarted: true
     srv_component: 'broker'
@@ -33,8 +42,10 @@
     - { role: misc/_check_svc_status }
     # Stop brokers
     - { role: pulsar/common/pulsar_stopSvc }
+    # Start brokers
+    - { role: pulsar/common/pulsar_startSvc, srvStarted: false, srv_options: "{{ broker_jvm_options }}" }
 
-# Stop bookies 
+# Restart bookies, one by one
 - hosts: bookkeeper
   any_errors_fatal: true
   become: "{{ sudo_needed }}"
@@ -48,54 +59,26 @@
     # Check the current status of bookies
     - { role: misc/_check_svc_status }
     # Stop bookies
-    - { role: pulsar/common/pulsar_stopSvc }
-  post_tasks:
-    - name: If requested, clean-up bookkeeper data directories
-      shell: rm -rf {{ item }}
-      # args:
-      #   warn: no
-      with_items:
-        - "{{ tgt_pulsar_bookie_journal_data_homedirs }}"
-        - "{{ tgt_pulsar_bookie_ledger_data_homedirs }}"
-      when: purge_pulsar is defined and purge_pulsar|bool
+    - { role: pulsar/common/pulsar_stopSvc  }
+    # Start bookies
+    - { role: pulsar/common/pulsar_startSvc, srvStarted: false, srv_options: "{{ bookie_jvm_options }}" }
 
-# Stop zookeepers 
+
+# Restart zookeepers 
 - hosts: zookeeper
   any_errors_fatal: true
   become: "{{ sudo_needed }}"
   become_method: sudo
-  # serial: 1
+  serial: 1
   vars:
     srvStarted: true
     srv_component: 'zookeeper'
     srv_ports: ["{{ zk_clnt_port }}"]
   roles:
-    # Check the current status of bookies
+    # Check the current status of zookeepers
     - { role: misc/_check_svc_status }
     # Stop zookeepers
     - { role: pulsar/common/pulsar_stopSvc }
-  post_tasks:
-    - name: If requested, clean-up zookeeper data directories
-      shell: rm -rf {{ item }}
-      # args:
-      #   warn: no
-      with_items:
-        - "{{ tgt_pulsar_zk_data_homedir }}"
-      when: purge_pulsar is defined and purge_pulsar|bool 
+    # Start zookeepers
+    - { role: pulsar/common/pulsar_startSvc, srvStarted: false, srv_options: "{{ zk_jvm_options }}" }
 
-# Clean up pulsar binaries and logs
-- hosts: pulsarServer
-  any_errors_fatal: true
-  become: "{{ sudo_needed }}"
-  become_method: sudo
-  tasks:
-  - name: If requested, clean-up pulsar binaries and logs
-    file:
-      path: "{{ item }}"
-      state: absent
-    with_items:
-      - "{{ tgt_pulsar_inst_dir }}"
-      - "{{ tgt_pulsar_gc_log_homedir }}"
-      - "{{ tgt_pulsar_log_homedir }}"
-      # - "{{ tgt_pkg_dir }}"
-    when: purge_pulsar is defined and purge_pulsar|bool
