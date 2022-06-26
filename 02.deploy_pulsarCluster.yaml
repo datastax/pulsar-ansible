@@ -18,9 +18,15 @@
   become: "{{ sudo_needed }}"
   become_method: sudo
   roles: 
+    # Prepare for Pulsar binary installation, including
+    # - create Pulsar user and group
+    # - prepare binary folder structure
+    # - etc.
+    - { role: pulsar/common/pulsar_prepBinary }
     # Get Pulsar binary tarball file of the target version to the server host machine
     - { role: pulsar/common/pulsar_getBinary }
-    # "keep_newer_files: yes" means not to overwrite existing Pulsar files
+    # Install Pulsar binary
+    # - "keep_newer_files: yes" means not to overwrite existing Pulsar files
     - { role: pulsar/common/pulsar_instBinary, keep_newer_files: yes }
 
 
