@@ -19,6 +19,45 @@
 # -----------------------
 
 
+#########################
+# PreWork
+# -----------------------
+# - When bookie rack-awareness is needed, check the validity of 
+#   the rack-awareness related configuration settings
+- hosts: pulsarServer
+  gather_facts: true
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  run_once: true
+  roles: 
+    - { role: pulsar/common/pulsar_bkieRackMinNumCheck, 
+        when: config_rackAwareness is defined and config_rackAwareness|bool }
+
+# - Get zookeeper list in deseried formats and save them in variables
+#   They are needed in later steps for Pulsar configurations
+- hosts: zookeeper
+  gather_facts: true
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  run_once: true
+  roles: 
+    - { role: pulsar/zookeeper/_pre_zkArrListVar }
+
+# - Get broker list in deseried formats and save them in variables
+#   They are needed in later steps for Pulsar configurations
+- hosts: broker
+  gather_facts: true
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  run_once: true
+  roles: 
+    - { role: pulsar/broker/_pre_brokerListVar }
+
+
+
 ##########################
 # Upgrade zookeepers, including metadata initialization
 #
@@ -48,15 +87,15 @@
     - { role: pulsar/common/pulsar_getBinary }
     # Stop zookeepers
     - { role: pulsar/common/pulsar_stopSvc, when: not skip_version_update|bool }
-    # Backup existing configuration files
+    # Backup the configuration files of the current Pulsar version
     - { role: pulsar/common/pulsar_bkupConfig, cfg_bkup_operation: 'version_update',
         when: not skip_version_update|bool }
     # Clean up the old binary files (in order to avoid mixed libraries), but no data directories
     - { role: pulsar/common/pulsar_resetBinaryNoData, when: not skip_version_update|bool}
     # Install the Pulsar binary of the target version
     - { role: pulsar/common/pulsar_instBinary, keep_newer_files: no, when: not skip_version_update|bool }
-    # Restore function worker config file from the backup
-    - { role: pulsar/common/pulsar_restoreConfig, when: not skip_version_update|bool }
+    # Set up the configuration files of the target Pulsar version
+    - { role: pulsar/zookeeper/zkpr_config, when: not skip_version_update|bool }
     # Start zookeepers
     - { role: pulsar/common/pulsar_startSvc, srvStarted: false, when: not skip_version_update|bool }
 
@@ -89,15 +128,16 @@
     - { role: pulsar/common/pulsar_getBinary }
     # Stop bookkeepers
     - { role: pulsar/common/pulsar_stopSvc, when: not skip_version_update|bool }
-    # Backup existing configuration files 
+    # Backup the configuration files of the current Pulsar version
     - { role: pulsar/common/pulsar_bkupConfig, cfg_bkup_operation: 'version_update',
         when: not skip_version_update|bool }
     # Clean up the old binary files (in order to avoid mixed libraries), but no data directories
     - { role: pulsar/common/pulsar_resetBinaryNoData, when: not skip_version_update|bool}
     # Install the Pulsar binary of the target version
     - { role: pulsar/common/pulsar_instBinary, keep_newer_files: no, when: not skip_version_update|bool }
-    # Restore existingconfig files from the backup, assuming no config file changes between versions
-    - { role: pulsar/common/pulsar_restoreConfig, when: not skip_version_update|bool }
+    # Set up the configuration files of the target Pulsar version
+    - { role: pulsar/bookkeeper/bkie_config, when: not skip_version_update|bool }
+    - { role: pulsar/bookkeeper/bkie_config/ver2.10, when: not skip_version_update|bool and pulsarLS_ver_main=="2.10" }
     # Start bookkeepers
     - { role: pulsar/common/pulsar_startSvc, srvStarted: false, when: not skip_version_update|bool }
 
@@ -141,14 +181,17 @@
     - { role: pulsar/common/pulsar_getBinary }
     # Stop brokers
     - { role: pulsar/common/pulsar_stopSvc, when: not skip_version_update|bool }
-    # Backup existing configuration files 
+    # Backup the configuration files of the current Pulsar version 
     - { role: pulsar/common/pulsar_bkupConfig, cfg_bkup_operation: 'version_update',
         when: not skip_version_update|bool }
     # Clean up the old binary files (in order to avoid mixed libraries), but no data directories
     - { role: pulsar/common/pulsar_resetBinaryNoData, when: not skip_version_update|bool}
     # Install the Pulsar binary of the target version
     - { role: pulsar/common/pulsar_instBinary, keep_newer_files: no, when: not skip_version_update|bool }
-    # Restore existingconfig files from the backup, assuming no config file changes between versions
+    # Set up the configuration files of the target Pulsar version
+    - { role: pulsar/broker/brkr_config, when: not skip_version_update|bool }
+    - { role: pulsar/broker/brkr_config/ver2.10, when: not skip_version_update|boo and pulsarLS_ver_main=="2.10" }
+    - { role: pulsar/broker/brkr_secConfig, when: not skip_version_update|boo and enable_brkr_security|bool }
     - { role: pulsar/common/pulsar_restoreConfig, when: not skip_version_update|bool }
     # Start brokers
     - { role: pulsar/common/pulsar_startSvc, srvStarted: false, when: not skip_version_update|bool }
@@ -186,7 +229,7 @@
     # Stop function workers
     - { role: pulsar/common/pulsar_stopSvc, 
         when: deploy_functions_worker == 'dedicated' and not skip_version_update|bool }
-    # Backup existing configuration files 
+    # Backup the configuration files of the current Pulsar version 
     - { role: pulsar/common/pulsar_bkupConfig, cfg_bkup_operation: 'version_update',
         when: deploy_functions_worker == 'dedicated' and not skip_version_update|bool }
     # Clean up the old binary files (in order to avoid mixed libraries), but no data directories
@@ -195,9 +238,11 @@
     # Install the Pulsar binary of the target version
     - { role: pulsar/common/pulsar_instBinary, keep_newer_files: no, 
         when: deploy_functions_worker == 'dedicated' and not skip_version_update|bool }
-    # Restore existingconfig files from the backup, assuming no config file changes between versions
-    - { role: pulsar/common/pulsar_restoreConfig, 
+    # Set up the configuration files of the target Pulsar version
+    - { role: pulsar/functions_worker/fwrkr_config, 
         when: deploy_functions_worker == 'dedicated' and not skip_version_update|bool }
+    - { role: pulsar/functions_worker/fwrkr_config/ver2.10, 
+        when: deploy_functions_worker == 'dedicated' and not skip_version_update|bool and pulsarLS_ver_main=="2.10" }
     # Start function workers
     - { role: pulsar/common/pulsar_startSvc, srvStarted: false,  
         when: deploy_functions_worker == 'dedicated' and not skip_version_update|bool }

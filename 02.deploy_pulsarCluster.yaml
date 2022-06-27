@@ -120,6 +120,7 @@
     # Config bookies 
     - { role: pulsar/common/pulsar_srvBreadCrumb, pulsar_vm_type: "{{ srv_component }}" }
     - { role: pulsar/bookkeeper/bkie_config }
+    - { role: pulsar/bookkeeper/bkie_config/ver2.10, when: pulsarLS_ver_main=="2.10" }
     # Check the current status of bookies
     - { role: misc/_check_svc_status }
     # Start bookies
@@ -158,15 +159,13 @@
     # Config broker non-security related settings
     - { role: pulsar/common/pulsar_srvBreadCrumb, pulsar_vm_type: "{{ srv_component }}" }
     - { role: pulsar/broker/brkr_config }
+    - { role: pulsar/broker/brkr_config/ver2.10, when: pulsarLS_ver_main=="2.10" }
     # If needed, config broker security related settings
     - { role: pulsar/broker/brkr_secConfig, when: enable_brkr_security|bool }
     # Check the current status of brokers
     - { role: misc/_check_svc_status }
     # Start brokers
     - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ broker_jvm_options }}" }
-    ## OLD comment of starting brokers when function workers are enabled as part of the broker: 
-    #  - Start brokers in serial mode
-    #  - Concurrent broker start seems having issue when function is enabled as part of the broker
 
 # - Initialzie transaction coordinator metadata when needed
 - hosts: broker

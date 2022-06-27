@@ -1,4 +1,10 @@
 ---
+#########################
+# Common bookkeeper configuration settings
+# that are applicable to both to the following versions:
+# - 2.8(.*)
+# - 2.10(.*)
+# -----------------------
 - name: Create bookeeper data folders
   file:
     path: "{{ item }}"
@@ -13,20 +19,20 @@
 #- debug: msg={{ hostvars[groups['cluster_srv'][0]]['zkstrDict']|trim }}
 - name: Modify bookkeeper config file for mandatory settings
   lineinfile:
-    path: "{{ bk_conf_file }}"
+    path: "{{ bookie_conf_file }}"
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items:
     - { regexp: "^zkServers=", line: "zkServers={{ hostvars[groups['zookeeper'][0]]['zkListStrVar']|trim }}" }
     - { regexp: "^bookiePort=", line: "bookiePort={{ bookie_listening_port }}" }
-    - { regexp: "^httpServerPort=", line: "httpServerPort={{ bk_stats_port }}" }
-    - { regexp: "^prometheusStatsHttpPort=", line: "prometheusStatsHttpPort={{ bk_stats_port }}" }
+    - { regexp: "^httpServerPort=", line: "httpServerPort={{ bookie_stats_port }}" }
+    - { regexp: "^prometheusStatsHttpPort=", line: "prometheusStatsHttpPort={{ bookie_stats_port }}" }
     - { regexp: "^(#\\s?)?journalDirectories=", line: "journalDirectories={{ tgt_pulsar_bookie_journal_data_homedirs | join(',') }}" }
     - { regexp: "^ledgerDirectories=", line: "ledgerDirectories={{ tgt_pulsar_bookie_ledger_data_homedirs | join(',') }}" }
 
 - name: Modify bookkeeper config file for rack-awareness related settings
   lineinfile:
-    path: "{{ bk_conf_file }}"
+    path: "{{ bookie_conf_file }}"
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items:
@@ -37,7 +43,7 @@
 
 - name: Modify Pulsar bookkeeper config file for misc settings
   lineinfile:
-    path: "{{ bk_conf_file }}"
+    path: "{{ bookie_conf_file }}"
     regexp: "^(#\\s?)?{{ item.key }}="
     line: "{{ item.key }}={{ item.value }}"
   with_items:

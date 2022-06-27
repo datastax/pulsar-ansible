@@ -2,14 +2,14 @@
 #  Bookkeeper specific settings
 # -------------------------------------------
 #
-bk_conf_file: "{{ tgt_pulsar_inst_dir }}/conf/bookkeeper.conf"
+bookie_conf_file: "{{ tgt_pulsar_inst_dir }}/conf/bookkeeper.conf"
 pulsar_mem_bookie: "-Xms4g -Xmx4g -XX:MaxDirectMemorySize=4g"
 
 bookie_listening_port: 3181
 
 # This is the metrics port for Bookie (default port: 8000, path: "/metrics")
 # - see comment about "zk_stats_port"
-bk_stats_port: 8000
+bookie_stats_port: 8000
 
 # bookkeeper storage deivces
 skip_bookie_block_device_setup: true

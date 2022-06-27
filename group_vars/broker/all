@@ -81,8 +81,8 @@ enable_transaction: true
 misc_broker_config_dict: {
   forceDeleteTenantAllowed: 'false'             # default false
   , forceDeleteNamespaceAllowed: 'false'        # default false
-  #, allowAutoTopicCreation: 'false'            # default false
-  #, allowAutoSubscriptionCreation: 'false'     # default false
+  , allowAutoTopicCreation: 'true'              # default false
+  , allowAutoSubscriptionCreation: 'true'       # default false
   , brokerDeleteInactiveTopicsEnabled: 'false'  # default true 
   , topicFencingTimeoutSeconds: '5'             # default 0
   , webSocketServiceEnabled: 'true'             # default false

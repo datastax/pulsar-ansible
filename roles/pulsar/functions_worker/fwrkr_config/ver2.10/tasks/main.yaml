@@ -1,0 +1,23 @@
+#########################
+# Dedicated functions worker configuration settings that are specific
+# to version 2.10(.*)
+# 
+# NOTE: "fwrkr_config/common" role must be executed first
+# -----------------------
+- name: Modify version 2.10 specific config settings for dedicated functions workers
+  lineinfile:
+    path: "{{ funcs_worker_conf_file }}"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { regexp: "^configurationMetadataStoreUrl:", line: "configurationMetadataStoreUrl: {{ hostvars[groups['zookeeper'][0]]['zkListStrVar']|trim }}" }
+
+- name: Comment out old version specific config settings for dedicated functions workers
+  replace:
+    path: "{{ funcs_worker_conf_file }}"
+    regexp: "{{ item.regexp }}"
+    replace: "{{ item.replace }}"
+  with_items:
+    - { regexp: '(^configurationStoreServers:)(.*)$', replace: '#\1 \2' }
+    - { regexp: '(^zooKeeperSessionTimeoutMillis:)(.*)$', replace: '#\1 \2' }
+    - { regexp: '(^zooKeeperOperationTimeoutSeconds:)(.*)$', replace: '#\1 \2' }

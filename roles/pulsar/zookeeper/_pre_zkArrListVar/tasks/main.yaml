@@ -15,9 +15,12 @@
 - debug: msg="zkArrVar - {{ zkArrVar|trim }}"
   when: show_debug_msg|bool 
 
-# For each cluster, get a string for all zookeeper nodes with listening ports, e.g.
+#
+# For Pulsar cluster version < 2.10 that has zookeeper being the only option as a metadata store
+# 
+# - For each cluster, get a string for all zookeeper nodes with listening ports, e.g.
 #   <zookeeper_node_1>:2181,<zookeeper_node_2>:2181,<zookeeper_node_3>:2181
-- name: Get "zookeeper" (IP:Port) string into a variable
+- name: Get "zookeeper" string (IP:Port) into a variable
   set_fact: 
     zkListStrVar: |
       {% set zklist = [] %}
@@ -26,4 +29,42 @@
       {% endfor %}
       {{ zklist|join(',') }}
 - debug: msg="zkListStrVar - {{ zkListStrVar|trim }}"
+  when: show_debug_msg|bool 
+
+#
+# For Pulsar cluster version 2.10+ that has options of using different metadata stores (e.g. zookeeper, etcd)
+# 
+# - For each cluster, get a string for all metadata store nodes with listening ports in the desired format, e.g.
+#   metadata-store:zk:<zk_node_1>:2181,metadata-store:zk:<zk_node_2>:2181,metadata-store:zk:<zk_node_3>:2181
+#
+# - This format is used by bookeepers and dedicated functions workers
+#
+- name: Get "zookeeper metadata store" string (metadata-store:zk:IP:Port) into a variable
+  set_fact: 
+    metaSvcZkListStrVar: |
+      {% set zklist = [] %}
+      {% for node in groups['zookeeper'] %}
+      {%   set ignored = zklist.append('metadata-store:zk:' ~ hostvars[node].private_ip ~ ':' ~ zk_clnt_port) %}
+      {% endfor %}
+      {{ zklist|join(',') }}
+- debug: msg="metaSvcZkListStrVar - {{ metaSvcZkListStrVar|trim }}"
+  when: show_debug_msg|bool 
+
+#
+# For Pulsar cluster version 2.10+ that has options of using different metadata stores (e.g. zookeeper, etcd)
+# 
+# - For each cluster, get a string for all metadata store nodes with listening ports in the desired format, e.g.
+#   zk:<zk_node_1>:2181,zk:<zk_node_2>:2181,zk:<zk_node_3>:2181
+#
+# - This format is used by brokers
+#
+- name: Get "zookeeper metadata store" simplified string (zk:IP:Port) into a variable
+  set_fact: 
+    metaSvcZkListStrVar2: |
+      {% set zklist = [] %}
+      {% for node in groups['zookeeper'] %}
+      {%   set ignored = zklist.append('zk:' ~ hostvars[node].private_ip ~ ':' ~ zk_clnt_port) %}
+      {% endfor %}
+      {{ zklist|join(',') }}
+- debug: msg="metaSvcZkListStrVar2 - {{ metaSvcZkListStrVar2|trim }}"
   when: show_debug_msg|bool 

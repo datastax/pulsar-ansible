@@ -1,0 +1,35 @@
+#########################
+# Broker configuration settings that are specific
+# to version 2.10(.*)
+# 
+# NOTE: "brkr_config/common" role must be executed first
+# -----------------------
+- name: Modify version 2.10 specific broker config settings
+  lineinfile:
+    path: "{{ broker_conf_file }}"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { regexp: "^metadataStoreUrl=", line: "metadataStoreUrl={{ hostvars[groups['zookeeper'][0]]['zkListStrVar']|trim }}" }
+    - { regexp: "^configurationMetadataStoreUrl=", line: "configurationMetadataStoreUrl={{ hostvars[groups['zookeeper'][0]]['metaSvcZkListStrVar2']|trim }}" }
+
+- name: Comment out old version specific broker config settings
+  replace:
+    path: "{{ broker_conf_file }}"
+    regexp: "{{ item.regexp }}"
+    replace: "{{ item.replace }}"
+  with_items:
+    # Deprecated since 2.10
+    - { regexp: '(^zookeeperServers=)(.*)$', replace: '#\1' }
+    - { regexp: '(^configurationStoreServers=)(.*)$', replace: '#\1' }
+    - { regexp: '(^zooKeeperSessionTimeoutMillis=)(.*)$', replace: '#\1' }
+    - { regexp: '(^zooKeeperOperationTimeoutSeconds=)(.*)$', replace: '#\1' }
+    - { regexp: '(^zooKeeperCacheExpirySeconds=)(.*)$', replace: '#\1' }
+    - { regexp: '(^backlogQuotaDefaultLimitGB=)(.*)$', replace: '#\1' }
+    - { regexp: '(^saslJaasBrokerSectionName=)(.*)$', replace: '#\1' }
+    # Deprecated since 2.8
+    - { regexp: '(^subscriptionKeySharedEnable=)(.*)$', replace: '#\1' }
+    - { regexp: '(^tlsEnabled=)(.*)$', replace: '#\1' }
+    - { regexp: '(^globalZookeeperServers=)(.*)$', replace: '#\1' }
+    - { regexp: '(^replicationTlsEnabled=)(.*)$', replace: '#\1' }
+    - { regexp: '(^brokerServicePurgeInactiveFrequencyInSeconds=)(.*)$', replace: '#\1' }

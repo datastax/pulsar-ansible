@@ -11,12 +11,22 @@
 - debug: msg="bookieCnt - {{ bookieCnt }}"
   when: show_debug_msg|bool
 
-- name: Set ensemble size, write, and ack quorum count
+- name: Set ensemble size variable
   set_fact:
-    ensemble_size: "{% if force_message_rf_setting is defined and force_message_rf_setting|bool %}{{ cust_ensemble_size }}{% elif bookieCnt|int >= 3 %}3{% else %}{{ bookieCnt|int }}{% endif %}"
-    write_quorum_cnt: "{% if force_message_rf_setting is defined and force_message_rf_setting|bool %}{{ cust_write_quorum }}{% elif bookieCnt|int >= 3 %}3{% else %}{{ bookieCnt|int }}{% endif %}"
-    ack_quorum_cnt: "{% if force_message_rf_setting is defined and force_message_rf_setting|bool %}{{ cust_ack_quorum }}{% elif bookieCnt|int >= 3 %}2{% else %}1{% endif %}"
-- debug: msg="ensemble_size={{ ensemble_size }}, write_quorum_cnt={{ write_quorum_cnt }}, ack_quorum_cnt={{ ack_quorum_cnt }}"
+    ensemble_size: "{% if force_message_rf_setting is defined and force_message_rf_setting|bool %}{{ cust_ensemble_size }}{% elif bookieCnt|int > 3 %}{{ bookieCnt|int - 2 }}{% elif bookieCnt|int < 3 %}{{ bookieCnt|int }}{% else %}{{ bookieCnt|int - 1 }}{% endif %}"
+- debug: msg="ensemble_size={{ ensemble_size }}"
+  when: show_debug_msg|bool
+
+- name: Set write quorum variable
+  set_fact:
+    write_quorum_cnt: "{% if force_message_rf_setting is defined and force_message_rf_setting|bool %}{{ cust_write_quorum }}{% elif ensemble_size|int > 3 %}3{% elif ensemble_size|int < 3 %}{{ ensemble_size|int }}{% else %}{{ ensemble_size|int - 1 }}{% endif %}"
+- debug: msg="write_quorum_cnt={{ write_quorum_cnt }}"
+  when: show_debug_msg|bool
+
+- name: Set write and ack quorum variables
+  set_fact:
+    ack_quorum_cnt: "{% if force_message_rf_setting is defined and force_message_rf_setting|bool %}{{ cust_ack_quorum }}{% elif write_quorum_cnt|int > 2 %}{{ write_quorum_cnt|int - 1 }}{% else %}{{ write_quorum_cnt|int }}{% endif %}"
+- debug: msg="ack_quorum_cnt={{ ack_quorum_cnt }}"
   when: show_debug_msg|bool
 
 - name: Modify Pulsar broker config file for mandatory settings
