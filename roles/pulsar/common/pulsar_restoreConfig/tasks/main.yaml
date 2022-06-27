@@ -1,15 +1,22 @@
----
 # When restoring from the backup, we need to restore from a specific subfolder
 #   that corresponds to the operation that created the backup files
-- name: Copy Pulsar config files and related security files to the backup folder
+- name: Restore Pulsar config files from the backup folder
   copy:
     remote_src: yes
-    src: "{{ tgt_pulsar_conf_bkup_homedir }}/{{ bkup_subfolder_name }}/{{ item }}"
+    src: "{{ tgt_pulsar_conf_bkup_homedir }}/{{ bkup_subfolder_name }}/conf"
     dest: "{{ tgt_pulsar_inst_dir }}"
     owner: "{{ pulsar_user }}"
     group: "{{ pulsar_user_group }}"
     # overwrite existing config files with the ones from the backup location
     force: yes
-  with_items:
-    - conf
-    - security
+
+- name: For brokers, restore Pulsar security related files from the backup folder
+  copy:
+    remote_src: yes
+    src: "{{ tgt_pulsar_conf_bkup_homedir }}/{{ bkup_subfolder_name }}/security"
+    dest: "{{ tgt_pulsar_inst_dir }}"
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    # Don't overwrite existing config backup files 
+    force: no
+  when: enable_brkr_security|bool and srv_component=='broker'

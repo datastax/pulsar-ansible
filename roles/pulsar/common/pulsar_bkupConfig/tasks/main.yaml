@@ -1,4 +1,5 @@
 ---
+
 - name: Create config backup folders, with sub-folders named as the current date in string format
   file:
     path: "{{ item }}"
@@ -16,15 +17,23 @@
     content: "{{ cur_pulsar_ver }} --> {{ pulsarLS_ver }}" 
   when: cfg_bkup_operation == 'version_update'
 
-- name: Copy Pulsar config files and related security files to the backup folder
+- name: Copy Pulsar config files to the backup folder
   copy:
     remote_src: yes
-    src: "{{ tgt_pulsar_inst_dir }}/{{ item }}"
+    src: "{{ tgt_pulsar_inst_dir }}/conf"
     dest: "{{ tgt_pulsar_conf_bkup_homedir }}/{{ bkup_subfolder_name }}"
     owner: "{{ pulsar_user }}"
     group: "{{ pulsar_user_group }}"
     # Don't overwrite existing config backup files 
     force: no
-  with_items:
-    - conf
-    - security
+
+- name: For brokers, copy Pulsar security related files to the backup folder
+  copy:
+    remote_src: yes
+    src: "{{ tgt_pulsar_inst_dir }}/security"
+    dest: "{{ tgt_pulsar_conf_bkup_homedir }}/{{ bkup_subfolder_name }}"
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    # Don't overwrite existing config backup files 
+    force: no
+  when: enable_brkr_security|bool and srv_component=='broker'

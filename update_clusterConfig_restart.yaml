@@ -177,3 +177,36 @@
         when: rolling_restart_only is not defined or not rolling_restart_only|bool }
     # Start zookeepers
     - { role: pulsar/common/pulsar_startSvc, srvStarted: false, srv_options: "{{ zk_jvm_options }}" }
+
+
+#########################
+# Configure Pular clients
+# -----------------------
+# - 
+- hosts: pulsarClient
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  roles:
+    # Config non-security related settings for Pulsar clients
+    - { role: pulsar/client/clnt_config }
+    # Config security related settings for Pulsar clients
+    - { role: pulsar/client/clnt_secConfig, when: enable_brkr_security|bool }
+
+
+#########################
+# Post work
+# -----------------------  
+# - Update Pulsar component log flush behavior
+- hosts: pulsarClient
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  tasks:
+  - name: Update Pulsar log flush behavior 
+    lineinfile:
+      dest: "{{ tgt_pulsar_inst_dir }}/conf/log4j2.yaml"
+      state: present
+      regexp: "^\\s*immediateFlush:"
+      line: "      immediateFlush: true"
+    when: immediate_flush is defined and immediate_flush|bool

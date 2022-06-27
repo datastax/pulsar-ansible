@@ -11,10 +11,10 @@
 #
 # When it is ok to update the version, execute the following tasks:
 # - stop the Pulsar process
-# - backup the old version Pulsar config files
-# - cleanup the old version Pulsar binary files (except data subdirectory if default data location is used)
+# - backup the old/existing version Pulsar config files
+# - cleanup the old/existing version Pulsar binary files (except data subdirectory if default data location is used)
 # - update the Pulsar binary to the new version
-# - restore the config files to what were backed up earlier
+# - set up the config files based on the target version
 # - start the Pulsar process
 # -----------------------
 
@@ -55,7 +55,6 @@
   run_once: true
   roles: 
     - { role: pulsar/broker/_pre_brokerListVar }
-
 
 
 ##########################
