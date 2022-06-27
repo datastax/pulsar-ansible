@@ -1,4 +1,10 @@
 ---
+#########################
+# Common dedicated functions worker configuration settings
+# that are applicable to both to the following versions:
+# - 2.8(.*)
+# - 2.10(.*)
+# -----------------------
 # Get the functions worker node count which is requrired to configure function package replication setting
 - name: Set functions worker node count into a variable
   set_fact: 

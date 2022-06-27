@@ -1,4 +1,10 @@
 ---
+#########################
+# Common broker configuration settings
+# that are applicable to both to the following versions:
+# - 2.8(.*)
+# - 2.10(.*)
+# -----------------------
 # Get the bookie node count which is requrired to configure message replication settings
 - name: Set bookie node count into a variable
   set_fact: 
@@ -23,7 +29,7 @@
 - debug: msg="write_quorum_cnt={{ write_quorum_cnt }}"
   when: show_debug_msg|bool
 
-- name: Set write and ack quorum variables
+- name: Set ack quorum variables
   set_fact:
     ack_quorum_cnt: "{% if force_message_rf_setting is defined and force_message_rf_setting|bool %}{{ cust_ack_quorum }}{% elif write_quorum_cnt|int > 2 %}{{ write_quorum_cnt|int - 1 }}{% else %}{{ write_quorum_cnt|int }}{% endif %}"
 - debug: msg="ack_quorum_cnt={{ ack_quorum_cnt }}"
