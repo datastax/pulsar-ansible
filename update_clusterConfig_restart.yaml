@@ -64,6 +64,7 @@
   become_method: sudo
   serial: 1
   vars:
+    hostNameStr2: "{{ private_ip | replace('.', '-') }}"
     srvStarted: true
     srv_component: 'functions_worker'
     srv_key_name: "{{ srv_component }}.{{ hostNameStr2 }}.key-pk8.pem"

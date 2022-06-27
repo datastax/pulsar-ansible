@@ -19,4 +19,4 @@
     group: "{{ pulsar_user_group }}"
     # Don't overwrite existing config backup files 
     force: no
-  when: enable_brkr_security|bool and srv_component=='broker'
+  when: enable_brkr_security|bool and (srv_component=='broker' or srv_component=='functions_worker')
