@@ -190,8 +190,8 @@
     - { role: pulsar/common/pulsar_instBinary, keep_newer_files: no, when: not skip_version_update|bool }
     # Set up the configuration files of the target Pulsar version
     - { role: pulsar/broker/brkr_config, when: not skip_version_update|bool }
-    - { role: pulsar/broker/brkr_config/ver2.10, when: not skip_version_update|boo and pulsarLS_ver_main=="2.10" }
-    - { role: pulsar/broker/brkr_secConfig, when: not skip_version_update|boo and enable_brkr_security|bool }
+    - { role: pulsar/broker/brkr_config/ver2.10, when: not skip_version_update|bool and pulsarLS_ver_main=="2.10" }
+    - { role: pulsar/broker/brkr_secConfig, when: not skip_version_update|bool and enable_brkr_security|bool }
     - { role: pulsar/common/pulsar_restoreConfig, when: not skip_version_update|bool }
     # Start brokers
     - { role: pulsar/common/pulsar_startSvc, srvStarted: false, when: not skip_version_update|bool }
