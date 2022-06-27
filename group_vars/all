@@ -70,7 +70,7 @@ local_bin_homedir: "~/DataStax/pulsar_bin/releases/luna_streaming"
 #
 # - Target package and binary directories
 tgt_pkg_homedir: /opt/packages
-tgt_pkg_pular_dir: "{{ tgt_pkg_homedir }}/pulsar"
+tgt_pkg_pulsar_dir: "{{ tgt_pkg_homedir }}/pulsar"
 tgt_pulsar_inst_dir: /opt/pulsar
 
 # - Target config backup directory

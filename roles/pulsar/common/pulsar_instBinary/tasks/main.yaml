@@ -1,7 +1,7 @@
 ---
 - name: Extract Pulsar binary release to the target directory
   unarchive:
-    src: "{{ tgt_pkg_pular_dir }}/{{ pulsarLS_bin_name }}"
+    src: "{{ tgt_pkg_pulsar_dir }}/{{ pulsarLS_bin_name }}"
     remote_src: yes
     dest: "{{ tgt_pulsar_inst_dir }}"
     extra_opts: [--strip-components=1]

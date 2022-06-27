@@ -29,7 +29,7 @@
     mode: "{{ file_permission_mode }}"
     recurse: yes
   with_items:
-    - "{{ tgt_pkg_pular_dir }}"
+    - "{{ tgt_pkg_pulsar_dir }}"
     - "{{ tgt_pulsar_inst_dir }}"
     - "{{ tgt_pulsar_log_homedir }}"
     - "{{ tgt_pulsar_gc_log_homedir }}"
