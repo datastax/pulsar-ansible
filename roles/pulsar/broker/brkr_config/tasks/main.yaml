@@ -50,6 +50,7 @@
     - { regexp: "^managedLedgerDefaultWriteQuorum=", line: "managedLedgerDefaultWriteQuorum={{ write_quorum_cnt }}" }
     - { regexp: "^managedLedgerDefaultAckQuorum=", line: "managedLedgerDefaultAckQuorum={{ ack_quorum_cnt }}" }
     - { regexp: "^transactionCoordinatorEnabled=", line: "transactionCoordinatorEnabled={{ enable_transaction }}" }
+    - { regexp: "^systemTopicEnabled=", line: "systemTopicEnabled=true" }
 
 - name: Modify Pulsar broker config file to enable shared functions worker
   lineinfile:
