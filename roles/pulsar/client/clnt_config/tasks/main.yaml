@@ -1,8 +1,8 @@
 ---
 # Client base configuration (non-security)
 - include_role:
-    name: pulsar/broker/brkr_config/_base
+    name: pulsar/client/clnt_config/_base
 
 # Client security related configuration
 - include_role:
-    name: pulsar/broker/brkr_config/_security
+    name: pulsar/client/clnt_config/_security

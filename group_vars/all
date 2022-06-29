@@ -122,8 +122,8 @@ deploy_functions_worker: "none"
 # - This will impact all Pulsar components, server and client
 # -------------------------------------------
 #
-immediate_flush: false
-# immediate_flush: true
+# immediate_flush: false
+immediate_flush: true
 
 
 #
