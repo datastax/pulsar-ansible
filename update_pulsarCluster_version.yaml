@@ -56,6 +56,20 @@
   roles: 
     - { role: pulsar/broker/_pre_brokerListVar }
 
+# - Update Pulsar component log flush behavior
+- hosts: pulsarClient
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  tasks:
+  - name: Update Pulsar log flush behavior 
+    lineinfile:
+      dest: "{{ tgt_pulsar_inst_dir }}/conf/log4j2.yaml"
+      state: present
+      regexp: "^\\s*immediateFlush:"
+      line: "      immediateFlush: true"
+    when: immediate_flush is defined and immediate_flush|bool
+
 
 ##########################
 # Upgrade zookeepers, including metadata initialization
@@ -135,8 +149,7 @@
     # Install the Pulsar binary of the target version
     - { role: pulsar/common/pulsar_instBinary, keep_newer_files: no, when: not skip_version_update|bool }
     # Set up the configuration files of the target Pulsar version
-    - { role: pulsar/bookkeeper/bkie_config, when: not skip_version_update|bool }
-    - { role: pulsar/bookkeeper/bkie_config/ver2.10, when: not skip_version_update|bool and pulsarLS_ver_main=="2.10" }
+    - { role: pulsar/bookie/bkie_config, when: not skip_version_update|bool }
     # Start bookkeepers
     - { role: pulsar/common/pulsar_startSvc, srvStarted: false, when: not skip_version_update|bool }
 
@@ -147,7 +160,7 @@
   become_method: sudo
   run_once: true
   roles:
-    - { role: pulsar/bookkeeper/bkie_sanityCheck, srv_options: "{{ bookie_jvm_options_b }}" }
+    - { role: pulsar/bookie/bkie_sanityCheck, srv_options: "{{ bookie_jvm_options_b }}" }
 
 
 ##########################
@@ -192,9 +205,6 @@
     - { role: pulsar/common/pulsar_instBinary, keep_newer_files: no, when: not skip_version_update|bool }
     # Set up the configuration files of the target Pulsar version
     - { role: pulsar/broker/brkr_config, when: not skip_version_update|bool }
-    - { role: pulsar/broker/brkr_config/ver2.10, when: not skip_version_update|bool and pulsarLS_ver_main=="2.10" }
-    - { role: pulsar/broker/brkr_secConfig, when: not skip_version_update|bool and enable_brkr_security|bool }
-    - { role: pulsar/common/pulsar_restoreConfig, when: not skip_version_update|bool }
     # Start brokers
     - { role: pulsar/common/pulsar_startSvc, srvStarted: false, when: not skip_version_update|bool }
 
@@ -246,8 +256,6 @@
     # Set up the configuration files of the target Pulsar version
     - { role: pulsar/functions_worker/fwrkr_config, 
         when: deploy_functions_worker == 'dedicated' and not skip_version_update|bool }
-    - { role: pulsar/functions_worker/fwrkr_config/ver2.10, 
-        when: deploy_functions_worker == 'dedicated' and not skip_version_update|bool and pulsarLS_ver_main=="2.10" }
     # Start function workers
     - { role: pulsar/common/pulsar_startSvc, srvStarted: false,  
         when: deploy_functions_worker == 'dedicated' and not skip_version_update|bool }
@@ -261,25 +269,5 @@
   become: "{{ sudo_needed }}"
   become_method: sudo
   roles:
-    # Config non-security related settings for Pulsar clients
+    # Config Pulsar client (client.conf)
     - { role: pulsar/client/clnt_config }
-    # Config security related settings for Pulsar clients
-    - { role: pulsar/client/clnt_secConfig, when: enable_brkr_security|bool }
-
-
-#########################
-# Post work
-# -----------------------  
-# - Update Pulsar component log flush behavior
-- hosts: pulsarClient
-  any_errors_fatal: true
-  become: "{{ sudo_needed }}"
-  become_method: sudo
-  tasks:
-  - name: Update Pulsar log flush behavior 
-    lineinfile:
-      dest: "{{ tgt_pulsar_inst_dir }}/conf/log4j2.yaml"
-      state: present
-      regexp: "^\\s*immediateFlush:"
-      line: "      immediateFlush: true"
-    when: immediate_flush is defined and immediate_flush|bool

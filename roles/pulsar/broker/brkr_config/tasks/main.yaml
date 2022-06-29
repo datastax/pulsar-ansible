@@ -1,87 +1,12 @@
 ---
-#########################
-# Common broker configuration settings
-# that are applicable to both to the following versions:
-# - 2.8(.*)
-# - 2.10(.*)
-# -----------------------
-# Get the bookie node count which is requrired to configure message replication settings
-- name: Set bookie node count into a variable
-  set_fact: 
-    bookieCnt: |
-      {% set count = [0] %}
-      {% for node in groups['bookkeeper'] %}
-      {%   if count.append(count.pop() + 1) %}{% endif %}
-      {% endfor %}
-      {{ count.pop() }}
-- debug: msg="bookieCnt - {{ bookieCnt }}"
-  when: show_debug_msg|bool
+# Broker base configuration (non-security)
+- include_role:
+    name: pulsar/broker/brkr_config/_base
 
-- name: Set ensemble size variable
-  set_fact:
-    ensemble_size: "{% if force_message_rf_setting is defined and force_message_rf_setting|bool %}{{ cust_ensemble_size }}{% elif bookieCnt|int > 3 %}{{ bookieCnt|int - 2 }}{% elif bookieCnt|int < 3 %}{{ bookieCnt|int }}{% else %}{{ bookieCnt|int - 1 }}{% endif %}"
-- debug: msg="ensemble_size={{ ensemble_size }}"
-  when: show_debug_msg|bool
+# Broker version 2.10 specific configuration
+- include_role:
+    name: pulsar/broker/brkr_config/_ver2.10
 
-- name: Set write quorum variable
-  set_fact:
-    write_quorum_cnt: "{% if force_message_rf_setting is defined and force_message_rf_setting|bool %}{{ cust_write_quorum }}{% elif ensemble_size|int > 3 %}3{% elif ensemble_size|int < 3 %}{{ ensemble_size|int }}{% else %}{{ ensemble_size|int - 1 }}{% endif %}"
-- debug: msg="write_quorum_cnt={{ write_quorum_cnt }}"
-  when: show_debug_msg|bool
-
-- name: Set ack quorum variables
-  set_fact:
-    ack_quorum_cnt: "{% if force_message_rf_setting is defined and force_message_rf_setting|bool %}{{ cust_ack_quorum }}{% elif write_quorum_cnt|int > 2 %}{{ write_quorum_cnt|int - 1 }}{% else %}{{ write_quorum_cnt|int }}{% endif %}"
-- debug: msg="ack_quorum_cnt={{ ack_quorum_cnt }}"
-  when: show_debug_msg|bool
-
-- name: Modify Pulsar broker config file for mandatory settings
-  lineinfile:
-    path: "{{ broker_conf_file }}"
-    regexp: "{{ item.regexp }}"
-    line: "{{ item.line }}"
-  with_items:
-    - { regexp: "^zookeeperServers=", line: "zookeeperServers={{ hostvars[groups['zookeeper'][0]]['zkListStrVar']|trim }}" }
-    - { regexp: "^configurationStoreServers=", line: "configurationStoreServers={{ hostvars[groups['zookeeper'][0]]['zkListStrVar']|trim }}" }
-    - { regexp: "^clusterName=", line: "clusterName={{ cluster_name }}" }
-    - { regexp: "^brokerServicePort=", line: "brokerServicePort={{ broker_svc_port }}" }
-    - { regexp: "^webServicePort=", line: "webServicePort={{ web_svc_port }}" }
-    - { regexp: "^managedLedgerDefaultEnsembleSize=", line: "managedLedgerDefaultEnsembleSize={{ ensemble_size }}"}
-    - { regexp: "^managedLedgerDefaultWriteQuorum=", line: "managedLedgerDefaultWriteQuorum={{ write_quorum_cnt }}" }
-    - { regexp: "^managedLedgerDefaultAckQuorum=", line: "managedLedgerDefaultAckQuorum={{ ack_quorum_cnt }}" }
-    - { regexp: "^transactionCoordinatorEnabled=", line: "transactionCoordinatorEnabled={{ enable_transaction }}" }
-    - { regexp: "^systemTopicEnabled=", line: "systemTopicEnabled=true" }
-
-- name: Modify Pulsar broker config file to enable shared functions worker
-  lineinfile:
-    path: "{{ broker_conf_file }}"
-    regexp: "{{ item.regexp }}"
-    line: "{{ item.line }}"
-  with_items:    
-    # NOTE: Function workers can be started as part of brokres. However, 
-    # 1) This is only recommended for DEV purpose.
-    # 2) For PROD and/or PERF TESTING environment, it is always recommended to deploy dedicated function workers
-    - { regexp: "^functionsWorkerEnabled=", line: "functionsWorkerEnabled=true" }
-  when: deploy_functions_worker is defined and deploy_functions_worker == 'shared'
-
-- name: Modify Pulsar broker config file for rack-awareness related settings
-  lineinfile:
-    path: "{{ broker_conf_file }}"
-    regexp: "{{ item.regexp }}"
-    line: "{{ item.line }}"
-  with_items:
-    - { regexp: "^bookkeeperClientRackawarePolicyEnabled=", 
-        line: "bookkeeperClientRackawarePolicyEnabled=true" }
-    - { regexp: "^bookkeeperClientMinNumRacksPerWriteQuorum=", 
-        line: "bookkeeperClientMinNumRacksPerWriteQuorum={{ minNumRackPerWQ }}" }
-    - { regexp: "^bookkeeperClientEnforceMinNumRacksPerWriteQuorum=", 
-        line: "bookkeeperClientEnforceMinNumRacksPerWriteQuorum={{ enforceMinNumRackPerWQ|lower }}" }
-  when: config_rackAwareness is defined and config_rackAwareness|bool
-
-- name: Modify Pulsar broker config file for misc settings
-  lineinfile:
-    path: "{{ broker_conf_file }}"
-    regexp: "^(#\\s?)?{{ item.key }}="
-    line: "{{ item.key }}={{ item.value }}"
-  with_items:
-    - "{{ lookup('dict', misc_broker_config_dict) }}"
+# Broker security related configuration
+- include_role:
+    name: pulsar/broker/brkr_config/_security

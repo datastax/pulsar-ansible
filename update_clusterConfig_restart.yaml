@@ -23,7 +23,7 @@
   roles: 
     - { role: pulsar/common/pulsar_bkieRackMinNumCheck, 
         when: (rolling_restart_only is not defined or not rolling_restart_only|bool) and
-              config_rackAwareness is defined and config_rackAwareness|bool }
+              (config_rackAwareness is defined and config_rackAwareness|bool) }
 
 # - Get zookeeper list in deseried formats and save them in variables
 #   They are needed in later steps for Pulsar configurations
@@ -35,7 +35,7 @@
   run_once: true
   roles: 
     - { role: pulsar/zookeeper/_pre_zkArrListVar,
-        when: rolling_restart_only is not defined or not rolling_restart_only|bool }
+        when: (rolling_restart_only is not defined or not rolling_restart_only|bool) }
 
 # - Get broker list in deseried formats and save them in variables
 #   They are needed in later steps for Pulsar configurations
@@ -47,7 +47,22 @@
   run_once: true
   roles: 
     - { role: pulsar/broker/_pre_brokerListVar,
-        when: rolling_restart_only is not defined or not rolling_restart_only|bool }
+        when: (rolling_restart_only is not defined or not rolling_restart_only|bool) }
+
+# - Update Pulsar component log flush behavior
+- hosts: pulsarClient
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  tasks:
+  - name: Update Pulsar log flush behavior 
+    lineinfile:
+      dest: "{{ tgt_pulsar_inst_dir }}/conf/log4j2.yaml"
+      state: present
+      regexp: "^\\s*immediateFlush:"
+      line: "      immediateFlush: true"
+    when: (rolling_restart_only is not defined or not rolling_restart_only|bool) and
+          (immediate_flush is defined and immediate_flush|bool)
 
 
 #########################
@@ -76,24 +91,28 @@
   roles:
     # Check the current status of function workers
     - { role: misc/_check_svc_status,
-        when: deploy_functions_worker is defined and deploy_functions_worker == 'dedicated' }
+        when: (deploy_functions_worker is defined and deploy_functions_worker == 'dedicated') and 
+              (restart_component is not defined or restart_component==srv_component) }
     # Stop function workers
     - { role: pulsar/common/pulsar_stopSvc, srvStarted: true, 
-        when: deploy_functions_worker is defined and deploy_functions_worker == 'dedicated' }
+        when: (deploy_functions_worker is defined and deploy_functions_worker == 'dedicated') and 
+              (restart_component is not defined or restart_component==srv_component) }
     # Backup existing configuration files 
     - { role: pulsar/common/pulsar_bkupConfig, cfg_bkup_operation: 'config_update',
-        when: rolling_restart_only is not defined or not rolling_restart_only|bool }
+        when: (deploy_functions_worker is defined and deploy_functions_worker == 'dedicated') and 
+              (rolling_restart_only is not defined or not rolling_restart_only|bool) and 
+              (restart_component is not defined or restart_component==srv_component) }
     # Update configuration files
-    - { role: pulsar/functions_worker/fwrkr_config, 
-        when: rolling_restart_only is not defined or not rolling_restart_only|bool }
-    - { role: pulsar/functions_worker/fwrkr_secConfig, 
-        when: (rolling_restart_only is not defined or not rolling_restart_only|bool) and 
-              enable_fwrkr_security|bool }
+    - { role: pulsar/functions_worker/fwrkr_config,
+        when: (deploy_functions_worker is defined and deploy_functions_worker == 'dedicated') and 
+              (rolling_restart_only is not defined or not rolling_restart_only|bool) and 
+              (restart_component is not defined or restart_component==srv_component) }
     # Start function workers
     - { role: pulsar/common/pulsar_startSvc,  
         srvStarted: false, 
         srv_options: "{{ funcs_worker_jvm_options }}",
-        when: deploy_functions_worker is defined and deploy_functions_worker == 'dedicated' }
+        when: (deploy_functions_worker is defined and deploy_functions_worker == 'dedicated') and 
+              (restart_component is not defined or restart_component==srv_component) }
 
 # Update and restart brokers
 - hosts: broker
@@ -114,27 +133,29 @@
     bkup_subfolder_name: "ConfigUpdate-{{ ansible_date_time.epoch }}"
   roles:
     # Check the current status of brokers
-    - { role: misc/_check_svc_status }
+    - { role: misc/_check_svc_status, 
+        when: (restart_component is not defined or restart_component==srv_component) }
     # Stop brokers
-    - { role: pulsar/common/pulsar_stopSvc }
+    - { role: pulsar/common/pulsar_stopSvc, 
+        when: (restart_component is not defined or restart_component==srv_component) }
     # Backup existing configuration files 
     - { role: pulsar/common/pulsar_bkupConfig, cfg_bkup_operation: 'config_update',
-        when: rolling_restart_only is not defined or not rolling_restart_only|bool }
+        when: (rolling_restart_only is not defined or not rolling_restart_only|bool) and 
+              (restart_component is not defined or restart_component==srv_component) }
     # Update configuration files
     - { role: pulsar/broker/brkr_config, 
-        when: rolling_restart_only is not defined or not rolling_restart_only|bool }
-    - { role: pulsar/broker/brkr_secConfig, 
-        when: (rolling_restart_only is not defined or not rolling_restart_only|bool) and
-              enable_brkr_security|bool }
+        when: (rolling_restart_only is not defined or not rolling_restart_only|bool) and 
+              (restart_component is not defined or restart_component==srv_component) }
     # Start brokers
-    - { role: pulsar/common/pulsar_startSvc, srvStarted: false, srv_options: "{{ broker_jvm_options }}" }
+    - { role: pulsar/common/pulsar_startSvc, srvStarted: false, srv_options: "{{ broker_jvm_options }}",
+        when: (restart_component is not defined or restart_component==srv_component) }
 
 # Update and restart bookkeeper
 - hosts: bookkeeper
   any_errors_fatal: true
   become: "{{ sudo_needed }}"
   become_method: sudo
-  # serial: 1
+  serial: 1
   vars:
     srvStarted: true
     srv_component: 'bookie'
@@ -142,17 +163,22 @@
     bkup_subfolder_name: "ConfigUpdate-{{ ansible_date_time.epoch }}"
   roles:
     # Check the current status of bookies
-    - { role: misc/_check_svc_status }
+    - { role: misc/_check_svc_status, 
+        when: (restart_component is not defined or restart_component==srv_component) }
     # Stop bookies
-    - { role: pulsar/common/pulsar_stopSvc  }
+    - { role: pulsar/common/pulsar_stopSvc, 
+        when: (restart_component is not defined or restart_component==srv_component) }
     # Backup existing configuration files 
     - { role: pulsar/common/pulsar_bkupConfig, cfg_bkup_operation: 'config_update',
-        when: rolling_restart_only is not defined or not rolling_restart_only|bool }
+        when: (rolling_restart_only is not defined or not rolling_restart_only|bool) and
+              (restart_component is not defined or restart_component==srv_component) }
     # Update configuration files
-    - { role: pulsar/bookkeeper/bkie_config, 
-        when: rolling_restart_only is not defined or not rolling_restart_only|bool }
+    - { role: pulsar/bookie/bkie_config, 
+        when: (rolling_restart_only is not defined or not rolling_restart_only|bool) and
+              (restart_component is not defined or restart_component==srv_component) }
     # Start bookies
-    - { role: pulsar/common/pulsar_startSvc, srvStarted: false, srv_options: "{{ bookie_jvm_options }}" }
+    - { role: pulsar/common/pulsar_startSvc, srvStarted: false, srv_options: "{{ bookie_jvm_options }}", 
+        when: (restart_component is not defined or restart_component==srv_component) }
 
 # Update and restart bookkeeper 
 - hosts: zookeeper
@@ -167,17 +193,22 @@
     bkup_subfolder_name: "ConfigUpdate-{{ ansible_date_time.epoch }}"
   roles:
     # Check the current status of zookeepers
-    - { role: misc/_check_svc_status }
+    - { role: misc/_check_svc_status, 
+        when: (restart_component is not defined or restart_component==srv_component) }
     # Stop zookeepers
-    - { role: pulsar/common/pulsar_stopSvc }
+    - { role: pulsar/common/pulsar_stopSvc, 
+        when: (restart_component is not defined or restart_component==srv_component) }
     # Backup existing configuration files 
     - { role: pulsar/common/pulsar_bkupConfig, cfg_bkup_operation: 'config_update',
-        when: rolling_restart_only is not defined or not rolling_restart_only|bool }
+        when: (rolling_restart_only is not defined or not rolling_restart_only|bool) and
+              (restart_component is not defined or restart_component==srv_component) }
     # Update configuration files
-    - { role: pulsar/zookeeper/zkpr_config, 
-        when: rolling_restart_only is not defined or not rolling_restart_only|bool }
+    - { role: pulsar/zookeeper/zkpr_config,
+        when: (rolling_restart_only is not defined or not rolling_restart_only|bool) and
+              (restart_component is not defined or restart_component==srv_component) }
     # Start zookeepers
-    - { role: pulsar/common/pulsar_startSvc, srvStarted: false, srv_options: "{{ zk_jvm_options }}" }
+    - { role: pulsar/common/pulsar_startSvc, srvStarted: false, srv_options: "{{ zk_jvm_options }}", 
+        when: (restart_component is not defined or restart_component==srv_component) }
 
 
 #########################
@@ -189,25 +220,7 @@
   become: "{{ sudo_needed }}"
   become_method: sudo
   roles:
-    # Config non-security related settings for Pulsar clients
-    - { role: pulsar/client/clnt_config }
-    # Config security related settings for Pulsar clients
-    - { role: pulsar/client/clnt_secConfig, when: enable_brkr_security|bool }
-
-
-#########################
-# Post work
-# -----------------------  
-# - Update Pulsar component log flush behavior
-- hosts: pulsarClient
-  any_errors_fatal: true
-  become: "{{ sudo_needed }}"
-  become_method: sudo
-  tasks:
-  - name: Update Pulsar log flush behavior 
-    lineinfile:
-      dest: "{{ tgt_pulsar_inst_dir }}/conf/log4j2.yaml"
-      state: present
-      regexp: "^\\s*immediateFlush:"
-      line: "      immediateFlush: true"
-    when: immediate_flush is defined and immediate_flush|bool
+    # Config Pulsar client (client.conf)
+    - { role: pulsar/client/clnt_config,
+        when: (rolling_restart_only is not defined or not rolling_restart_only|bool)  and
+              (restart_component is not defined or restart_component=='broker') }

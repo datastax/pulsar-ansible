@@ -33,7 +33,7 @@
 - hosts: bookkeeper
   run_once: true
   roles:
-    - { role: pulsar/bookkeeper/bkie_sanityCheck, srv_options: "{{ bookie_jvm_options_b }}" }
+    - { role: pulsar/bookie/bkie_sanityCheck, srv_options: "{{ bookie_jvm_options_b }}" }
 
 # Start Pulsar broker nodes
 - hosts: broker

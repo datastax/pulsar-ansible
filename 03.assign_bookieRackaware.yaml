@@ -15,6 +15,6 @@
     - { role: pulsar/common/pulsar_bkieRackMinNumCheck, 
         run_once: true,
         when: config_rackAwareness is defined and config_rackAwareness|bool }
-    - { role: pulsar/bookkeeper/bkie_assignRack, 
+    - { role: pulsar/bookie/bkie_assignRack, 
         srv_options: "{{ bookie_jvm_options_b }}",
         when: config_rackAwareness is defined and config_rackAwareness|bool }

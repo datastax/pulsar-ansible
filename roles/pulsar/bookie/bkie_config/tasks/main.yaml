@@ -1,0 +1,8 @@
+---
+# Bookkeeper base configuration (non-security)
+- include_role:
+    name: pulsar/bookie/bkie_config/_base
+
+# Bookkeeper version 2.10 specific configuration
+- include_role:
+    name: pulsar/bookie/bkie_config/_ver2.10

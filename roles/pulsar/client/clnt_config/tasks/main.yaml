@@ -1,9 +1,8 @@
 ---
-- name: Modify Pulsar client configuration file - set web service and broker service URLs
-  lineinfile:
-    path: "{{ pulsar_client_config_file }}"
-    regexp: "{{ item.regexp }}"
-    line: "{{ item.line }}"
-  with_items:
-    - { regexp: "^webServiceUrl=", line: "webServiceUrl=http://{{ hostvars[groups['broker'][0]]['webSvcListStr']|trim }}" }
-    - { regexp: "^brokerServiceUrl=", line: "brokerServiceUrl=pulsar://{{ hostvars[groups['broker'][0]]['brokerSvcListStr']|trim }}" }
+# Client base configuration (non-security)
+- include_role:
+    name: pulsar/broker/brkr_config/_base
+
+# Client security related configuration
+- include_role:
+    name: pulsar/broker/brkr_config/_security

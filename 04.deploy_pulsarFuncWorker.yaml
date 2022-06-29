@@ -60,12 +60,9 @@
         "{% if enable_fwrkr_tls is defined and enable_fwrkr_tls|bool %}{{ funcs_worker_port_tls }}{% else %}{{ funcs_worker_port }}{% endif %}",
       ]
   roles: 
-    # Config functions worker non-security related settings
+    # Config functions worker
     - { role: pulsar/common/pulsar_srvBreadCrumb, pulsar_vm_type: "{{ srv_component }}" }
     - { role: pulsar/functions_worker/fwrkr_config }
-    - { role: pulsar/functions_worker/fwrkr_config/ver2.10, when: pulsarLS_ver_main=="2.10" }
-    # If needed, config functions worker security related settings
-    - { role: pulsar/functions_worker/fwrkr_secConfig, when: enable_fwrkr_security|bool }
     # Check the current status of functions worker
     - { role: misc/_check_svc_status }
     # Start functions worker

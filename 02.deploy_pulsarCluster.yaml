@@ -67,6 +67,20 @@
   roles: 
     - { role: pulsar/broker/_pre_brokerListVar }
 
+# - Update Pulsar component log flush behavior
+- hosts: pulsarClient
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  tasks:
+  - name: Update Pulsar log flush behavior 
+    lineinfile:
+      dest: "{{ tgt_pulsar_inst_dir }}/conf/log4j2.yaml"
+      state: present
+      regexp: "^\\s*immediateFlush:"
+      line: "      immediateFlush: true"
+    when: immediate_flush is defined and immediate_flush|bool
+
 
 #########################
 # Zookeeper Related
@@ -83,7 +97,7 @@
   roles: 
     # If needed, mount dedicated storage space to zookeepers
     - { role: pulsar/zookeeper/zkpr_mntStorage, when: not skip_zk_block_device_setup|bool }
-    # Config zookeepers 
+    # Config zookeeper (zookeeper.conf)
     - { role: pulsar/common/pulsar_srvBreadCrumb, pulsar_vm_type: "{{ srv_component }}" }
     - { role: pulsar/zookeeper/zkpr_config }
     # Check the current status of zookeepers
@@ -116,11 +130,10 @@
     srv_ports: ["{{ bookie_listening_port }}"]
   roles: 
     # If needed, mount dedicated storage space to bookkeepers
-    - { role: pulsar/bookkeeper/bkie_mntStorage, when: not skip_bookie_block_device_setup|bool }
-    # Config bookies 
+    - { role: pulsar/bookie/bkie_mntStorage, when: not skip_bookie_block_device_setup|bool }
+    # Config bookkeeper (bookkeeper.conf)
     - { role: pulsar/common/pulsar_srvBreadCrumb, pulsar_vm_type: "{{ srv_component }}" }
-    - { role: pulsar/bookkeeper/bkie_config }
-    - { role: pulsar/bookkeeper/bkie_config/ver2.10, when: pulsarLS_ver_main=="2.10" }
+    - { role: pulsar/bookie/bkie_config }
     # Check the current status of bookies
     - { role: misc/_check_svc_status }
     # Start bookies
@@ -133,7 +146,7 @@
   become_method: sudo
   run_once: true
   roles:
-    - { role: pulsar/bookkeeper/bkie_sanityCheck, srv_options: "{{ bookie_jvm_options_b }}" }
+    - { role: pulsar/bookie/bkie_sanityCheck, srv_options: "{{ bookie_jvm_options_b }}" }
 
 
 #########################
@@ -156,12 +169,9 @@
         "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ broker_svc_port_tls }}{% else %}{{ broker_svc_port }}{% endif %}"
       ]
   roles: 
-    # Config broker non-security related settings
+    # Config broker (broker.conf)
     - { role: pulsar/common/pulsar_srvBreadCrumb, pulsar_vm_type: "{{ srv_component }}" }
     - { role: pulsar/broker/brkr_config }
-    - { role: pulsar/broker/brkr_config/ver2.10, when: pulsarLS_ver_main=="2.10" }
-    # If needed, config broker security related settings
-    - { role: pulsar/broker/brkr_secConfig, when: enable_brkr_security|bool }
     # Check the current status of brokers
     - { role: misc/_check_svc_status }
     # Start brokers
@@ -186,29 +196,13 @@
   become: "{{ sudo_needed }}"
   become_method: sudo
   roles:
-    # Config non-security related settings for Pulsar clients
+    # Config Pulsar client (client.conf)
     - { role: pulsar/client/clnt_config }
-    # Config security related settings for Pulsar clients
-    - { role: pulsar/client/clnt_secConfig, when: enable_brkr_security|bool }
 
 
 #########################
 # Post work
 # -----------------------  
-# - Update Pulsar component log flush behavior
-- hosts: pulsarClient
-  any_errors_fatal: true
-  become: "{{ sudo_needed }}"
-  become_method: sudo
-  tasks:
-  - name: Update Pulsar log flush behavior 
-    lineinfile:
-      dest: "{{ tgt_pulsar_inst_dir }}/conf/log4j2.yaml"
-      state: present
-      regexp: "^\\s*immediateFlush:"
-      line: "      immediateFlush: true"
-    when: immediate_flush is defined and immediate_flush|bool
-
 # - Update .profile for all hosts in cluster
 - hosts: pulsarClient
   any_errors_fatal: true
