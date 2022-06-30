@@ -9,3 +9,6 @@
     --broker-service-url pulsar://{{ hostvars[groups['broker'][0]]['brokerSvcListStr']|trim }} \
     --web-service-url-tls https://{{ hostvars[groups['broker'][0]]['webSvcTlsListStr']|trim }} \
     --broker-service-url-tls pulsar+ssl://{{ hostvars[groups['broker'][0]]['brokerSvcTlsListStr']|trim }} 
+  register: zk_init_cluster_meta_cmdcat
+- debug: msg="zk_init_cluster_meta_cmdcat.failed - {{ zk_init_cluster_meta_cmdcat.failed }}"
+  when: show_debug_msg|bool 

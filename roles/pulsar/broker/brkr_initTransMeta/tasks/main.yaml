@@ -4,3 +4,6 @@
     {% if sudo_needed|bool %}sudo -u {{ pulsar_user }} {% endif %}{{ srv_options|trim }} {{ tgt_pulsar_inst_dir }}/bin/pulsar initialize-transaction-coordinator-metadata \
     --cluster {{ cluster_name }} \
     --configuration-store {{ hostvars[groups['zookeeper'][0]]['zkListStrVar']|trim }}
+  register: brkr_init_trans_meta_cmdcat
+- debug: msg="brkr_init_trans_meta_cmdcat.failed - {{ brkr_init_trans_meta_cmdcat.failed }}"
+  when: show_debug_msg|bool 
