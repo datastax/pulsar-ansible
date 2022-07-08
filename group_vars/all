@@ -4,7 +4,6 @@
 #
 show_debug_msg: true
 sudo_needed: true
-cluster_name: "MyCluster"
 
 # - System user and group for running Pulsar on remote server hosts
 pulsar_user: pulsar
