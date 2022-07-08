@@ -35,6 +35,21 @@ enable_transaction: true
 
 
 #
+# Enable server side filtering
+# -------------------------------------------
+#
+enable_srvside_msg_filtering: true
+tgt_msg_filter_package_dir: "{{ tgt_pulsar_inst_dir }}/filters"
+
+msg_filter_package_version: 2.4.2
+msg_filter_package_name: "pulsar-jms-{{ msg_filter_package_version }}-nar.nar"
+
+msg_filter_pkg_download_url_base: "https://github.com/datastax/pulsar-jms/releases/download"
+msg_filter_pkg_download_url: "{{ msg_filter_pkg_download_url_base }}/{{ msg_filter_package_version }}/{{ msg_filter_package_name }}"
+
+
+
+#
 # Other configuration items
 # -------------------------------------------
 #
@@ -86,4 +101,5 @@ misc_broker_config_dict: {
   , brokerDeleteInactiveTopicsEnabled: 'false'  # default true 
   , topicFencingTimeoutSeconds: '5'             # default 0
   , webSocketServiceEnabled: 'true'             # default false
+
 }

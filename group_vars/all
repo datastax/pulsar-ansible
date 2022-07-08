@@ -41,8 +41,9 @@ pulsarLS_ver_main: "2.10"
 pulsarLS_ver_secondary: "0.6"
 pulsarLS_ver_signifant: "{{ pulsarLS_ver_main.split('.')[0] }}.{{ pulsarLS_ver_main.split('.')[1] }}"
 pulsarLS_ver: "{{ pulsarLS_ver_main }}.{{ pulsarLS_ver_secondary }}"
-# valid luna streaming binary options: "core", "", "all"
-pulsarLS_bin_opt: "core"
+# valid luna streaming binary options: "core" (Pulsar core), "" (base), "all (including all packages, I/O conenctors and message filters)"
+# use "" (base) as the default 
+pulsarLS_bin_opt: ""
 pulsarLS_bin_name: "lunastreaming-{% if pulsarLS_bin_opt is defined and pulsarLS_bin_opt != '' %}{{ pulsarLS_bin_opt }}-{% endif %}{{ pulsarLS_ver }}-bin.tar.gz"
 
 

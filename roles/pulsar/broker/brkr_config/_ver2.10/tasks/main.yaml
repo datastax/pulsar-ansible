@@ -13,6 +13,16 @@
     - { regexp: "^metadataStoreUrl=", line: "metadataStoreUrl={{ hostvars[groups['zookeeper'][0]]['zkListStrVar']|trim }}" }
     - { regexp: "^configurationMetadataStoreUrl=", line: "configurationMetadataStoreUrl={{ hostvars[groups['zookeeper'][0]]['metaSvcZkListStrVar2']|trim }}" }
 
+- name: Modify broker side filtering (version 2.10 specific) config settings, if needed
+  lineinfile:
+    path: "{{ broker_conf_file }}"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { regexp: "^entryFilterNames=", line: "entryFilterNames=jms" }
+    - { regexp: "^entryFiltersDirectory=", line: "entryFiltersDirectory={{ tgt_msg_filter_package_dir }}" }
+  when: enable_srvside_msg_filtering|bool
+
 - name: Comment out old version specific broker config settings
   replace:
     path: "{{ broker_conf_file }}"
