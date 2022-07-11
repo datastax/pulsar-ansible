@@ -38,7 +38,7 @@ openjdk_ver: 11
 # pulsarLS_ver_main: "2.8.3"
 # pulsarLS_ver_secondary: "1.0.13"
 pulsarLS_ver_main: "2.10"
-pulsarLS_ver_secondary: "0.6"
+pulsarLS_ver_secondary: "1.0"
 pulsarLS_ver_signifant: "{{ pulsarLS_ver_main.split('.')[0] }}.{{ pulsarLS_ver_main.split('.')[1] }}"
 pulsarLS_ver: "{{ pulsarLS_ver_main }}.{{ pulsarLS_ver_secondary }}"
 # valid luna streaming binary options: "core" (Pulsar core), "" (base), "all (including all packages, I/O conenctors and message filters)"
