@@ -85,25 +85,31 @@ misc_bookie_config_dict: {
   ####
   # - Compaction related settings
   #   NOTE: must make sure majorCompactionInterval > minorCompactionInterval > gcWaitTime
-  , minorCompactionThreshold: 0.4   # default 0.2
-  , minorCompactionInterval: 360    # default 3600 seconds (6 minutes vs 1 hour)
-  , majorCompactionThreshold: 0.8   # default 0.5
-  , majorCompactionInterval: 1800   # default 86400 seconds (30 minutes vs 1 day)
-  , gcWaitTime: 300000              # default 900000 milli-seconds (15 minutes)
+  , minorCompactionThreshold: 0.2     # default 0.2 (use default !!!)
+  , minorCompactionInterval: 360      # default 3600 seconds (6 minutes vs 1 hour)
+  , majorCompactionThreshold: 0.8     # default 0.5
+  , majorCompactionInterval: 10800    # default 86400 seconds (3 hours vs 1 day)
+  , gcWaitTime: 300000                # default 900000 milli-seconds (5 minutes vs15 minutes)
+  , isForceGCAllowWhenNoSpace: 'true' # default false
 
   # - Max. disk utilization and entry log sizediskUsageWarnThreshold
   #   NOTE: always make sure the following conditions are met: 
-  #   diskUsageWarnThreshold <= diskUsageLwmThreshold <= diskUsageThreshold
-  , diskUsageWarnThreshold: 0.7
-  , diskUsageLwmThreshold: 0.75   # default 0.90 
-  , diskUsageThreshold: 0.8       # default 0.95
+  #   diskUsageLwmThreshold <= diskUsageWarnThreshold <= diskUsageThreshold
+  , diskUsageLwmThreshold: 0.85   # default 0.90 
+  , diskUsageWarnThreshold: 0.9   # default 0.95
+  , diskUsageThreshold: 0.95      # default 0.95 (use default !!!)
   , diskCheckInterval: 1800       # default 10000
+
+  ##
+  # Start with default values !!!
+  #   NOTE: make sure JVM direct memory is big enough to host the combined cache size settings
+  , dbStorage_rocksDB_blockCacheSize: 4294967296    # 4GB; default 10% JVM direct memory
+  , dbStorage_writeCacheMaxSizeMb: 2048             # 2GB; default 1/4 of JVM direct memory
+  , dbStorage_readAheadCacheBatchSize: 4000         # default 1000
   #   NOTE: make sure logSizeLimit is smaller than "disk capacity * (1 - diskUsageThreshold)"
-  , logSizeLimit: 536870912       # 500 MB; default 1073741824 (1GB)
+  # , logSizeLimit: 536870912       # 500 MB; default 1073741824 (1GB)
+  , logSizeLimit: 1073741824        ## for large disk capacity, use the default value
 
   # - Other performance related settings 
-  #   NOTE: make sure JVM direct memory is big enough to host the combined cache size settings
-  # , dbStorage_rocksDB_blockCacheSize: 4294967296  # 4GB; default 10% JVM direct memory
-  # , dbStorage_writeCacheMaxSizeMb: 2048           # 2GB; default 1/4 of JVM direct memory
-  , dbStorage_readAheadCacheBatchSize: 4000       # default 1000
+  , verifyMetadataOnGC: 'true'    # default false
 }

@@ -14,7 +14,7 @@ file_permission_mode_noexec: "{% if allow_group_write_mode is defined and allow_
 
 # - Whether or not to use non-default, customized JVM settings for Pulsar server components
 customize_jvm: true
-# - Whether or not to use a log home directory that is different from the default (<PULSAR_HOME>/data)
+# - Whether or not to use a log home directory that is different from the default (<PULSAR_HOME>/logs)
 customize_logdir: true
 # - Whether or not to use a GC log home directory that is different from the default (<PULSAR_HOME>/logs)
 customize_gc_logdir: true
@@ -36,7 +36,7 @@ openjdk_ver: 11
 
 # - DataStax LunaStreaming release
 # pulsarLS_ver_main: "2.8.3"
-# pulsarLS_ver_secondary: "1.0.13"
+# pulsarLS_ver_secondary: "1.0.14"
 pulsarLS_ver_main: "2.10"
 pulsarLS_ver_secondary: "1.0"
 pulsarLS_ver_signifant: "{{ pulsarLS_ver_main.split('.')[0] }}.{{ pulsarLS_ver_main.split('.')[1] }}"
@@ -95,10 +95,10 @@ pulsar_client_config_file: "{{ tgt_pulsar_inst_dir }}/conf/client.conf"
 # -------------------------------------------
 #
 config_rackAwareness: true
-enforceMinNumRackPerWQ: false   # default false
-# NOTE: this HAS to be bigger than the available rack count. 
+enforceMinNumRackPerWQ: false # default false
+# NOTE: this HAS to be bigger than or equal to the available rack count. 
 #       otherwise, creating topic will always fail
-minNumRackPerWQ: 2            # default 
+minNumRackPerWQ: 2            # default 2
 
 #
 # How to deploy functions workers
@@ -158,7 +158,7 @@ rootca_key_password: "MyRootCACertPass"
 cert_subj_line: "/C=US/ST=TX/L=Dallas/O=mytest.com"
 
 ##
-# NOTE: please be careful with 2 settings. 
+# NOTE: please be careful with these 2 settings. 
 #       - if these variables are set to true, existing server side JWT token 
 #         and/or TLS certificate files could be replaced by new ones, which
 #         may cause interruption of existing client connections. 
@@ -200,7 +200,7 @@ brkr_key_password: "MyBrkrSrvCertPass"
 #
 # >>> Functions worker related security: JWT token and in-transit TLS encryption
 #
-# TBD/NOTE: enabling functions worker security till has some issues. Do NOT enable them for now!
+# TBD/NOTE: enabling functions worker security still has some issues. Do NOT enable them for now!
 #
 # - Wether or not to enable Pulsar functions worker JWT authentication and authorization
 enable_fwrkr_authNZ: false

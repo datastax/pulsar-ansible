@@ -54,5 +54,5 @@ funcs_worker_package_replica: 2
 misc_funcs_worker_config_dict: {
   downloadDirectory: "{{ tgt_pulsar_inst_dir }}/download/pulsar_functions"
   , numHttpServerThreads: 16   # default 8
-  # , includeStandardPrometheusMetrics: 'true'
+  , includeStandardPrometheusMetrics: 'true'
 }

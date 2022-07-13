@@ -1,3 +1,4 @@
+---
 - name: Create the specified Pulsar user group
   group: 
     name: "{{ pulsar_user_group }}"

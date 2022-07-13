@@ -1,3 +1,4 @@
+---
 # When restoring from the backup, we need to restore from a specific subfolder
 #   that corresponds to the operation that created the backup files
 - name: Restore Pulsar config files from the backup folder

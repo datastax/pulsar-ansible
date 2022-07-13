@@ -11,7 +11,8 @@
     line: "{{ item.line }}"
   with_items:
     - { regexp: "^metadataStoreUrl=", line: "metadataStoreUrl={{ hostvars[groups['zookeeper'][0]]['zkListStrVar']|trim }}" }
-    - { regexp: "^configurationMetadataStoreUrl=", line: "configurationMetadataStoreUrl={{ hostvars[groups['zookeeper'][0]]['metaSvcZkListStrVar2']|trim }}" }
+    # Make sure "configurationMetadataStoreUrl" is not set which falls back to the same value as "metadataStoreUrl"
+    - { regexp: "^configurationMetadataStoreUrl=", line: "configurationMetadataStoreUrl=" }
 
 - name: Modify broker side filtering (version 2.10 specific) config settings, if needed
   lineinfile:
