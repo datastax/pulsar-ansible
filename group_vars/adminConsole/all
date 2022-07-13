@@ -1,25 +1,17 @@
-#
 # Software binary release and version
 # -------------------------------------------
 #
 # - AdminConsole release
-adminConsole_ver: "1.2.9"
+adminConsole_ver: "2.1.3"
 adminConsole_bin_name: "pulsar-admin-console-{{ adminConsole_ver }}.tar.gz"
 
-# - Node.js (needed by AdminConsole) 
+
+# - Node.js (needed by AdminConsole)
 tgt_nodejs_ver_major: "14"
 tgt_nodejs_ver_minor: "19.0"
 tgt_nodejs_ver: "{{ tgt_nodejs_ver_major }}.{{ tgt_nodejs_ver_minor }}"
 # - whether or not force installing nodejs even if it already exists
 force_nodejs_install: no
-
-# - Nginx (needed by AdminConsole)
-#   > NOTE: version 1.17.9 is probably too old and can't be found as an apt package
-# nginx_ver: 1.17.9 
-tgt_nginx_ver: 1.20.2
-# whether or not force installing nginx even if it already exists
-force_nginx_install: no
-
 
 #
 # Downlaod software binaries from external internet URLs
@@ -50,59 +42,78 @@ force_existing_adminConsole_jwt_token: false
 # - Whehter or not to force replacing the existing AdminConsole server side TLS certificate files
 force_existing_adminConsole_tls_certs: false
 
+# - Setting authorization mode for AdminConsole
+ac_auth_mode: "user"
+ac_auth_user: "admin"
+ac_auth_user_pass: "admin123"
+
+# - Setting default start up tenant for AdminConsole
+ac_tenant: "public"
+
+# - oauth integration information
+ac_client_id: ""
+
+# - AdminConsole log level
+ac_log_level: "debug"
+
+ac_token_secret: ""
+
+# - Setting ssl information
+ac_ssl_verify_certs: ""
+ac_ssl_hostname_validation: ""
+ac_ssl_ca_path: ""
+ac_ssl_cert_path: ""
+ac_ssl_key_path: ""
+
+# - Setting K8s information
+ac_k8s_ns: "pulsar"
+ac_k8s_host: ""
+ac_k8s_svc_port: ""
+
+# - Setting AdminConsole feature enable / disable option
+ac_notice_text: ""
+ac_function_disabled: "true"
+ac_render_monitoring_tab: "false"
+ac_grafana_url: ""
+ac_client_disabled: "true"
+ac_ho_broker_svc_url: ""
+ac_ho_broker_http_url: ""
+ac_ho_web_svc_url: ""
 
 #
-# Nginx specific settings
+# Template placeholders
 # -------------------------------------------
 #
-# - Whether or not to start Nginx using systemd serivce script
-#   NOTE: treat this as a constant (e.g. always start Nginx server from command line instead of using systemd service)
-systemd_nginx_svc: false
-nginx_bin_file: /usr/sbin/nginx
-
-# - When starting Nginx using systemd, use system default settings
-nginx_dft_config_dir: /etc/nginx
-nginx_dft_log_dir: /var/log/nginx
-nginx_dft_pid_file: /var/run/nginx.pid
-
-# - When not starting Nginx using systemd, use customized settigns
-nginx_cust_config_dir: "{{ tgt_adminConsole_inst_dir }}/nginx"
-nginx_cust_log_dir: "{{ tgt_adminConsole_inst_dir }}/nginx/logs"
-nginx_cust_pid_file: "{{ nginx_cust_config_dir }}/nginx.pid"
-
-# - Generic Nginx config, log, and PID files
-nginx_log_dir: "{% if systemd_nginx_svc is defined and systemd_nginx_svc|bool %}{{ nginx_dft_log_dir }}{% else %}{{ nginx_cust_log_dir }}{% endif %}"
-nginx_config_dir: "{% if systemd_nginx_svc is defined and systemd_nginx_svc|bool %}{{ nginx_dft_config_dir }}{% else %}{{ nginx_cust_config_dir }}{% endif %}"
-nginx_config_file: "{{ nginx_config_dir }}/nginx.conf"
-nginx_pid_file: "{% if systemd_nginx_svc is defined and systemd_nginx_svc|bool %}{{ nginx_dft_pid_file }}{% else %}{{ nginx_cust_pid_file }}{% endif %}"
-
-
-nginx_listen_port: 9090
-nginx_status_port: 9091
-
-# TBD: add support for Nginx security (e.g. AuthN, HTTPS, etc.)
-# nginx_listen_port_tls: 9443
-# enable_nginx_https: true
-
-
-#
-# Template placeholders 
-# -------------------------------------------
-#
-# - AdminConsole dashboard config.js template place holder
+# - AdminConsole configuration local.json template place holder
+placeHolder_listenPort: "<<ac_listen_port>>"
+placeHolder_authMode: "<<ac_auth_mode>>"
+placeHolder_authUser: "<<ac_auth_user>>"
+placeHolder_authUserPass: "<<ac_auth_user_pass>>"
 placeHolder_homeCluster: "<<home_cluster>>"
-placeHolder_brokerSvcUrl: "<<broker_svc_url>>"
-placeHolder_webSvcUrl: "<<web_svc_url>>"
+placeHolder_tenant: "<<ac_tenant>>"
+placeHolder_clientId: "<<ac_client_id>>"
+placeHolder_logLevel: "<<ac_log_level>>"
+placeHolder_tokenSecret: "<<ac_token_secret>>"
+placeHolder_sslVerifyCerts: "<<ac_ssl_verify_certs>>"
+placeHolder_sslHostnameValidation: "<<ac_ssl_hostname_validation>>"
+placeHolder_sslCaPath: "<<ac_ssl_ca_path>>"
+placeHolder_sslCertPath: "<<ac_ssl_cert_path>>"
+placeHolder_sslKeyPath: "<<ac_ssl_key_path>>"
+placeHolder_k8sNs: "<<ac_k8s_ns>>"
+placeHolder_k8sHost: "<<ac_k8s_host>>"
+placeHolder_k8sSvcPort: "<<ac_k8s_svc_port>>"
+placeHolder_noticeText: "<<ac_notice_text>>"
+placeHolder_functionDisabled: "<<ac_function_disabled>>"
+placeHolder_renderMonitoringTab: "<<ac_render_monitoring_tab>>"
+placeHolder_grafanaUrl: "<<ac_grafana_url>>"
+placeHolder_clientDisabled: "<<ac_client_disabled>>"
+placeHolder_brokerHttpUrl: "<<ac_ho_broker_http_url>>"
 placeHolder_apiVersion: "<<api_version>>"
-placeHolder_clientToken: "<<client_token>>"
+placeHolder_brokerSvcUrl: "<<broker_http_url>>"
+placeHolder_webSvcUrl: "<<web_svc_url>>"
+placeHolder_tokenPath: "<<ac_token_path>>"
+placeHolder_clientToken: "<<ac_admin_token>>"
 placeHolder_caCertificate: "<<ca_certificate>>"
-placeHolder_acListenHost: "<<ac_host_name>>"
-placeHolder_acListenPort: "<<ac_listen_port>>"
+placeHolder_hoBrokerSvcUrl: "<<ac_ho_broker_svc_url>>"
+placeHolder_hoWebSvcUrl: "<<ac_ho_web_svc_url>>"
 
-# - Nginx config template place holder
-placeHolder_brkrWebPortList: "<<pulsar_broker_webport_list>>" 
-placeHolder_brkrWebPortTlsList: "<<pulsar_broker_webport_tls_list>>"
-placeHolder_nginxLogDir: "<<ngx_log_dir>>"
-placeHolder_nginxPid: "<<ngx_pid>>"
-placeHolder_nginxListenPort: "<<ngx_listen_port>>"
-placeHolder_nginxStatusPort: "<<ngx_status_port>>"

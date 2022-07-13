@@ -12,9 +12,8 @@
 - hosts: broker
   gather_facts: true
   run_once: true
-  roles: 
+  roles:
     - { role: pulsar/broker/_pre_brokerListVar }
-    - { role: pulsar/broker/_pre_brokerNginxArrStrVar }
 
 
 #########################
@@ -28,31 +27,13 @@
   gather_facts: true
   vars:
     srvStarted: true
-  roles: 
+  roles:
     - { role: misc/_inst_njs }
     - { role: adminconsole/ac_instBinary }
     - { role: adminconsole/ac_configAc }
     # Check the current status of the AdminConsole application server
-    - { role: misc/_check_svc_status, 
-        srv_component: 'adminConsole', 
+    - { role: misc/_check_svc_status,
+        srv_component: 'adminConsole',
         srv_ports: ["{{ ac_listen_port }}"] }
     # Start the AdminConsole application server
     - { role: adminconsole/ac_startAcSvc }
-
-# - Nginx server
-- hosts: adminConsole
-  become: "{{ sudo_needed }}"
-  become_method: sudo
-  any_errors_fatal: true
-  gather_facts: true
-  vars:
-    srvStarted: true
-  roles: 
-    - { role: misc/_inst_nginx }
-    - { role: adminconsole/ac_configNginx }
-    # Check the current status of the Nginx server
-    - { role: misc/_check_svc_status, 
-        srv_component: 'nginx', 
-        srv_ports: ["{{ nginx_listen_port }}"] }
-    # Start the Nginx server
-    - { role: adminconsole/ac_startNginxSvc }
