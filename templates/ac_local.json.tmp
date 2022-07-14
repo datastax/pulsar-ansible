@@ -1,0 +1,44 @@
+{
+    "auth_mode": "<<ac_auth_mode>>",
+    "cluster_name": "<<home_cluster>>",
+    "tenant": "<<ac_tenant>>",
+    "oauth_client_id": "<<ac_client_id>>",
+    "server_config": {
+        "port": "<<ac_listen_port>>",
+        "pulsar_url": "<<broker_http_url>>",
+        "websocket_url": "<<web_svc_url>>",
+        "log_level": "<<ac_log_level>>",
+        "token_path": "<<ac_token_path>>",
+        "admin_token": "<<ac_admin_token>>",
+        "token_secret": "<<ac_token_secret>>",
+        "ssl": {
+            "verify_certs": "<<ac_ssl_verify_certs>>",
+            "hostname_validation": "<<ac_ssl_hostname_validation>>",
+            "ca_path": "<<ac_ssl_ca_path>>",
+            "cert_path": "<<ac_ssl_cert_path>>",
+            "key_path": "<<ac_ssl_key_path>>"
+        },
+        "kubernetes": {
+            "k8s_namespace": "<<ac_k8s_ns>>",
+            "kubernetes_service_host": "<<ac_k8s_host>>",
+            "service_port": "<<ac_k8s_svc_port>>"
+        },
+        "user_auth": { 
+            "username": "<<ac_auth_user>>",
+            "password": "<<ac_auth_user_pass>>"
+        }
+    },
+    "polling_interval": "10000",
+    "ca_certificate": "<<ca_certificate>>",
+    "api_version": "<<api_version>>",
+    "notice_text": "<<ac_notice_text>>",
+    "functions_disabled": "<<ac_function_disabled>>",
+    "render_monitoring_tab": "<<ac_render_monitoring_tab>>",
+    "grafana_url": "<<ac_grafana_url>>",
+    "clients_disabled": "<<ac_client_disabled>>",
+    "host_overrides": {
+        "pulsar": "<<ac_ho_broker_svc_url>>",
+        "ws": "<<ac_ho_web_svc_url>>",
+        "http": "<<ac_ho_broker_http_url>>"
+    }
+}

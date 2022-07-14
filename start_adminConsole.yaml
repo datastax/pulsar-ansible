@@ -9,24 +9,9 @@
     srvStarted: true
     srv_component: 'adminConsole'
     srv_ports: ["{{ ac_listen_port }}"]
-  roles: 
+  roles:
     # Check the current status of the AdminConsole application server
     - { role: misc/_check_svc_status }
     # Start AdminConsole application server
     - { role: adminconsole/ac_startAcSvc }
 
-# - Start the Nginx server
-- hosts: adminConsole
-  gather_facts: true
-  any_errors_fatal: true
-  become: "{{ sudo_needed }}"
-  become_method: sudo
-  vars:
-    srvStarted: true
-    srv_component: 'nginx'
-    srv_ports: ["{{ nginx_listen_port }}"]
-  roles:
-    # Check the current status of the Nginx server
-    - { role: misc/_check_svc_status }
-    # Start the Nginx server
-    - { role: adminconsole/ac_startNginxSvc }
