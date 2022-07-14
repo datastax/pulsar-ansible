@@ -1,7 +1,11 @@
 ---
 #########################
+#
+# NOTE: This only works when there are NO different server components sharing 
+#       one server host machine !!!
+#
 # Update Pulsar version in the cluster
-# - This includes either version update or downgrade
+# - This includes either version upgrade or downgrade
 # - The version change is made by updating each Pulsar server host machine one by one (rolling update)
 #
 # Before the update, do the following check to make sure it is valid version update. Skip the update
@@ -55,20 +59,6 @@
   run_once: true
   roles: 
     - { role: pulsar/broker/_pre_brokerListVar }
-
-# - Update Pulsar component log flush behavior
-- hosts: pulsarClient
-  any_errors_fatal: true
-  become: "{{ sudo_needed }}"
-  become_method: sudo
-  tasks:
-  - name: Update Pulsar log flush behavior 
-    lineinfile:
-      dest: "{{ tgt_pulsar_inst_dir }}/conf/log4j2.yaml"
-      state: present
-      regexp: "^\\s*immediateFlush:"
-      line: "      immediateFlush: true"
-    when: immediate_flush is defined and immediate_flush|bool
 
 
 ##########################
@@ -270,4 +260,4 @@
   become_method: sudo
   roles:
     # Config Pulsar client (client.conf)
-    - { role: pulsar/client/clnt_config }
+    - { role: pulsar/client/clnt_config, when: not skip_version_update|bool }

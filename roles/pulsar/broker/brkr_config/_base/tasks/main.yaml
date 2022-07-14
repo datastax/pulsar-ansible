@@ -14,25 +14,57 @@
       {%   if count.append(count.pop() + 1) %}{% endif %}
       {% endfor %}
       {{ count.pop() }}
-- debug: msg="bookieCnt - {{ bookieCnt }}"
+- debug: msg="bookieCnt - {{ bookieCnt|trim }}; bookieRackCnt - {{ bookieRackCnt|trim }}"
   when: show_debug_msg|bool
+
+- name: Get the number of bookies per rack(AZ)
+  set_fact: 
+    bookieCntPerAZ: "{{ bookieCnt|trim|int / bookieRackCnt|trim|int }}"
+- debug: msg="bookieCntPerAZ - {{ bookieCntPerAZ|int }}"
 
 - name: Set ensemble size variable
   set_fact:
-    ensemble_size: "{% if force_message_rf_setting is defined and force_message_rf_setting|bool %}{{ cust_ensemble_size }}{% elif bookieCnt|int > 3 %}{{ bookieCnt|int - 2 }}{% elif bookieCnt|int < 3 %}{{ bookieCnt|int }}{% else %}{{ bookieCnt|int - 1 }}{% endif %}"
-- debug: msg="ensemble_size={{ ensemble_size }}"
+    ensemble_size: |
+      {% if force_message_rf_setting is defined and force_message_rf_setting|bool %}
+      {{ cust_ensemble_size }}
+      {% elif bookieRackCnt|trim|int > 1  %}
+      {{ bookieCnt|trim|int - bookieCntPerAZ|trim|int }}
+      {% elif bookieCnt|trim|int > 3 %}
+      {{ bookieCnt|trim|int - 2 }}
+      {% elif bookieCnt|trim|int < 3 %}
+      {{ bookieCnt|trim|int }}
+      {% else %}
+      {{ bookieCnt|trim|int - 1 }}
+      {% endif %}
+- debug: msg="ensemble_size={{ ensemble_size|trim }}"
   when: show_debug_msg|bool
 
 - name: Set write quorum variable
   set_fact:
-    write_quorum_cnt: "{% if force_message_rf_setting is defined and force_message_rf_setting|bool %}{{ cust_write_quorum }}{% elif ensemble_size|int > 3 %}3{% elif ensemble_size|int < 3 %}{{ ensemble_size|int }}{% else %}{{ ensemble_size|int - 1 }}{% endif %}"
-- debug: msg="write_quorum_cnt={{ write_quorum_cnt }}"
+    write_quorum_cnt: |
+      {% if force_message_rf_setting is defined and force_message_rf_setting|bool %}
+      {{ cust_write_quorum }}
+      {% elif ensemble_size|trim|int > 3 %}
+      3
+      {% elif ensemble_size|trim|int < 3 %}
+      {{ ensemble_size|trim|int }}
+      {% else %}
+      {{ ensemble_size|trim|int - 1 }}
+      {% endif %}
+- debug: msg="write_quorum_cnt={{ write_quorum_cnt|trim }}"
   when: show_debug_msg|bool
 
 - name: Set ack quorum variables
   set_fact:
-    ack_quorum_cnt: "{% if force_message_rf_setting is defined and force_message_rf_setting|bool %}{{ cust_ack_quorum }}{% elif write_quorum_cnt|int > 2 %}{{ write_quorum_cnt|int - 1 }}{% else %}{{ write_quorum_cnt|int }}{% endif %}"
-- debug: msg="ack_quorum_cnt={{ ack_quorum_cnt }}"
+    ack_quorum_cnt: |
+      {% if force_message_rf_setting is defined and force_message_rf_setting|bool %}
+      {{ cust_ack_quorum }}
+      {% elif write_quorum_cnt|trim|int > 2 %}
+      {{ write_quorum_cnt|trim|int - 1 }}
+      {% else %}
+      {{ write_quorum_cnt|trim|int }}
+      {% endif %}
+- debug: msg="ack_quorum_cnt={{ ack_quorum_cnt|trim }}"
   when: show_debug_msg|bool
 
 - name: Modify Pulsar broker config file for mandatory settings
@@ -46,9 +78,9 @@
     - { regexp: "^clusterName=", line: "clusterName={{ cluster_name }}" }
     - { regexp: "^brokerServicePort=", line: "brokerServicePort={{ broker_svc_port }}" }
     - { regexp: "^webServicePort=", line: "webServicePort={{ web_svc_port }}" }
-    - { regexp: "^managedLedgerDefaultEnsembleSize=", line: "managedLedgerDefaultEnsembleSize={{ ensemble_size }}"}
-    - { regexp: "^managedLedgerDefaultWriteQuorum=", line: "managedLedgerDefaultWriteQuorum={{ write_quorum_cnt }}" }
-    - { regexp: "^managedLedgerDefaultAckQuorum=", line: "managedLedgerDefaultAckQuorum={{ ack_quorum_cnt }}" }
+    - { regexp: "^managedLedgerDefaultEnsembleSize=", line: "managedLedgerDefaultEnsembleSize={{ ensemble_size|trim }}"}
+    - { regexp: "^managedLedgerDefaultWriteQuorum=", line: "managedLedgerDefaultWriteQuorum={{ write_quorum_cnt|trim }}" }
+    - { regexp: "^managedLedgerDefaultAckQuorum=", line: "managedLedgerDefaultAckQuorum={{ ack_quorum_cnt|trim }}" }
     - { regexp: "^transactionCoordinatorEnabled=", line: "transactionCoordinatorEnabled={{ enable_transaction }}" }
     - { regexp: "^systemTopicEnabled=", line: "systemTopicEnabled=true" }
 

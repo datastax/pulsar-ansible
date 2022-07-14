@@ -6,6 +6,7 @@
 # Broker version 2.10 specific configuration
 - include_role:
     name: pulsar/broker/brkr_config/_ver2.10
+  when: pulsarLS_ver_signifant is version('2.10', '>=')
 
 # Broker security related configuration
 - include_role:

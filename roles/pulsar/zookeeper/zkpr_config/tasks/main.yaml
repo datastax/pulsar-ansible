@@ -1,4 +1,3 @@
 ---
-# Broker base configuration (non-security)
 - include_role:
     name: pulsar/zookeeper/zkpr_config/_base

@@ -101,5 +101,5 @@ misc_broker_config_dict: {
   , brokerDeleteInactiveTopicsEnabled: 'false'  # default true 
   , topicFencingTimeoutSeconds: '5'             # default 0
   , webSocketServiceEnabled: 'true'             # default false
-
+  , bookkeeper_opportunisticStriping: 'true'    # default false
 }
