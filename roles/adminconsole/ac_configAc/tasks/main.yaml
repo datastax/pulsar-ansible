@@ -89,8 +89,8 @@
     - { regexp: "{{ placeHolder_clientId }}", line: "{{ ac_client_id }}" }
     - { regexp: "{{ placeHolder_logLevel }}", line: "{{ ac_log_level }}" }
     - { regexp: "{{ placeHolder_tokenSecret }}", line: "{{ ac_token_secret }}" }
-    - { regexp: "{{ placeHolder_sslVerifyCerts }}", line: "{{ ac_ssl_verify_certs }}" }
-    - { regexp: "{{ placeHolder_sslHostnameValidation }}", line: "{{ ac_ssl_hostname_validation }}" }
+    - { regexp: "{{ placeHolder_sslVerifyCerts }}", line: "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}true{% else %}false{% endif %}" }
+    - { regexp: "{{ placeHolder_sslHostnameValidation }}", line: "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}true{% else %}false{% endif %}" }
     - { regexp: "{{ placeHolder_sslCaPath }}", line: "{{ ac_ssl_ca_path }}" }
     - { regexp: "{{ placeHolder_sslCertPath }}", line: "{{ ac_ssl_cert_path }}" }
     - { regexp: "{{ placeHolder_sslKeyPath }}", line: "{{ ac_ssl_key_path }}" }
