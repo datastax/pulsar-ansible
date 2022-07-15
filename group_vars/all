@@ -127,6 +127,13 @@ immediate_flush: true
 
 
 #
+# Local directory to store the collected server log files 
+# -------------------------------------------
+#
+local_collected_srvfiles_homedir: collected_srv_files
+
+
+#
 # Pulsar security settings
 # -------------------------------------------
 #

@@ -1,0 +1,43 @@
+---
+## Get server log files
+- name: "Find {{ srv_component }} log file"
+  find:
+    paths: "{{ tgt_pulsar_log_homedir }}/{{ srv_component }}"
+    patterns: "pulsar-*.log"
+  register: srv_file
+  when: log_only is not defined or log_only|bool
+
+- name: "Copy {{ srv_component }} log file to local"
+  fetch:
+    src: "{{ item.path }}"
+    dest: "{{ local_collected_srvfiles_homedir }}/{{ bkup_subfolder }}/log/{{ srv_component }}/{{ inventory_hostname }}/"
+    flat: yes
+  with_items:
+    - "{{ srv_file.files }}"
+  when: log_only is not defined or log_only|bool
+
+## Get server config files
+- name: "Copy {{ srv_component }} config file to local"
+  fetch:
+    src: "{{ tgt_pulsar_inst_dir }}/conf/{{ srv_component }}.conf"
+    dest: "{{ local_collected_srvfiles_homedir }}/{{ bkup_subfolder }}/config/{{ srv_component }}/{{ inventory_hostname }}/"
+    flat: yes
+  when: cfg_only is not defined or cfg_only|bool
+
+## Get server thread dump
+- name: "Get server {{ srv_component }} PID"
+  set_fact:
+    srv_pid: "{% if srv_component|lower == 'bookkeeper' %}pulsar-bookie.pid{% else %}pulsar-{{ srv_component }}.pid{% endif %}"
+
+- name: "Genearte {{ srv_component }} thread dump"
+  shell: "{% if sudo_needed|bool %}sudo -u {{ pulsar_user }} {% endif %}jstack -l $(cat {{ tgt_pulsar_inst_dir }}/bin/{{ srv_pid }}) > /tmp/pulsar-{{ srv_component }}-thrdump.txt"
+  register: jstack_cmd
+- debug: msg="jstack_cmd.failed - {{ jstack_cmd.failed }}"
+  when: show_debug_msg|bool 
+
+- name: "Copy {{ srv_component }} thread dump file to local"
+  fetch:
+    src: "/tmp/pulsar-{{ srv_component }}-thrdump.txt"
+    dest: "{{ local_collected_srvfiles_homedir }}/{{ bkup_subfolder }}/thrdump/{{ srv_component }}/{{ inventory_hostname }}/"
+    flat: yes
+  when: cfg_only is not defined or cfg_only|bool

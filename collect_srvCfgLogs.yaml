@@ -1,0 +1,77 @@
+
+- hosts: pulsarServer
+  run_once: true
+  tasks:
+    - name: Set the current epoch time as a variable
+      set_fact: curEpochTime={{ ansible_date_time.iso8601 }}
+      # set_fact: curEpochTime={{ ansible_date_time.date }}
+    # - debug: "msg={{curEpochTime}}"
+
+- hosts: localhost
+  gather_facts: true
+  connection: local
+  vars:
+    bkup_subfolder: "{{ hostvars[groups['pulsarServer'][0]]['curEpochTime'] }}"
+    srv_hosts:
+      broker: "{{ groups['zookeeper'] }}"
+      bookkeeper: "{{ groups['broker'] }}"
+      zookeeper: "{{ groups['broker'] }}"
+  tasks:
+    # - debug: "msg={{ srv_hosts | dict2items | subelements('value') }}"
+
+    ## Log for all Pulsar severs
+    - name: Create local folder (timestamp based) to host server logs
+      file:
+        path: "{{ local_collected_srvfiles_homedir }}/bkup_subfolder/log/{{ item.0.key }}/{{ item.1 }}"
+        state: directory
+        recurse: yes
+      loop: "{{ srv_hosts | dict2items | subelements('value') }}"
+      when: log_only is not defined or log_only|bool
+
+    ## Config for all Pulsar servers
+    - name: Create local folder (timestamp based) to host server configuration
+      file:
+        path: "{{ local_collected_srvfiles_homedir }}/bkup_subfolder/config/{{ item.0.key }}/{{ item.1 }}"
+        state: directory
+        recurse: yes
+      loop: "{{ srv_hosts | dict2items | subelements('value') }}"
+      when: cfg_only is not defined or cfg_only|bool
+
+    ## Thread dump for all Pulsar servers
+    - name: Create local folder (timestamp based) to host server thread dump
+      file:
+        path: "{{ local_collected_srvfiles_homedir }}/bkup_subfolder/thrdump/{{ item.0.key }}/{{ item.1 }}"
+        state: directory
+        recurse: yes
+      loop: "{{ srv_hosts | dict2items | subelements('value') }}"
+      when: thrdump_only is not defined or thrdump_only|bool      
+
+- hosts: zookeeper
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  vars:
+    srv_component: "zookeeper"
+    bkup_subfolder: "{{ hostvars[groups['pulsarServer'][0]]['curEpochTime'] }}"
+  roles:
+    - { role: pulsar/common/_fetch_srvFile }
+
+- hosts: bookkeeper
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  vars:
+    bkup_subfolder: "{{ hostvars[groups['pulsarServer'][0]]['curEpochTime'] }}"
+    srv_component: "bookkeeper"
+  roles:
+    - { role: pulsar/common/_fetch_srvFile }
+
+- hosts: broker
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  vars:
+    bkup_subfolder: "{{ hostvars[groups['pulsarServer'][0]]['curEpochTime'] }}"
+    srv_component: "broker"
+  roles:
+    - { role: pulsar/common/_fetch_srvFile }
