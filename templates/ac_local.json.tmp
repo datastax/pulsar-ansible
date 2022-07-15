@@ -12,8 +12,8 @@
         "admin_token": "<<ac_admin_token>>",
         "token_secret": "<<ac_token_secret>>",
         "ssl": {
-            "verify_certs": "<<ac_ssl_verify_certs>>",
-            "hostname_validation": "<<ac_ssl_hostname_validation>>",
+            "verify_certs": <<ac_ssl_verify_certs>>,
+            "hostname_validation": <<ac_ssl_hostname_validation>>,
             "ca_path": "<<ac_ssl_ca_path>>",
             "cert_path": "<<ac_ssl_cert_path>>",
             "key_path": "<<ac_ssl_key_path>>"
