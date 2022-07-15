@@ -13,16 +13,21 @@
   vars:
     bkup_subfolder: "{{ hostvars[groups['pulsarServer'][0]]['curEpochTime'] }}"
     srv_hosts:
-      broker: "{{ groups['zookeeper'] }}"
-      bookkeeper: "{{ groups['broker'] }}"
-      zookeeper: "{{ groups['broker'] }}"
+      broker: "{{ groups['broker'] }}"
+      bookkeeper: "{{ groups['bookkeeper'] }}"
+      zookeeper: "{{ groups['zookeeper'] }}"
   tasks:
     # - debug: "msg={{ srv_hosts | dict2items | subelements('value') }}"
+
+    #
+    # NOTE: the use that executes the ansible playbook MUST have the enough permission
+    #       to create local folders and write files under {{ local_collected_srvfiles_homedir }}
+    #
 
     ## Log for all Pulsar severs
     - name: Create local folder (timestamp based) to host server logs
       file:
-        path: "{{ local_collected_srvfiles_homedir }}/bkup_subfolder/log/{{ item.0.key }}/{{ item.1 }}"
+        path: "{{ local_collected_srvfiles_homedir }}/{{ bkup_subfolder }}/log/{{ item.0.key }}/{{ item.1 }}"
         state: directory
         recurse: yes
       loop: "{{ srv_hosts | dict2items | subelements('value') }}"
@@ -31,7 +36,7 @@
     ## Config for all Pulsar servers
     - name: Create local folder (timestamp based) to host server configuration
       file:
-        path: "{{ local_collected_srvfiles_homedir }}/bkup_subfolder/config/{{ item.0.key }}/{{ item.1 }}"
+        path: "{{ local_collected_srvfiles_homedir }}/{{ bkup_subfolder }}/config/{{ item.0.key }}/{{ item.1 }}"
         state: directory
         recurse: yes
       loop: "{{ srv_hosts | dict2items | subelements('value') }}"
@@ -40,11 +45,11 @@
     ## Thread dump for all Pulsar servers
     - name: Create local folder (timestamp based) to host server thread dump
       file:
-        path: "{{ local_collected_srvfiles_homedir }}/bkup_subfolder/thrdump/{{ item.0.key }}/{{ item.1 }}"
+        path: "{{ local_collected_srvfiles_homedir }}/{{ bkup_subfolder }}/thrdump/{{ item.0.key }}/{{ item.1 }}"
         state: directory
         recurse: yes
       loop: "{{ srv_hosts | dict2items | subelements('value') }}"
-      when: thrdump_only is not defined or thrdump_only|bool      
+      when: thrdump_only is not defined or thrdump_only|bool
 
 - hosts: zookeeper
   any_errors_fatal: true
