@@ -35,8 +35,7 @@
   become_method: sudo
   run_once: true
   roles: 
-    - { role: pulsar/common/pulsar_bkieRackMinNumCheck, 
-        when: config_rackAwareness is defined and config_rackAwareness|bool }
+    - { role: pulsar/common/pulsar_bkieRackMinNumCheck  }
 
 # - Get zookeeper list in deseried formats and save them in variables
 #   They are needed in later steps for Pulsar configurations

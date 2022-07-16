@@ -22,8 +22,7 @@
   run_once: true
   roles: 
     - { role: pulsar/common/pulsar_bkieRackMinNumCheck, 
-        when: (rolling_restart_only is not defined or not rolling_restart_only|bool) and
-              (config_rackAwareness is defined and config_rackAwareness|bool) }
+        when: (rolling_restart_only is not defined or not rolling_restart_only|bool) }
 
 # - Get zookeeper list in deseried formats and save them in variables
 #   They are needed in later steps for Pulsar configurations

@@ -16,5 +16,6 @@
     that: false
     fail_msg: "'minNumRackPerWQ' ({{ minNumRackPerWQ }}) is greater than the available bookie rack count ({{ bookieRackCnt|trim }}), when 'enforceMinNumRackPerWQ' is true!"
   when: |
+    config_rackAwareness is defined and config_rackAwareness|bool and
     enforceMinNumRackPerWQ is defined and enforceMinNumRackPerWQ|bool and
     minNumRackPerWQ is defined and minNumRackPerWQ|int > bookieRackCnt|trim|int
