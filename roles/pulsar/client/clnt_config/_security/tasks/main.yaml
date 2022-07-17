@@ -9,7 +9,6 @@
     owner: "{{ pulsar_user }}"
     group: "{{ pulsar_user_group }}"
     mode: "{{ file_permission_mode }}"
-    recurse: yes
   with_items:
     - "{{ tgt_pulsar_sec_dir }}/jwt/token"
   when: enable_brkr_authNZ is defined and enable_brkr_authNZ|bool
@@ -21,7 +20,6 @@
     owner: "{{ pulsar_user }}"
     group: "{{ pulsar_user_group }}"
     mode: "{{ file_permission_mode }}"
-    recurse: yes
   with_items:
     - "{{ tgt_pulsar_sec_dir }}/tls/rootca"
   when: enable_brkr_tls is defined and enable_brkr_tls|bool

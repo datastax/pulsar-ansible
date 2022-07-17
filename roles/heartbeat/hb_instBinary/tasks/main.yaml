@@ -28,7 +28,6 @@
     owner: "{{ pulsar_user }}"
     group: "{{ pulsar_user_group }}"
     mode: "{{ file_permission_mode }}"
-    recurse: yes
   with_items:
     - "{{ tgt_pkg_heartBeat_dir }}"
     - "{{ tgt_heartBeat_inst_dir }}"

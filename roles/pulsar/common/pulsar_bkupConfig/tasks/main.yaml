@@ -7,7 +7,6 @@
     owner: "{{ pulsar_user }}"
     group: "{{ pulsar_user_group }}"
     mode: "{{ file_permission_mode }}"
-    recurse: yes
   with_items:
     - "{{ tgt_pulsar_conf_bkup_homedir }}/{{ bkup_subfolder_name }}"
 

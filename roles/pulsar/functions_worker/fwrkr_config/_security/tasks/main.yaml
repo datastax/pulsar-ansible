@@ -9,7 +9,6 @@
     owner: "{{ pulsar_user }}"
     group: "{{ pulsar_user_group }}"
     mode: "{{ file_permission_mode }}"
-    recurse: yes
   with_items:
     - "{{ tgt_pulsar_sec_dir }}/jwt/key"
     - "{{ tgt_pulsar_sec_dir }}/jwt/token"
@@ -24,7 +23,6 @@
     owner: "{{ pulsar_user }}"
     group: "{{ pulsar_user_group }}"
     mode: "{{ file_permission_mode }}"
-    recurse: yes
   with_items:
     - "{{ tgt_pulsar_sec_dir }}/tls/server"
     - "{{ tgt_pulsar_sec_dir }}/tls/rootca"

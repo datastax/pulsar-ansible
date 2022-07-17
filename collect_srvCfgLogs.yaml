@@ -29,27 +29,33 @@
       file:
         path: "{{ local_collected_srvfiles_homedir }}/{{ bkup_subfolder }}/log/{{ item.0.key }}/{{ item.1 }}"
         state: directory
-        recurse: yes
       loop: "{{ srv_hosts | dict2items | subelements('value') }}"
-      when: log_only is not defined or log_only|bool
+      when: file_types is not defined or 'all' in file_types or 'log' in file_types
 
     ## Config for all Pulsar servers
     - name: Create local folder (timestamp based) to host server configuration
       file:
         path: "{{ local_collected_srvfiles_homedir }}/{{ bkup_subfolder }}/config/{{ item.0.key }}/{{ item.1 }}"
         state: directory
-        recurse: yes
       loop: "{{ srv_hosts | dict2items | subelements('value') }}"
-      when: cfg_only is not defined or cfg_only|bool
+      when: file_types is not defined or 'all' in file_types or 'cfg' in file_types
 
     ## Thread dump for all Pulsar servers
     - name: Create local folder (timestamp based) to host server thread dump
       file:
         path: "{{ local_collected_srvfiles_homedir }}/{{ bkup_subfolder }}/thrdump/{{ item.0.key }}/{{ item.1 }}"
         state: directory
-        recurse: yes
       loop: "{{ srv_hosts | dict2items | subelements('value') }}"
-      when: thrdump_only is not defined or thrdump_only|bool
+      when: file_types is not defined or 'all' in file_types or 'thrdump' in file_types
+
+    ## Heap dump for all Pulsar servers
+    #  - must specify "file_types" variable and include "heapdump" as part of it
+    - name: Create local folder (timestamp based) to host server heap dump
+      file:
+        path: "{{ local_collected_srvfiles_homedir }}/{{ bkup_subfolder }}/heapdump/{{ item.0.key }}/{{ item.1 }}"
+        state: directory
+      loop: "{{ srv_hosts | dict2items | subelements('value') }}"
+      when: file_types is defined and ('all' in file_types or 'heapdump' in file_types)
 
 - hosts: zookeeper
   any_errors_fatal: true

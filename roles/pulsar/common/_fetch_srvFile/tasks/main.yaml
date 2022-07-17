@@ -1,43 +1,127 @@
 ---
-## Get server log files
-- name: "Find {{ srv_component }} log file"
+#
+# Collect and get server log files
+# -------------------------------------------
+#
+- name: "[{{ srv_component }}] Find log file"
   find:
     paths: "{{ tgt_pulsar_log_homedir }}/{{ srv_component }}"
-    patterns: "pulsar-*.log"
+    patterns: "pulsar-*.log{% if loggz_ptn is defined %},*{{ loggz_ptn }}*.log.gz{% endif %}"
   register: srv_file
-  when: log_only is not defined or log_only|bool
+  when: file_types is not defined or 'all' in file_types or 'log' in file_types
 
-- name: "Copy {{ srv_component }} log file to local"
+- name: "[{{ srv_component }}] Copy log file to local"
   fetch:
     src: "{{ item.path }}"
     dest: "{{ local_collected_srvfiles_homedir }}/{{ bkup_subfolder }}/log/{{ srv_component }}/{{ inventory_hostname }}/"
     flat: yes
   with_items:
     - "{{ srv_file.files }}"
-  when: log_only is not defined or log_only|bool
+  when: file_types is not defined or 'all' in file_types or 'log' in file_types
 
-## Get server config files
-- name: "Copy {{ srv_component }} config file to local"
+
+#
+# Collect and get server config files
+# -------------------------------------------
+#
+- name: "[{{ srv_component }}] Copy config file to local"
   fetch:
     src: "{{ tgt_pulsar_inst_dir }}/conf/{{ srv_component }}.conf"
     dest: "{{ local_collected_srvfiles_homedir }}/{{ bkup_subfolder }}/config/{{ srv_component }}/{{ inventory_hostname }}/"
     flat: yes
-  when: cfg_only is not defined or cfg_only|bool
+  when: file_types is not defined or 'all' in file_types or 'cfg' in file_types
 
-## Get server thread dump
-- name: "Get server {{ srv_component }} PID"
+
+#
+# Common settings for collecting thread dump and heap dump
+# -------------------------------------------
+#
+- name: "[{{ srv_component }}] Get server PID file name"
   set_fact:
-    srv_pid: "{% if srv_component|lower == 'bookkeeper' %}pulsar-bookie.pid{% else %}pulsar-{{ srv_component }}.pid{% endif %}"
+    srvpid_file: "{% if srv_component|lower == 'bookkeeper' %}pulsar-bookie.pid{% else %}pulsar-{{ srv_component }}.pid{% endif %}"
+  when: |
+    file_types is not defined or 
+    'all' in file_types or
+    'thrdump' in file_types or
+    'heapdump' in file_types
 
-- name: "Genearte {{ srv_component }} thread dump"
-  shell: "{% if sudo_needed|bool %}sudo -u {{ pulsar_user }} {% endif %}jstack -l $(cat {{ tgt_pulsar_inst_dir }}/bin/{{ srv_pid }}) > /tmp/pulsar-{{ srv_component }}-thrdump.txt"
+- name: "[{{ srv_component }}] Get server PID nubmer"
+  shell: "cat {{ tgt_pulsar_inst_dir }}/bin/{{ srvpid_file }}"
+  register: pidcat_cmd
+
+- name: "[{{ srv_component }}] Get the currrent time of the server"
+  shell: "date +%F-%H%M%S"
+  register: date_cmd
+
+- name: "[{{ srv_component }}] Get server thread dump and heap dump file name"
+  set_fact:
+    thrdump_filename: "{{ srv_component }}_{{ pidcat_cmd.stdout }}-thrdump_{{ date_cmd.stdout }}.txt"
+    heapdump_filename: "{{ srv_component }}_{{ pidcat_cmd.stdout }}-heapdump_{{ date_cmd.stdout }}.hprof"
+  when: |
+    file_types is not defined or 
+    'all' in file_types or
+    'thrdump' in file_types or
+    'heapdump' in file_types
+
+- name: Create the remote folder to hold the thread dump and heap dump files
+  file:
+    path: "{{ tgt_collected_srvfiles_homedir }}"
+    state: directory
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    mode: "{{ file_permission_mode }}"
+  when: |
+    file_types is not defined or 
+    'all' in file_types or
+    'thrdump' in file_types or
+    'heapdump' in file_types
+
+
+#
+# Collect and get server thread dump
+# -------------------------------------------
+#
+- name: "[{{ srv_component }}] Genearte thread dump"
+  shell: |
+    cd {{ tgt_collected_srvfiles_homedir }}
+    {% if sudo_needed|bool %}sudo -u {{ pulsar_user }} {% endif %}jstack -l {{ pidcat_cmd.stdout }} > {{ thrdump_filename }}
+    {% if sudo_needed|bool %}sudo {% endif %}chown {{ pulsar_user }}:{{ pulsar_user_group }} {{ thrdump_filename }}
   register: jstack_cmd
+  when: file_types is not defined or 'all' in file_types or 'thrdump' in file_types
 - debug: msg="jstack_cmd.failed - {{ jstack_cmd.failed }}"
-  when: show_debug_msg|bool 
+  when: show_debug_msg|bool and file_types is not defined or 'all' in file_types or 'thrdump' in file_types
 
-- name: "Copy {{ srv_component }} thread dump file to local"
+- name: "[{{ srv_component }}] Copy thread dump file to local"
   fetch:
-    src: "/tmp/pulsar-{{ srv_component }}-thrdump.txt"
+    src: "{{ tgt_collected_srvfiles_homedir }}/{{ thrdump_filename }}"
     dest: "{{ local_collected_srvfiles_homedir }}/{{ bkup_subfolder }}/thrdump/{{ srv_component }}/{{ inventory_hostname }}/"
     flat: yes
-  when: cfg_only is not defined or cfg_only|bool
+  when: file_types is not defined or 'all' in file_types or 'thrdump' in file_types
+
+
+#
+# Collect and get server heap dump (heavy operation)
+# -------------------------------------------
+#
+- name: "[{{ srv_component }}] Genearte heap dump"
+  shell: "{% if sudo_needed|bool %}sudo -u {{ pulsar_user }} {% endif %}jmap -dump:format=b,file={{ tgt_collected_srvfiles_homedir }}/{{ heapdump_filename }} {{ pidcat_cmd.stdout }}"
+  register: jmap_cmd
+  when: file_types is defined and ('all' in file_types or 'heapdump' in file_types)
+- debug: msg="jmap_cmd.failed - {{ jmap_cmd.failed }}"
+  when: show_debug_msg|bool and file_types is defined and ('all' in file_types or 'heapdump' in file_types)
+
+- name: "[{{ srv_component }}] Compress heap dump using gzip"
+  shell: |
+    cd {{ tgt_collected_srvfiles_homedir }}
+    {% if sudo_needed|bool %}sudo -u {{ pulsar_user }} {% endif %}gzip {{ heapdump_filename }}
+  register: gzip_cmd
+  when: file_types is defined and ('all' in file_types or 'heapdump' in file_types)
+- debug: msg="gzip_cmd.failed - {{ gzip_cmd.failed }}"
+  when: show_debug_msg|bool and file_types is defined and ('all' in file_types or 'heapdump' in file_types)
+
+- name: "[{{ srv_component }}] Copy heap dump file (compressed) to local"
+  fetch:
+    src: "{{ tgt_collected_srvfiles_homedir }}/{{ heapdump_filename }}.gz"
+    dest: "{{ local_collected_srvfiles_homedir }}/{{ bkup_subfolder }}/heapdump/{{ srv_component }}/{{ inventory_hostname }}/"
+    flat: yes
+  when: file_types is defined and ('all' in file_types or 'heapdump' in file_types)

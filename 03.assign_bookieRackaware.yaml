@@ -7,14 +7,20 @@
 #########################
 # NOTE: This step must be executed after "pulsarClient" has been propery configured. 
 #       Otherwise, "pulsar-admin" connection will be directed to localhost and therefore causes connection failure
+- hosts: pulsarServer
+  gather_facts: true
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  run_once: true
+  roles: 
+    - { role: pulsar/common/pulsar_bkieRackMinNumCheck }
+
 - hosts: bookkeeper
   any_errors_fatal: true
   become: "{{ sudo_needed }}"
   become_method: sudo
   roles: 
-    - { role: pulsar/common/pulsar_bkieRackMinNumCheck, 
-        run_once: true,
-        when: config_rackAwareness is defined and config_rackAwareness|bool }
     - { role: pulsar/bookie/bkie_assignRack, 
         srv_options: "{{ bookie_jvm_options_b }}",
         when: config_rackAwareness is defined and config_rackAwareness|bool }

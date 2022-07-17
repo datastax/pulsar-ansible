@@ -127,9 +127,13 @@ immediate_flush: true
 
 
 #
-# Local directory to store the collected server log files 
+# Settings for collecting server log files 
 # -------------------------------------------
 #
+# - The directory (on each of the remote hosts) to temporarily save the generated thread dump and heap dump files
+tgt_collected_srvfiles_homedir: /opt/pulsar_srvfiles_collection
+# - The directory (on the controller machine) to host the collected files (log, config, thread dump, heap dump) from
+#   all remote host servers
 local_collected_srvfiles_homedir: collected_srv_files
 
 
