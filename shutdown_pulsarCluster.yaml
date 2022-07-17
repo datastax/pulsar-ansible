@@ -1,4 +1,8 @@
 ---
+##
+##  NOTE: DO not change the sequence of the tasks!
+##
+
 # Stop dedicated function workers, if relevant 
 - hosts: functions_worker
   any_errors_fatal: true
@@ -70,7 +74,7 @@
     srv_component: 'zookeeper'
     srv_ports: ["{{ zk_clnt_port }}"]
   roles:
-    # Check the current status of bookies
+    # Check the current status of zookeepers
     - { role: misc/_check_svc_status }
     # Stop zookeepers
     - { role: pulsar/common/pulsar_stopSvc }

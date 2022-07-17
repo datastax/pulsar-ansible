@@ -76,11 +76,14 @@ tgt_pulsar_inst_dir: /opt/pulsar
 # - Target config backup directory
 tgt_pulsar_conf_bkup_homedir: "/opt/pulsar_cfgbkup"
 
+# - Target log info directory (Pulsar server log, GC log, breadcrumb file)
+tgt_log_homedir: /var/log/pulsar
+
 # - Target log directories
-tgt_pulsar_log_homedir: "{% if customize_logdir is defined and customize_logdir|bool %}/var/log/pulsar{% else %}{{ tgt_pulsar_inst_dir }}/logs{% endif %}"
+tgt_pulsar_log_homedir: "{% if customize_logdir is defined and customize_logdir|bool %}{{ tgt_log_homedir }}{% else %}{{ tgt_pulsar_inst_dir }}/logs{% endif %}"
 
 # - Target GC log directory
-tgt_pulsar_gc_log_homedir: "{% if customize_gc_logdir is defined and customize_gc_logdir|bool %}/var/log/pulsar/gclog{% else %}{{ tgt_pulsar_inst_dir }}/logs{% endif %}"
+tgt_pulsar_gc_log_homedir: "{% if customize_gc_logdir is defined and customize_gc_logdir|bool %}{{ tgt_log_homedir }}/gclog{% else %}{{ tgt_pulsar_inst_dir }}/logs{% endif %}"
 
 
 #
@@ -100,6 +103,7 @@ enforceMinNumRackPerWQ: false # default false
 #       otherwise, creating topic will always fail
 minNumRackPerWQ: 2            # default 2
 
+
 #
 # How to deploy functions workers
 # - none: don't deploy functions workers
@@ -110,9 +114,9 @@ minNumRackPerWQ: 2            # default 2
 #       for PROD deployment!
 # -------------------------------------------
 #
-deploy_functions_worker: "none"
+# deploy_functions_worker: "none"
 # deploy_functions_worker: "shared"
-# deploy_functions_worker: "dedicated"
+deploy_functions_worker: "dedicated"
 
 
 #

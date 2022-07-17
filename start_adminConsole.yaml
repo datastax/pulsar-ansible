@@ -14,4 +14,3 @@
     - { role: misc/_check_svc_status }
     # Start AdminConsole application server
     - { role: adminconsole/ac_startAcSvc }
-

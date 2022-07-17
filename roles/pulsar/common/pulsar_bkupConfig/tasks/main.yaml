@@ -1,5 +1,4 @@
 ---
-
 - name: Create config backup folders, with sub-folders named as the current date in string format
   file:
     path: "{{ item }}"
