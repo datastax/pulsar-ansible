@@ -19,13 +19,13 @@
     srv_component: 'broker'
     srv_host_list: "{{ groups['broker']|join(',') }}"
   roles:
-    - { role: local_security/create_jwt_token, 
+    - { role: local_process/gen_secFile/create_jwt_token, 
         brkr_super_user_roles_list: "{{ brkr_super_user_roles_list_str }}",
         when: srv_host_list != "" and 
               enable_brkr_authNZ is defined and enable_brkr_authNZ|bool and 
               skip_brkr_jwt_token_generation is defined and not skip_brkr_jwt_token_generation|bool
       }
-    - { role: local_security/create_tls_certs,        
+    - { role: local_process/gen_secFile/create_tls_certs,        
         srv_key_password: "{{ brkr_key_password }}",
         srv_cert_expire_days: "{{ brkr_cert_expire_days }}",
         when: srv_host_list != "" and 
@@ -52,14 +52,14 @@
     srv_component: 'functions_worker'
     srv_host_list: "{{ groups['functions_worker']|join(',') }}"
   roles:
-    - { role: local_security/create_jwt_token, 
+    - { role: local_process/gen_secFile/create_jwt_token, 
         brkr_super_user_roles_list: "{{ fwrkr_super_user_roles_list_str }}",
         when: srv_host_list != "" and 
               deploy_functions_worker is defined and deploy_functions_worker == 'dedicated' and
               enable_fwrkr_authNZ is defined and enable_fwrkr_authNZ|bool and 
               skip_fwrkr_jwt_token_generation is defined and not skip_fwrkr_jwt_token_generation|bool
       }
-    - { role: local_security/create_tls_certs,  
+    - { role: local_process/gen_secFile/create_tls_certs,  
         srv_key_password: "{{ fwrkr_key_password }}",
         srv_cert_expire_days: "{{ fwrkr_cert_expire_days }}",
         when: srv_host_list != "" and 

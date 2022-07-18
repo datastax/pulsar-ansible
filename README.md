@@ -14,6 +14,7 @@
   - [3.7. Broker Ensemble Size (E), Write Quorum(Qw), and Ack Quorum(Qa)](#37-broker-ensemble-size-e-write-quorumqw-and-ack-quorumqa)
 - [4. Update Cluster Configuration and Rolling Restart](#4-update-cluster-configuration-and-rolling-restart)
 - [5. Update Pulsar Cluster Version (Upgrade and Downgrade)](#5-update-pulsar-cluster-version-upgrade-and-downgrade)
+- [6. Debug Pulsar Cluster Issues](#6-debug-pulsar-cluster-issues)
 
 # 1. Overview
  
@@ -79,6 +80,7 @@ There are a few other Ansible playbooks that make easy of certain Pulsar cluster
 | start_pulsarCluster.yaml | Start the Pulsar cluster. | This plabook is no-op when running against a Pulsar cluster that is up and running. |
 | shutdown_adminConsole.yaml | Shut down the AdminConsole component. | Similarly, this playbook also has an option that allows to clean up the AdminConsole installation. |
 | start_adminConsole.yaml | Start the AdminConsole component. | This playbook is no-op when running against an AdminConsole component that is up and running. |
+| collect_srvDebugFiles.yaml | Collect server files for debug purposes. | Collect Pulsar server logs (including log gz files), main configuration files, thread dump, and heap dump. |
  
 ## 2.4. Geo-replication Deployment
  
@@ -198,7 +200,7 @@ enable_transaction: true
 The broker setting of E/Qw/Qa is critical for message write and read performance.
  
 By default, for a Pulsar cluster with more than 3 bookkeeper nodes, the E/Qw/Qa setting is following the rules as below
-* E = bookkeeper_node_count - 2
+* E = bookkeeper_node_count - (bookeeper_node_count / bookkeeper_rack_count)
 * Qw = 3
 * Qa = 2
  
@@ -250,3 +252,20 @@ pulsarLS_ver_secondary: "0.6"
 pulsarLS_ver_signifant: "{{ pulsarLS_ver_main.split('.')[0] }}.{{ pulsarLS_ver_main.split('.')[1] }}"
 pulsarLS_ver: "{{ pulsarLS_ver_main }}.{{ pulsarLS_ver_secondary }}"
 ```
+
+# 6. Debug Pulsar Cluster Issues
+
+Sometimes when we need to debug message publishing/consuming related issues in the deployed Pulsar cluster, it is very help to collect a set of information on each of the Pulsar server hosts, as below
+1) The server log file (current or historical)
+2) The main server configuration file, e.g. zookeeper.conf, bookkeeper.conf, broker.conf
+3) The thread dump of the server process
+4) The heap dump of the server process
+
+The playbook, **collect_srvDebugFiles.yaml**, is used to automate the information collection procedure. By default, this playbook collect information items 1), 2), and 3). Item 4) (heap dump) is a heavy weight process and must be explicitly enabled. The playbook uses the following extra vars to control the information collection behavior
+
+* **file_types**: this can be not specified, or a combination of the following values (comma seperated)
+  * 'all', 'log', 'cfg', 'thrdump', 'heapdump'
+  * when not specified, this is equivalent to the following combination: *file_types=log,cfg,thrdump*
+* **loggz_ptn**: this is only relevant with collecting historical log file that are already archived (*.log.gz)
+  * the value of this variable is a string pattern to match the log archive file name
+    * E.g. *loggz_ptn=07-16* will match the log archive with name having '07-16' in it (aka, log of July 16)
