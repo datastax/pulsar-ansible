@@ -51,10 +51,10 @@
     group: "{{ pulsar_user_group }}"
     force: "{{ force_existing_adminConsole_tls_certs }}"
   with_items:
-    - { src_file: "{{ local_tls_src_homedir }}/certs/brokers/broker.{{ (hostvars[groups['broker'][0]]['private_ip'])|trim|replace('.','-') }}.key-pk8.pem",
-        dest_file: "{{ tgt_adminConsole_sec_dir }}/tls/server/broker.{{ (hostvars[groups['broker'][0]]['private_ip'])|trim|replace('.','-') }}.key-pk8.pem" }
-    - { src_file: "{{ local_tls_src_homedir }}/certs/brokers/broker.{{ (hostvars[groups['broker'][0]]['private_ip'])|trim|replace('.','-') }}.crt.pem",
-        dest_file: "{{ tgt_adminConsole_sec_dir }}/tls/server/broker.{{ (hostvars[groups['broker'][0]]['private_ip'])|trim|replace('.','-') }}.crt.pem" }
+    - { src_file: "{{ local_tls_src_homedir }}/certs/adminConsoles/adminConsole.{{ (hostvars[groups['adminConsole'][0]]['private_ip'])|trim|replace('.','-') }}.key-pk8.pem",
+        dest_file: "{{ tgt_adminConsole_sec_dir }}/tls/server/adminConsole.{{ (hostvars[groups['adminConsole'][0]]['private_ip'])|trim|replace('.','-') }}.key-pk8.pem" }
+    - { src_file: "{{ local_tls_src_homedir }}/certs/adminConsoles/adminConsole.{{ (hostvars[groups['adminConsole'][0]]['private_ip'])|trim|replace('.','-') }}.crt.pem",
+        dest_file: "{{ tgt_adminConsole_sec_dir }}/tls/server/adminConsole.{{ (hostvars[groups['adminConsole'][0]]['private_ip'])|trim|replace('.','-') }}.crt.pem" }
     - { src_file: "{{ local_tls_src_homedir }}/certs/{{ public_cacert_name }}",
         dest_file: "{{ tgt_adminConsole_sec_dir }}/tls/rootca/{{ public_cacert_name }}" }
   when: enable_brkr_tls is defined and enable_brkr_tls|bool
@@ -97,8 +97,8 @@
     - { regexp: "{{ placeHolder_sslVerifyCerts }}", line: "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}false{% else %}true{% endif %}" }
     - { regexp: "{{ placeHolder_sslHostnameValidation }}", line: "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}false{% else %}true{% endif %}" }
     - { regexp: "{{ placeHolder_sslCaPath }}", line: "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ tgt_adminConsole_sec_dir }}/tls/rootca/{{ public_cacert_name }}{% else %}{% endif %}" }
-    - { regexp: "{{ placeHolder_sslCertPath }}", line: "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ tgt_adminConsole_sec_dir }}/tls/server/broker.{{ (hostvars[groups['broker'][0]]['private_ip'])|trim|replace('.','-') }}.crt.pem{% else %}{% endif %}" }
-    - { regexp: "{{ placeHolder_sslKeyPath }}", line: "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ tgt_adminConsole_sec_dir }}/tls/server/broker.{{ hostvars[groups['broker'][0]]['private_ip']|trim|replace('.','-') }}.key-pk8.pem{% else %}{% endif %}" }
+    - { regexp: "{{ placeHolder_sslCertPath }}", line: "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ tgt_adminConsole_sec_dir }}/tls/server/adminConsole.{{ (hostvars[groups['adminConsole'][0]]['private_ip'])|trim|replace('.','-') }}.crt.pem{% else %}{% endif %}" }
+    - { regexp: "{{ placeHolder_sslKeyPath }}", line: "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ tgt_adminConsole_sec_dir }}/tls/server/adminConsole.{{ hostvars[groups['adminConsole'][0]]['private_ip']|trim|replace('.','-') }}.key-pk8.pem{% else %}{% endif %}" }
     - { regexp: "{{ placeHolder_k8sNs }}", line: "{{ ac_k8s_ns }}" }
     - { regexp: "{{ placeHolder_k8sHost }}", line: "{{ ac_k8s_host }}" }
     - { regexp: "{{ placeHolder_k8sSvcPort }}", line: "{{ ac_k8s_svc_port }}" }
