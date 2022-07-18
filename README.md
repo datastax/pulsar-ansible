@@ -265,7 +265,12 @@ The playbook, **collect_srvDebugFiles.yaml**, is used to automate the informatio
 
 * **file_types**: this can be not specified, or a combination of the following values (comma seperated)
   * 'all', 'log', 'cfg', 'thrdump', 'heapdump'
-  * when not specified, this is equivalent to the following combination: *file_types=log,cfg,thrdump*
+  * if not specified, this is equivalent to the following combination: *file_types=log,cfg,thrdump*
 * **loggz_ptn**: this is only relevant with collecting historical log file that are already archived (*.log.gz)
   * the value of this variable is a string pattern to match the log archive file name
     * E.g. *loggz_ptn=07-16* will match the log archive with name having '07-16' in it (aka, log of July 16)
+ 
+If we only want to collect files from certain server types or server hosts, it can be achieved using the following 2 variables:
+* **srv_types**: you can put all required server types in a list, such as [zookeeper[,bookkeeper[,broker]]]
+  * if not specified, all server types are collected
+* **srvhost_ptn**: this can further limit the server host list if only the server host name matches certain pattern.
