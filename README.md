@@ -125,7 +125,7 @@ bookie_jvm_options: >
  {% if customize_jvm is defined and customize_jvm|bool %}PULSAR_MEM="{{ pulsar_mem_bookie }}" {% endif %}
  PULSAR_EXTRA_OPTS="-XX:+PerfDisableSharedMem"
  PULSAR_GC_LOG=" "
- PULSAR_GC="-Xlog:gc:{{ tgt_pulsar_gc_log_homedir }}/pulsar_gc_%p.log:time,uptime:filecount=10,filesize=20M"
+ PULSAR_GC="-Xlog:gc*,safepoint*:{{ tgt_pulsar_gc_log_homedir }}/pulsar_gc_%p.log:time,uptime:filecount=10,filesize=20M"
  PULSAR_LOG_DIR="{{ tgt_pulsar_log_homedir }}/bookkeeper"
  
 cust_bookie_jorunal_data_homedirs:
