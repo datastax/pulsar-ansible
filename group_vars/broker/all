@@ -22,8 +22,8 @@ broker_jvm_options: >
 
 # whether or not to use customized message replication settings (E/Qw/Qa)
 force_message_rf_setting: false
-cust_ensemble_size: 3
-cust_write_quorum: 2
+cust_ensemble_size: 4
+cust_write_quorum: 3
 cust_ack_quorum: 2
 
 
@@ -41,7 +41,7 @@ enable_transaction: true
 enable_srvside_msg_filtering: true
 tgt_msg_filter_package_dir: "{{ tgt_pulsar_inst_dir }}/filters"
 
-msg_filter_package_version: 2.4.2
+msg_filter_package_version: 2.4.3
 msg_filter_package_name: "pulsar-jms-{{ msg_filter_package_version }}-nar.nar"
 
 msg_filter_pkg_download_url_base: "https://github.com/datastax/pulsar-jms/releases/download"

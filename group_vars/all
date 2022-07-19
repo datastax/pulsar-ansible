@@ -38,7 +38,7 @@ openjdk_ver: 11
 # pulsarLS_ver_main: "2.8.3"
 # pulsarLS_ver_secondary: "1.0.14"
 pulsarLS_ver_main: "2.10"
-pulsarLS_ver_secondary: "1.0"
+pulsarLS_ver_secondary: "1.1"
 pulsarLS_ver_signifant: "{{ pulsarLS_ver_main.split('.')[0] }}.{{ pulsarLS_ver_main.split('.')[1] }}"
 pulsarLS_ver: "{{ pulsarLS_ver_main }}.{{ pulsarLS_ver_secondary }}"
 # valid luna streaming binary options: "core" (Pulsar core), "" (base), "all (including all packages, I/O conenctors and message filters)"
@@ -61,8 +61,7 @@ pulsarLS_bin_download_url: "{{ pulsarLS_download_url_base }}/ls{{ pulsarLS_ver_m
 # -------------------------------------------
 #
 # - Local fodler that has 
-#local_bin_homedir: "~/DataStax/pulsar_bin/releases/luna_streaming"
-local_bin_homedir: "~/Code_Dev/datastax/download"
+local_bin_homedir: "~/DataStax/pulsar_bin/releases/luna_streaming"
 
 #
 # Target directories
@@ -98,7 +97,6 @@ pulsar_client_config_file: "{{ tgt_pulsar_inst_dir }}/conf/client.conf"
 # -------------------------------------------
 #
 config_rackAwareness: true
-config_rackAwareness: false
 enforceMinNumRackPerWQ: false # default false
 # NOTE: this HAS to be bigger than or equal to the available rack count. 
 #       otherwise, creating topic will always fail

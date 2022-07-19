@@ -86,7 +86,7 @@
     srv_component: 'adminConsole'
     srv_host_list: "{{ groups['adminConsole']|join(',') }}"
   roles:
-    - { role: local_security/create_tls_certs,  
+    - { role: local_process/gen_secFile/create_tls_certs,  
         srv_key_password: "{{ anco_key_password }}",
         srv_cert_expire_days: "{{ anco_cert_expire_days }}",
         when: srv_host_list != "" and 

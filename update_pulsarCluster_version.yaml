@@ -192,6 +192,8 @@
     - { role: pulsar/common/pulsar_resetBinaryNoData, when: not skip_version_update|bool}
     # Install the Pulsar binary of the target version
     - { role: pulsar/common/pulsar_instBinary, keep_newer_files: no, when: not skip_version_update|bool }
+    # Copy the nar file needed for broker side message filtering
+    - { role: pulsar/broker/_deploy_msg_filter_package, when: enable_srvside_msg_filtering|bool }
     # Set up the configuration files of the target Pulsar version
     - { role: pulsar/broker/brkr_config, when: not skip_version_update|bool }
     # Start brokers
