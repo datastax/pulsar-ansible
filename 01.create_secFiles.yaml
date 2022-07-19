@@ -90,6 +90,6 @@
         srv_key_password: "{{ anco_key_password }}",
         srv_cert_expire_days: "{{ anco_cert_expire_days }}",
         when: srv_host_list != "" and 
-              deploy_adminconsole is defined and deploy_adminconsole == 'dedicated' and
-              enable_anco_tls is defined and enable_anco_tls|bool and 
+              deploy_adminconsole is defined and
+              enable_anco_https is defined and enable_anco_https|bool and 
               skip_anco_tls_certs_generatation is defined and not skip_anco_tls_certs_generatation|bool }
