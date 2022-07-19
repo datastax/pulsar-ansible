@@ -1,3 +1,10 @@
+#
+# Do NOT use this role to shutdown Pulsar component (zookeeper, bookkeeper, broker, functions-worker, et.c)
+# At the moment, this is ONLY used by AdminConsole
+# -------------------------------------------------------
+# TODO: Extend this to generic usage in the future !!!
+#
+---
 - name: Get the process IDs of the specified server process
   shell: "pgrep {{ srv_process_name }}"
   ignore_errors: yes

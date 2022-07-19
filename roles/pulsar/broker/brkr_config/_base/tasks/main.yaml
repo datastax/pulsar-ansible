@@ -27,14 +27,12 @@
     ensemble_size: |
       {% if force_message_rf_setting is defined and force_message_rf_setting|bool %}
       {{ cust_ensemble_size }}
+      {% elif bookieCnt|trim|int <= 3 %}
+      {{ bookieCnt|trim|int }}
       {% elif bookieRackCnt|trim|int > 1  %}
       {{ bookieCnt|trim|int - bookieCntPerAZ|trim|int }}
-      {% elif bookieCnt|trim|int > 3 %}
-      {{ bookieCnt|trim|int - 2 }}
-      {% elif bookieCnt|trim|int < 3 %}
-      {{ bookieCnt|trim|int }}
       {% else %}
-      {{ bookieCnt|trim|int - 1 }}
+      {{ bookieCnt|trim|int - 2 }}
       {% endif %}
 - debug: msg="ensemble_size={{ ensemble_size|trim }}"
   when: show_debug_msg|bool

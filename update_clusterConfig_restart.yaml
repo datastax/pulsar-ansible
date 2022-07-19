@@ -221,5 +221,4 @@
   roles:
     # Config Pulsar client (client.conf)
     - { role: pulsar/client/clnt_config,
-        when: (rolling_restart_only is not defined or not rolling_restart_only|bool)  and
-              (restart_component is not defined or restart_component=='broker') }
+        when: (rolling_restart_only is not defined or not rolling_restart_only|bool) }

@@ -8,7 +8,7 @@
 
 - name: Delete obsolete server component ({{ srv_component }}) process ID file
   file:
-    path: "{{ tgt_pulsar_inst_dir }}/bin/pulsar-broker.pid"
+    path: "{{ tgt_pulsar_inst_dir }}/bin/pulsar-{{ srv_component }}.pid"
     state: absent
   when: not srvStarted|trim|bool and srv_pid_stat.stat.exists
 
