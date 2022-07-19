@@ -66,3 +66,30 @@
               deploy_functions_worker is defined and deploy_functions_worker == 'dedicated' and
               enable_fwrkr_tls is defined and enable_fwrkr_tls|bool and 
               skip_fwrkr_tls_certs_generatation is defined and not skip_fwrkr_tls_certs_generatation|bool }
+
+#########################
+# Generate Pulsar AdminConsole security related files
+# - JWT tokens and keys
+# - TLS certificates and keys
+#
+# This is only relevant when 
+# - AdminConsole deployment is needed, and
+# - AdminConsole security is enabled
+#
+# NOTE: this step will run bash script locally. This means that the localhost
+#       can't be Windows based machine. Linux or Mac machine are fine.
+# -----------------------
+- hosts: localhost
+  connection: local
+  vars:
+    showLocalCmdOutput: true
+    srv_component: 'adminConsole'
+    srv_host_list: "{{ groups['adminConsole']|join(',') }}"
+  roles:
+    - { role: local_security/create_tls_certs,  
+        srv_key_password: "{{ anco_key_password }}",
+        srv_cert_expire_days: "{{ anco_cert_expire_days }}",
+        when: srv_host_list != "" and 
+              deploy_adminconsole is defined and
+              enable_anco_https is defined and enable_anco_https|bool and 
+              skip_anco_tls_certs_generatation is defined and not skip_anco_tls_certs_generatation|bool }
