@@ -261,4 +261,4 @@
   become_method: sudo
   roles:
     # Config Pulsar client (client.conf)
-    - { role: pulsar/client/clnt_config, when: not skip_version_update|bool }
+    - { role: pulsar/client/clnt_config }

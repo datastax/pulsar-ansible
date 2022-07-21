@@ -19,6 +19,16 @@
     (srv_types is not defined or srv_component in srv_types) and 
     (srvhost_ptn is not defined or srvhost_ptn in hostvars[item]['private_ip'])
 
+## Gclog for all Pulsar servers
+- name: Create local folder (timestamp based) to host server gc log
+  file:
+    path: "{{ local_collected_srvfiles_homedir }}/{{ bkup_subfolder }}/gclog/{{ srv_component }}/{{ item }}"
+    state: directory
+  when: |
+    (file_types is not defined or 'all' in file_types or 'gclog' in file_types) and
+    (srv_types is not defined or srv_component in srv_types) and 
+    (srvhost_ptn is not defined or srvhost_ptn in hostvars[item]['private_ip'])
+
 ## Thread dump for all Pulsar servers
 - name: Create local folder (timestamp based) to host server thread dump
   file:

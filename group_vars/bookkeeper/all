@@ -86,10 +86,10 @@ misc_bookie_config_dict: {
   # - Compaction related settings
   #   NOTE: must make sure majorCompactionInterval > minorCompactionInterval > gcWaitTime
   , minorCompactionThreshold: 0.2     # default 0.2 (use default !!!)
-  , minorCompactionInterval: 360      # default 3600 seconds (6 minutes vs 1 hour)
+  , minorCompactionInterval: 360      # default 3600 seconds (6 minutes vs default 1 hour)
   , majorCompactionThreshold: 0.8     # default 0.5
-  , majorCompactionInterval: 10800    # default 86400 seconds (3 hours vs 1 day)
-  , gcWaitTime: 300000                # default 900000 milli-seconds (5 minutes vs15 minutes)
+  , majorCompactionInterval: 10800    # default 86400 seconds (3 hours vs default 1 day)
+  , gcWaitTime: 300000                # default 900000 milli-seconds (5 minutes vs default 15 minutes)
   , isForceGCAllowWhenNoSpace: 'true' # default false
 
   # - Max. disk utilization and entry log sizediskUsageWarnThreshold

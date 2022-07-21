@@ -46,29 +46,30 @@
   set_fact:
     srvpid_file: "{% if srv_component|lower == 'bookkeeper' %}pulsar-bookie.pid{% else %}pulsar-{{ srv_component }}.pid{% endif %}"
   when: |
-    (file_types is not defined or 'all' in file_types or 'thrdump' in file_types or 'heapdump' in file_types) and
+    (file_types is not defined or 'all' in file_types or 'gclog' in file_types or 'thrdump' in file_types or 'heapdump' in file_types) and
     (srvhost_ptn is not defined or srvhost_ptn in private_ip)
 
 - name: "[{{ srv_component }}] Get server PID nubmer"
   shell: "cat {{ tgt_pulsar_inst_dir }}/bin/{{ srvpid_file }}"
   register: pidcat_cmd
   when: |
-    (file_types is not defined or 'all' in file_types or 'thrdump' in file_types or 'heapdump' in file_types) and
+    (file_types is not defined or 'all' in file_types or 'gclog' in file_types or 'thrdump' in file_types or 'heapdump' in file_types) and
     (srvhost_ptn is not defined or srvhost_ptn in private_ip)
 
 - name: "[{{ srv_component }}] Get the currrent time of the server"
   shell: "date +%F-%H%M%S"
   register: date_cmd
   when: |
-    (file_types is not defined or 'all' in file_types or 'thrdump' in file_types or 'heapdump' in file_types) and
+    (file_types is not defined or 'all' in file_types or 'gclog' in file_types or 'thrdump' in file_types or 'heapdump' in file_types) and
     (srvhost_ptn is not defined or srvhost_ptn in private_ip)
 
-- name: "[{{ srv_component }}] Get server thread dump and heap dump file name"
+- name: "[{{ srv_component }}] Get server file name for gclog, thread dump and heap dump"
   set_fact:
+    gclog_filename: "pulsar_gc_{{ pidcat_cmd.stdout }}.log"
     thrdump_filename: "{{ srv_component }}_{{ pidcat_cmd.stdout }}-thrdump_{{ date_cmd.stdout }}.txt"
     heapdump_filename: "{{ srv_component }}_{{ pidcat_cmd.stdout }}-heapdump_{{ date_cmd.stdout }}.hprof"
   when: |
-    (file_types is not defined or 'all' in file_types or 'thrdump' in file_types or 'heapdump' in file_types) and
+    (file_types is not defined or 'all' in file_types or 'gclog' in file_types or 'thrdump' in file_types or 'heapdump' in file_types) and
     (srvhost_ptn is not defined or srvhost_ptn in private_ip)
 
 - name: Create the remote folder to hold the thread dump and heap dump files
@@ -81,6 +82,18 @@
   when: |
     (file_types is not defined or 'all' in file_types or 'thrdump' in file_types or 'heapdump' in file_types) and
     (srvhost_ptn is not defined or srvhost_ptn in private_ip)
+
+
+#
+# Collect and get server gclog files
+# -------------------------------------------
+#
+- name: "[{{ srv_component }}] Copy log file to local"
+  fetch:
+    src: "{{ tgt_pulsar_gc_log_homedir }}/{{ gclog_filename }}"
+    dest: "{{ local_collected_srvfiles_homedir }}/{{ bkup_subfolder }}/gclog/{{ srv_component }}/{{ inventory_hostname }}/"
+    flat: yes
+  when: file_types is not defined or 'all' in file_types or 'gclog' in file_types
 
 
 #
