@@ -14,12 +14,12 @@
 # 2) the current Pulsar version is not the same as the target Pulsar version
 #
 # When it is ok to update the version, execute the following tasks:
-# - stop the Pulsar process
+# - stop the Pulsar process (only applicable to Pulsar servers, not standalone Pulsar clients)
 # - backup the old/existing version Pulsar config files
 # - cleanup the old/existing version Pulsar binary files (except data subdirectory if default data location is used)
 # - update the Pulsar binary to the new version
 # - set up the config files based on the target version
-# - start the Pulsar process
+# - start the Pulsar process - stop the Pulsar process (only applicable to Pulsar servers, not standalone Pulsar clients)
 # -----------------------
 
 
@@ -61,7 +61,7 @@
 
 
 ##########################
-# Upgrade zookeepers, including metadata initialization
+# Update Pulsar version for zookeepers
 #
 - hosts: zookeeper
   any_errors_fatal: true
@@ -103,7 +103,7 @@
 
 
 ##########################
-# Upgrade bookkeepers, including bookkeeper sanity check
+# Update Pulsar version for bookkeepers, including bookkeeper sanity check
 #
 - hosts: bookkeeper
   gather_facts: true
@@ -153,7 +153,7 @@
 
 
 ##########################
-# Upgrade brokers
+# Update Pulsar version for brokers
 #
 - hosts: broker
   any_errors_fatal: true
@@ -201,7 +201,7 @@
 
 
 ##########################
-# Upgrade dedicated function workers
+# Update Pulsar version for dedicated function workers
 #
 - hosts: functions_worker
   gather_facts: true
@@ -251,8 +251,43 @@
     - { role: pulsar/common/pulsar_startSvc, srvStarted: false,  
         when: deploy_functions_worker == 'dedicated' and not skip_version_update|bool }
 
+
+##########################
+# Update Pulsar version for standalone Pulsar clients
+#
+# NOTE: Do NOT use a host machine betas both a Pulsar server and a standalone Pulsar client !!!
+#
+- hosts: pulsarStandAloneClient
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  serial: 1
+  vars:
+    srv_component: "N/A"
+    bkup_subfolder_name: "VersionChange-{{ ansible_date_time.epoch }}"
+    skip_version_update: true
+  pre_tasks:
+    - name: Check if the Pulsar service is up and running. Set the service status accordingly.
+      include_role:
+        name: misc/_check_ver_upd_validity
+    - debug: 
+        msg: "(Standalone Pulsar Client) Skip Pulsar version update: srvStarted={{ srvStarted|trim|bool }}, invalid_version={{ invalid_version|bool }}(curVer: {{ cur_pulsar_ver }}, tgtVer:{{ pulsarLS_ver }})"
+      when: skip_version_update|bool
+  roles: 
+    # Get Pulsar binary tarball file of the target version to the server host machine
+    - { role: pulsar/common/pulsar_getBinary }
+    # Backup the configuration files of the current Pulsar version 
+    - { role: pulsar/common/pulsar_bkupConfig, cfg_bkup_operation: 'version_update',
+        when: not skip_version_update|bool }
+    # Clean up the old binary files (in order to avoid mixed libraries), but no data directories
+    - { role: pulsar/common/pulsar_resetBinaryNoData, when: not skip_version_update|bool}
+    # Install the Pulsar binary of the target version
+    - { role: pulsar/common/pulsar_instBinary, keep_newer_files: no, when: not skip_version_update|bool }
+
+
 #########################
-# Configure Pular clients
+# Update "client.conf" on all host machines with Pulsar
+#   binary, including Pulsar servers and standalone Pulsar clients
 # -----------------------
 # - 
 - hosts: pulsarClient
@@ -260,5 +295,4 @@
   become: "{{ sudo_needed }}"
   become_method: sudo
   roles:
-    # Config Pulsar client (client.conf)
     - { role: pulsar/client/clnt_config }

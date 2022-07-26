@@ -9,10 +9,10 @@
 # this is needed because in Pulsar, the bookkeeper service name is 'bookie', but the configuraiton file name starts with 'bookkeeper'
 - set_fact:
     srv_component2: "{% if srv_component == 'bookie' %}bookkeeper{% else %}{{ srv_component }}{% endif %}"
-- set_fact:
-    get_pid_cmd: "ps -ef | grep -v grep | grep pulsar | grep -E \"{{ srv_component2 | replace('_', '-') }}.(conf|yaml)\" | awk '{print $2}'"
-- debug: msg="[{{ srv_component2 }}] -- {{ get_pid_cmd }} "
-  when: show_debug_msg|bool
+# - set_fact:
+#     get_pid_cmd: "ps -ef | grep -v grep | grep pulsar | grep -E \"{{ srv_component2 | replace('_', '-') }}.(conf|yaml)\" | awk '{print $2}'"
+# - debug: msg="[{{ srv_component2 }}] -- {{ get_pid_cmd }} "
+#   when: show_debug_msg|bool
 
 - name: Get the actual running server component ({{ srv_component }}) process PID 
   shell: "{% if sudo_needed|bool %}sudo -u {{ pulsar_user }} {% endif %}ps -ef | grep -v grep | grep pulsar | grep -E \"{{ srv_component2 | replace('_', '-') }}.(conf|yaml)\" | awk '{print $2}'"
