@@ -1,0 +1,23 @@
+#
+# Collect and get server heap dump (heavy operation)
+# -------------------------------------------
+#
+- name: "[{{ srv_component }}] Genearte heap dump"
+  shell: "{% if sudo_needed|bool %}sudo -u {{ pulsar_user }} {% endif %}jmap -dump:format=b,file={{ tgt_collected_srvfiles_homedir }}/{{ srv_component }}/{{ heapdump_filename }} {{ pidcat_cmd.stdout }}"
+  register: jmap_cmd
+- debug: msg="jmap_cmd.failed - {{ jmap_cmd.failed }}"
+  when: show_debug_msg|bool
+
+- name: "[{{ srv_component }}] Compress heap dump using gzip"
+  shell: |
+    cd {{ tgt_collected_srvfiles_homedir }}/{{ srv_component }}
+    {% if sudo_needed|bool %}sudo -u {{ pulsar_user }} {% endif %}gzip {{ heapdump_filename }}
+  register: gzip_cmd
+- debug: msg="gzip_cmd.failed - {{ gzip_cmd.failed }}"
+  when: show_debug_msg|bool
+
+- name: "[{{ srv_component }}] Copy heap dump file (compressed) to local"
+  fetch:
+    src: "{{ tgt_collected_srvfiles_homedir }}/{{ srv_component }}/{{ heapdump_filename }}.gz"
+    dest: "{{ local_collected_srvfiles_homedir }}/{{ bkup_subfolder }}/heapdump/{{ srv_component }}/{{ inventory_hostname }}/"
+    flat: yes

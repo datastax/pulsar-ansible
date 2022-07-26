@@ -1,0 +1,28 @@
+---
+#
+# Collect and get server log files
+# -------------------------------------------
+#
+- name: "[{{ srv_component }}] Find log and log archive files"
+  find:
+    paths: "{{ tgt_pulsar_log_homedir }}/{{ srv_component }}"
+    patterns: "pulsar-*.log{% if loggz_ptn is defined %},*{{ loggz_ptn }}*.log.gz{% endif %}"
+  register: srv_file
+
+- name: "[{{ srv_component }}] Copy found files to the temporary remote folder (to avoid checksum mismatch error)"
+  copy:
+    src: "{{ item.path }}"
+    dest: "{{ tgt_collected_srvfiles_homedir }}/{{ srv_component }}/{{ item.path | split('/') | last }}"
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    remote_src: true
+  with_items:
+    - "{{ srv_file.files }}"
+
+- name: "[{{ srv_component }}] Copy log file to local"
+  fetch:
+    src: "{{ tgt_collected_srvfiles_homedir }}/{{ srv_component }}/{{ item.path | split('/') | last }}"
+    dest: "{{ local_collected_srvfiles_homedir }}/{{ bkup_subfolder }}/log/{{ srv_component }}/{{ inventory_hostname }}/"
+    flat: yes
+  with_items:
+    - "{{ srv_file.files }}"

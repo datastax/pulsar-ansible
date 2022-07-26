@@ -1,0 +1,20 @@
+---
+#
+# Collect and get server thread dump
+# -------------------------------------------
+#
+- name: "[{{ srv_component }}] Genearte thread dump"
+  shell: |
+    cd {{ tgt_collected_srvfiles_homedir }}/{{ srv_component }}
+    {% if sudo_needed|bool %}sudo -u {{ pulsar_user }} {% endif %}jstack -l {{ pidcat_cmd.stdout }} > {{ thrdump_filename }}
+    {% if sudo_needed|bool %}sudo {% endif %}chown {{ pulsar_user }}:{{ pulsar_user_group }} {{ thrdump_filename }}
+  register: jstack_cmd
+
+- debug: msg="jstack_cmd.failed - {{ jstack_cmd.failed }}"
+  when: show_debug_msg|bool 
+
+- name: "[{{ srv_component }}] Copy thread dump file to local"
+  fetch:
+    src: "{{ tgt_collected_srvfiles_homedir }}/{{ srv_component }}/{{ thrdump_filename }}"
+    dest: "{{ local_collected_srvfiles_homedir }}/{{ bkup_subfolder }}/thrdump/{{ srv_component }}/{{ inventory_hostname }}/"
+    flat: yes

@@ -1,0 +1,10 @@
+---
+#
+# Collect and get server config files
+# -------------------------------------------
+#
+- name: "[{{ srv_component }}] Copy config file to local"
+  fetch:
+    src: "{{ tgt_pulsar_inst_dir }}/conf/{{ srv_component }}.conf"
+    dest: "{{ local_collected_srvfiles_homedir }}/{{ bkup_subfolder }}/config/{{ srv_component }}/{{ inventory_hostname }}/"
+    flat: yes
