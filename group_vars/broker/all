@@ -102,4 +102,6 @@ misc_broker_config_dict: {
   , topicFencingTimeoutSeconds: '5'             # default 0
   , webSocketServiceEnabled: 'true'             # default false
   , bookkeeper_opportunisticStriping: 'true'    # default false
+  # 'systemTopicEnabled' is always enabled
+  , topicLevelPoliciesEnabled: 'true'           # default false
 }

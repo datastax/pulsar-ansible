@@ -6,7 +6,7 @@
 - debug: msg="({{ srv_component }}) srv_pid_stat - {{ srv_pid_stat }}"
   when: show_debug_msg|bool
 
-# this is needed because in Pulsar, the bookkeeper service name is 'bookie', but the configuraiton file name starts with 'bookkeeper'
+# this is needed because in Pulsar, the bookkeeper service name is 'bookie', but the configuration file name starts with 'bookkeeper'
 - set_fact:
     srv_component2: "{% if srv_component == 'bookie' %}bookkeeper{% else %}{{ srv_component }}{% endif %}"
 # - set_fact:

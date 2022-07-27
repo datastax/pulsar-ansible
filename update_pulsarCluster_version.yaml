@@ -19,7 +19,7 @@
 # - cleanup the old/existing version Pulsar binary files (except data subdirectory if default data location is used)
 # - update the Pulsar binary to the new version
 # - set up the config files based on the target version
-# - start the Pulsar process - stop the Pulsar process (only applicable to Pulsar servers, not standalone Pulsar clients)
+# - start the Pulsar process (only applicable to Pulsar servers, not standalone Pulsar clients)
 # -----------------------
 
 

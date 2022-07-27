@@ -45,7 +45,7 @@ while [[ "$#" -gt 0 ]]; do
       -clst_name) pulsarClusterName="$2"; shift ;;
       -host_type) srvHostType="$2"; shift ;;
       -user_list) tokenUserNameList="$2"; shift ;;
-      *) echo "Unknown parameter passed: $1"; exit 20 ;;
+      *) echo "Unknown parameter passed: $1"; exit 25 ;;
    esac
    shift
 done
