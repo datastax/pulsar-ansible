@@ -261,7 +261,6 @@
   any_errors_fatal: true
   become: "{{ sudo_needed }}"
   become_method: sudo
-  serial: 1
   vars:
     srv_component: "N/A"
     bkup_subfolder_name: "VersionChange-{{ ansible_date_time.epoch }}"
