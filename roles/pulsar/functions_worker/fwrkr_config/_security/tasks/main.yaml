@@ -42,7 +42,7 @@
     group: "{{ pulsar_user_group }}"
     force: "{{ force_tgt_jwt_token }}"
   with_items:
-    - { src_file: "{{ local_jwt_src_homedir }}/token/brokers/{{ brkr_super_user_roles[0] }}.jwt", 
+    - { src_file: "{{ local_jwt_src_homedir }}/token/{{ cluster_name }}/brokers/{{ brkr_super_user_roles[0] }}.jwt", 
         dest_file: "{{ tgt_jwt_dest_homedir }}/token/{{ brkr_super_user_roles[0] }}.jwt" }
   when: enable_brkr_authNZ|bool
 
@@ -54,8 +54,8 @@
     group: "{{ pulsar_user_group }}"
     force: "{{ force_tgt_tls_certs }}"
   with_items:
-    - { src_file: "{{ local_tls_src_homedir }}/certs/{{ public_cacert_name }}", 
-        dest_file: "{{ tgt_tls_dest_homedir }}/rootca/{{ public_cacert_name }}" }
+    - { src_file: "{{ local_tls_src_homedir }}/certs/broker_{{ public_cacert_name }}", 
+        dest_file: "{{ tgt_tls_dest_homedir }}/rootca/broker_{{ public_cacert_name }}" }
   when: enable_brkr_tls|bool
 
 
@@ -70,11 +70,11 @@
     group: "{{ pulsar_user_group }}"
     force: "{{ force_tgt_jwt_token }}"
   with_items:
-    - { src_file: "{{ local_jwt_src_homedir }}/key/{{ cluster_name }}_jwt_private.key", 
-        dest_file: "{{ tgt_jwt_dest_homedir }}/key/{{ cluster_name }}_jwt_private.key" }
-    - { src_file: "{{ local_jwt_src_homedir }}/key/{{ cluster_name }}_jwt_public.key", 
-        dest_file: "{{ tgt_jwt_dest_homedir }}/key/{{ cluster_name }}_jwt_public.key" }
-    - { src_file: "{{ local_jwt_src_homedir }}/token/{{ srv_component }}s/{{ fwrkr_super_user_roles[0] }}.jwt", 
+    - { src_file: "{{ local_jwt_src_homedir }}/key/{{ srv_component }}_jwt_private.key", 
+        dest_file: "{{ tgt_jwt_dest_homedir }}/key/{{ srv_component }}_jwt_private.key" }
+    - { src_file: "{{ local_jwt_src_homedir }}/key/{{ srv_component }}_jwt_public.key", 
+        dest_file: "{{ tgt_jwt_dest_homedir }}/key/{{ srv_component }}_jwt_public.key" }
+    - { src_file: "{{ local_jwt_src_homedir }}/token/{{ cluster_name }}/{{ srv_component }}s/{{ fwrkr_super_user_roles[0] }}.jwt", 
         dest_file: "{{ tgt_jwt_dest_homedir }}/token/{{ fwrkr_super_user_roles[0] }}.jwt" }
   when: enable_fwrkr_authNZ is defined and enable_fwrkr_authNZ|bool
 
@@ -86,12 +86,12 @@
     group: "{{ pulsar_user_group }}"
     force: "{{ force_tgt_tls_certs }}"
   with_items:
-    - { src_file: "{{ local_tls_src_homedir }}/certs/{{ srv_component }}s/{{ srv_key_name }}", 
+    - { src_file: "{{ local_tls_src_homedir }}/certs/{{ cluster_name }}/{{ srv_component }}s/{{ srv_key_name }}", 
         dest_file: "{{ tgt_tls_dest_homedir }}/server/{{ srv_key_name }}" }
-    - { src_file: "{{ local_tls_src_homedir }}/certs/{{ srv_component }}s/{{ srv_cert_name }}", 
+    - { src_file: "{{ local_tls_src_homedir }}/certs/{{ cluster_name }}/{{ srv_component }}s/{{ srv_cert_name }}", 
         dest_file: "{{ tgt_tls_dest_homedir }}/server/{{ srv_cert_name }}" }
-    - { src_file: "{{ local_tls_src_homedir }}/certs/{{ public_cacert_name }}", 
-        dest_file: "{{ tgt_tls_dest_homedir }}/rootca/{{ public_cacert_name }}" }
+    - { src_file: "{{ local_tls_src_homedir }}/certs/{{ srv_component }}_{{ public_cacert_name }}", 
+        dest_file: "{{ tgt_tls_dest_homedir }}/rootca/{{ srv_component }}_{{ public_cacert_name }}" }
   when: enable_fwrkr_tls is defined and enable_fwrkr_tls|bool
 
 
@@ -108,7 +108,7 @@
     - { regexp: "^authenticationProviders:", line: "authenticationProviders: ['org.apache.pulsar.broker.authentication.AuthenticationProviderToken']" }
     - { regexp: "^authorizationEnabled:", line: "authorizationEnabled: true" }
     - { regexp: "^superUserRoles:", line: "superUserRoles: [{{ fwrkr_super_user_roles_list_str }}]" }
-    - { regexp: "^tokenPublicKey:", line: "tokenPublicKey: file://{{ tgt_jwt_dest_homedir }}key/{{ cluster_name }}_jwt_public.key" }
+    - { regexp: "^tokenPublicKey:", line: "tokenPublicKey: file://{{ tgt_jwt_dest_homedir }}key/{{ srv_component }}_jwt_public.key" }
   when: enable_fwrkr_authNZ is defined and enable_fwrkr_authNZ|bool
 
 - name: If functions worker's own TLS is enabled, configure TLS related settings in the functions worker config file

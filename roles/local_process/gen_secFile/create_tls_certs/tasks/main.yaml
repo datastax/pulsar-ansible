@@ -1,8 +1,10 @@
 ---
 - name: ({{ srv_component }}) If TLS is enabled, call a bash script to create TLS certificate files
   shell: |
-    cd bash/security/intransit_encryption
-    ./cleanupCert.sh -host_type {{ srv_component }}
+    cd bash/security/intransit_encryption; 
+    ./cleanupCert.sh \
+      -clst_name {{ cluster_name}} \
+      -host_type {{ srv_component }}; 
     ./genPulsarSelfSignSSL.sh -r \
       -clst_name {{ cluster_name }} \
       -host_type {{ srv_component }} \

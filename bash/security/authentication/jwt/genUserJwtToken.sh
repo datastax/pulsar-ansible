@@ -50,13 +50,13 @@ while [[ "$#" -gt 0 ]]; do
    shift
 done
 
-if [[ "${srvHostType}" == ""  ]]; then
-  echo "[ERROR] Pulsar server host type can't be empty" 
+if [[ "${pulsarClusterName}" == ""  ]]; then
+  echo "Pulsar cluster name can't be empty" 
   exit 30
 fi
 
-if [[ "${pulsarClusterName}" == ""  ]]; then
-  echo "Pulsar cluster name can't be empty" 
+if [[ "${srvHostType}" == ""  ]]; then
+  echo "[ERROR] Pulsar server host type can't be empty" 
   exit 40
 fi
 
@@ -65,13 +65,13 @@ if [[ "${tokenUserNameList=""}" == ""  ]]; then
   exit 50
 fi
 
-PRIV_KEY="${pulsarClusterName}_jwt_private.key"
-PUB_KEY="${pulsarClusterName}_jwt_public.key"
+PRIV_KEY="${srvHostType}_jwt_private.key"
+PUB_KEY="${srvHostType}_jwt_public.key"
 
 mkdir -p staging
 cd staging
 
-mkdir -p key token/${srvHostType}s
+mkdir -p key token/${pulsarClusterName}/${srvHostType}s
 
 CUR_DIR=$(pwd)
 stepCnt=0
@@ -96,9 +96,9 @@ for userName in $(echo ${tokenUserNameList} | sed "s/,/ /g"); do
   echo "   >> JWT token for user: ${userName}"
   $whichPulsar tokens create \
       --private-key  ${CUR_DIR}/key/${PRIV_KEY} \
-      --subject ${userName} > ${CUR_DIR}/token/${srvHostType}s/${userName}.jwt
+      --subject ${userName} > ${CUR_DIR}/token/${pulsarClusterName}/${srvHostType}s/${userName}.jwt
 done
 
-cd ../..
+cd ..
 
 exit 0

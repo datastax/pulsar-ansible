@@ -9,7 +9,8 @@
 
 - name: Check if the target version is valid to update to
   set_fact:
-    invalid_version: "{{ cur_pulsar_ver is version(pulsarLS_ver, '==') }}"
+    # invalid_version: "{{ cur_pulsar_ver is version(pulsarLS_ver, '==') }}"
+    invalid_version: cur_pulsar_ver is search("{{ pulsarLS_ver }}")
 
 - name: Check whether to skip update
   set_fact:

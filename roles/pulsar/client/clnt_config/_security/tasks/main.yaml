@@ -36,7 +36,7 @@
     group: "{{ pulsar_user_group }}"
     force: "{{ force_tgt_jwt_token }}"
   with_items:
-    - { src_file: "{{ local_jwt_src_homedir }}/token/brokers/{{ brkr_super_user_roles[0] }}.jwt", 
+    - { src_file: "{{ local_jwt_src_homedir }}/token/{{ cluster_name }}/brokers/{{ brkr_super_user_roles[0] }}.jwt", 
         dest_file: "{{ tgt_jwt_dest_homedir }}/token/{{ brkr_super_user_roles[0] }}.jwt" }
   when: enable_brkr_authNZ is defined and enable_brkr_authNZ|bool
 
@@ -48,8 +48,8 @@
     group: "{{ pulsar_user_group }}"
     force: "{{ force_tgt_tls_certs }}"
   with_items:
-    - { src_file: "{{ local_tls_src_homedir }}/certs/{{ public_cacert_name }}", 
-        dest_file: "{{ tgt_tls_dest_homedir }}/rootca/{{ public_cacert_name }}" }
+    - { src_file: "{{ local_tls_src_homedir }}/certs/broker_{{ public_cacert_name }}", 
+        dest_file: "{{ tgt_tls_dest_homedir }}/rootca/broker_{{ public_cacert_name }}" }
   when: enable_brkr_tls is defined and enable_brkr_tls|bool
 
 
@@ -73,7 +73,7 @@
     - { regexp: "^brokerServiceUrl=", 
         line: "brokerServiceUrl={% if enable_brkr_tls is defined and enable_brkr_tls|bool %}pulsar+ssl://{{ hostvars[groups['broker'][0]]['brokerSvcTlsListStr']|trim }}{% else %}pulsar://{{ hostvars[groups['broker'][0]]['brokerSvcListStr']|trim }}{% endif %}" }
     - { regexp: "^tlsTrustCertsFilePath=", 
-        line: "tlsTrustCertsFilePath={% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ tgt_tls_dest_homedir }}/rootca/{{ public_cacert_name }}{% else %} {% endif %}" }
+        line: "tlsTrustCertsFilePath={% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ tgt_tls_dest_homedir }}/rootca/broker_{{ public_cacert_name }}{% else %} {% endif %}" }
     ## Disable Pulsar server host name verification for now
     # - { regexp: "^tlsEnableHostnameVerification=", 
     #     line: "tlsEnableHostnameVerification=true" }

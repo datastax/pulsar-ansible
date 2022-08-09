@@ -38,11 +38,11 @@
     group: "{{ pulsar_user_group }}"
     force: "{{ force_tgt_jwt_token }}"
   with_items:
-    - { src_file: "{{ local_jwt_src_homedir }}/key/{{ cluster_name }}_jwt_private.key", 
-        dest_file: "{{ tgt_jwt_dest_homedir }}/key/{{ cluster_name }}_jwt_private.key" }
-    - { src_file: "{{ local_jwt_src_homedir }}/key/{{ cluster_name }}_jwt_public.key", 
-        dest_file: "{{ tgt_jwt_dest_homedir }}/key/{{ cluster_name }}_jwt_public.key" }
-    - { src_file: "{{ local_jwt_src_homedir }}/token/{{ srv_component }}s/{{ brkr_super_user_roles[0] }}.jwt", 
+    - { src_file: "{{ local_jwt_src_homedir }}/key/{{ srv_component }}_jwt_private.key", 
+        dest_file: "{{ tgt_jwt_dest_homedir }}/key/{{ srv_component }}_jwt_private.key" }
+    - { src_file: "{{ local_jwt_src_homedir }}/key/{{ srv_component }}_jwt_public.key", 
+        dest_file: "{{ tgt_jwt_dest_homedir }}/key/{{ srv_component }}_jwt_public.key" }
+    - { src_file: "{{ local_jwt_src_homedir }}/token/{{ cluster_name }}/{{ srv_component }}s/{{ brkr_super_user_roles[0] }}.jwt", 
         dest_file: "{{ tgt_jwt_dest_homedir }}/token/{{ brkr_super_user_roles[0] }}.jwt" }
   when: enable_brkr_authNZ is defined and enable_brkr_authNZ|bool
 
@@ -54,12 +54,12 @@
     group: "{{ pulsar_user_group }}"
     force: "{{ force_tgt_tls_certs }}"
   with_items:
-    - { src_file: "{{ local_tls_src_homedir }}/certs/{{ srv_component }}s/{{ srv_key_name }}", 
+    - { src_file: "{{ local_tls_src_homedir }}/certs/{{ cluster_name }}/{{ srv_component }}s/{{ srv_key_name }}", 
         dest_file: "{{ tgt_tls_dest_homedir }}/server/{{ srv_key_name }}" }
-    - { src_file: "{{ local_tls_src_homedir }}/certs/{{ srv_component }}s/{{ srv_cert_name }}", 
+    - { src_file: "{{ local_tls_src_homedir }}/certs/{{ cluster_name }}/{{ srv_component }}s/{{ srv_cert_name }}", 
         dest_file: "{{ tgt_tls_dest_homedir }}/server/{{ srv_cert_name }}" }
-    - { src_file: "{{ local_tls_src_homedir }}/certs/{{ public_cacert_name }}", 
-        dest_file: "{{ tgt_tls_dest_homedir }}/rootca/{{ public_cacert_name }}" }
+    - { src_file: "{{ local_tls_src_homedir }}/certs/{{ srv_component }}_{{ public_cacert_name }}", 
+        dest_file: "{{ tgt_tls_dest_homedir }}/rootca/{{ srv_component }}_{{ public_cacert_name }}" }
   when: enable_brkr_tls is defined and enable_brkr_tls|bool
 
 
@@ -76,7 +76,7 @@
     - { regexp: "^authenticationProviders=", line: "authenticationProviders=org.apache.pulsar.broker.authentication.AuthenticationProviderToken" }
     - { regexp: "^authorizationEnabled=", line: "authorizationEnabled=true" }
     - { regexp: "^superUserRoles=", line: "superUserRoles={{ brkr_super_user_roles_list_str }}" }
-    - { regexp: "^tokenPublicKey=", line: "tokenPublicKey=file://{{ tgt_jwt_dest_homedir }}/key/{{ cluster_name }}_jwt_public.key" }
+    - { regexp: "^tokenPublicKey=", line: "tokenPublicKey=file://{{ tgt_jwt_dest_homedir }}/key/{{ srv_component }}_jwt_public.key" }
     - { regexp: "^brokerClientTlsEnabled=", line: "brokerClientTlsEnabled=true" }
     - { regexp: "^brokerClientAuthenticationPlugin=", line: "brokerClientAuthenticationPlugin=org.apache.pulsar.client.impl.auth.AuthenticationToken" }
     - { regexp: "^brokerClientAuthenticationParameters=", line: "brokerClientAuthenticationParameters=file://{{ tgt_jwt_dest_homedir }}/token/{{ brkr_super_user_roles[0] }}.jwt" }
@@ -92,7 +92,7 @@
     - { regexp: "^webServicePortTls=", line: "webServicePortTls={{ web_svc_port_tls }}" }
     - { regexp: "^tlsKeyFilePath=", line: "tlsKeyFilePath={{ tgt_tls_dest_homedir }}/server/{{ srv_key_name }}" }
     - { regexp: "^tlsCertificateFilePath=", line: "tlsCertificateFilePath={{ tgt_tls_dest_homedir }}/server/{{ srv_cert_name }}" }
-    - { regexp: "^tlsTrustCertsFilePath=", line: "tlsTrustCertsFilePath={{ tgt_tls_dest_homedir }}/rootca/{{ public_cacert_name }}" }
+    - { regexp: "^tlsTrustCertsFilePath=", line: "tlsTrustCertsFilePath={{ tgt_tls_dest_homedir }}/rootca/{{ srv_component }}_{{ public_cacert_name }}" }
     - { regexp: "^brokerClientTlsEnabled=", line: "brokerClientTlsEnabled=true" }
-    - { regexp: "^brokerClientTrustCertsFilePath=", line: "brokerClientTrustCertsFilePath={{ tgt_tls_dest_homedir }}/rootca/{{ public_cacert_name }}" }
+    - { regexp: "^brokerClientTrustCertsFilePath=", line: "brokerClientTrustCertsFilePath={{ tgt_tls_dest_homedir }}/rootca/{{ srv_component }}_{{ public_cacert_name }}" }
   when: enable_brkr_tls is defined and enable_brkr_tls|bool

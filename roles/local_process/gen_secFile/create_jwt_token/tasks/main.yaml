@@ -2,7 +2,9 @@
 - name: ({{ srv_component }}) If authN/authR are enabled, call a bash script to create JWT token files
   shell: |
     cd bash/security/authentication/jwt
-    ./cleanupToken.sh -host_type {{ srv_component }}
+    ./cleanupToken.sh \
+      -clst_name {{ cluster_name}} \
+      -host_type {{ srv_component }}
     ./genUserJwtToken.sh -r \
       -clst_name {{ cluster_name}} \
       -host_type {{ srv_component }} \

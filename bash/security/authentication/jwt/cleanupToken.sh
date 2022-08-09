@@ -2,13 +2,14 @@
 
 usage() {
    echo
-   echo "Usage: cleanupUserJwtToken.sh [-h] -host_type <srv_host_type> "
-   echo "       -h   : show usage info"
-   echo "       -host_type <srv_host_type>: Pulsar server host type that needs to clean up JWT tokens (e.g. broker, functions_worker)"
+   echo "Usage: cleanupUserJwtToken.sh [-h] -clstr <cluster_name> -host_type <srv_host_type> "
+   echo "       -h : show usage info"
+   echo "       -clst_name <cluster_name> : Pulsar cluster name" 
+   echo "       -host_type <srv_host_type> : Pulsar server host type that needs to clean up JWT tokens (e.g. broker, functions_worker)"
    echo
 }
 
-if [[ $# -eq 0 || $# -gt 2 ]]; then
+if [[ $# -eq 0 || $# -gt 4 ]]; then
    usage
    exit 10
 fi
@@ -17,10 +18,21 @@ srvHostType=""
 while [[ "$#" -gt 0 ]]; do
    case $1 in
       -h) usage; exit 0 ;;
+      -clst_name) pulsarClusterName="$2"; shift;;
       -host_type) srvHostType="$2"; shift ;;
       *) echo "Unknown parameter passed: $1"; exit 20 ;;
    esac
    shift
 done
 
-rm -rf staging/token/${srvHostType}s
+if [[ "${pulsarClusterName}" == ""  ]]; then
+  echo "Pulsar cluster name can't be empty" 
+  exit 30
+fi
+
+if [[ "${srvHostType}" == ""  ]]; then
+  echo "[ERROR] Pulsar server host type can't be empty" 
+  exit 40
+fi
+
+rm -rf staging/token/${pulsarClusterName}/${srvHostType}s/*

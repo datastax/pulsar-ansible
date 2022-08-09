@@ -86,20 +86,33 @@
     #     msg: "Existing Pulsar version {{ cur_pulsar_ver }} is no less than the target version {{ pulsarLS_ver }}. Aborting update ..."
   roles:
     # Get Pulsar binary tarball file of the target version to the server host machine
-    - { role: pulsar/common/pulsar_getBinary }
+    - { role: pulsar/common/pulsar_getBinary, 
+        when: not skip_version_update|bool and
+              (update_component is not defined or update_component==srv_component) }
     # Stop zookeepers
-    - { role: pulsar/common/pulsar_stopSvc, when: not skip_version_update|bool }
+    - { role: pulsar/common/pulsar_stopSvc, 
+        when: not skip_version_update|bool and 
+              (update_component is not defined or update_component==srv_component) }
     # Backup the configuration files of the current Pulsar version
     - { role: pulsar/common/pulsar_bkupConfig, cfg_bkup_operation: 'version_update',
-        when: not skip_version_update|bool }
+        when: not skip_version_update|bool and
+              (update_component is not defined or update_component==srv_component) }
     # Clean up the old binary files (in order to avoid mixed libraries), but no data directories
-    - { role: pulsar/common/pulsar_resetBinaryNoData, when: not skip_version_update|bool}
+    - { role: pulsar/common/pulsar_resetBinaryNoData, 
+        when: not skip_version_update|bool and
+              (update_component is not defined or update_component==srv_component)}
     # Install the Pulsar binary of the target version
-    - { role: pulsar/common/pulsar_instBinary, keep_newer_files: no, when: not skip_version_update|bool }
+    - { role: pulsar/common/pulsar_instBinary, keep_newer_files: no, 
+        when: not skip_version_update|bool and
+              (update_component is not defined or update_component==srv_component) }
     # Set up the configuration files of the target Pulsar version
-    - { role: pulsar/zookeeper/zkpr_config, when: not skip_version_update|bool }
+    - { role: pulsar/zookeeper/zkpr_config, 
+        when: not skip_version_update|bool and
+              (update_component is not defined or update_component==srv_component) }
     # Start zookeepers
-    - { role: pulsar/common/pulsar_startSvc, srvStarted: false, when: not skip_version_update|bool }
+    - { role: pulsar/common/pulsar_startSvc, srvStarted: false, 
+        when: not skip_version_update|bool and
+              (update_component is not defined or update_component==srv_component) }
 
 
 ##########################
@@ -127,20 +140,33 @@
       when: skip_version_update|bool
   roles: 
     # Get Pulsar binary tarball file of the target version to the server host machine
-    - { role: pulsar/common/pulsar_getBinary }
+    - { role: pulsar/common/pulsar_getBinary,
+        when: not skip_version_update|bool and
+              (update_component is not defined or update_component==srv_component) }
     # Stop bookkeepers
-    - { role: pulsar/common/pulsar_stopSvc, when: not skip_version_update|bool }
+    - { role: pulsar/common/pulsar_stopSvc, 
+        when: not skip_version_update|bool and
+              (update_component is not defined or update_component==srv_component) }
     # Backup the configuration files of the current Pulsar version
     - { role: pulsar/common/pulsar_bkupConfig, cfg_bkup_operation: 'version_update',
-        when: not skip_version_update|bool }
+        when: not skip_version_update|bool and
+              (update_component is not defined or update_component==srv_component) }
     # Clean up the old binary files (in order to avoid mixed libraries), but no data directories
-    - { role: pulsar/common/pulsar_resetBinaryNoData, when: not skip_version_update|bool}
+    - { role: pulsar/common/pulsar_resetBinaryNoData, 
+        when: not skip_version_update|bool and
+              (update_component is not defined or update_component==srv_component) }
     # Install the Pulsar binary of the target version
-    - { role: pulsar/common/pulsar_instBinary, keep_newer_files: no, when: not skip_version_update|bool }
+    - { role: pulsar/common/pulsar_instBinary, keep_newer_files: no, 
+        when: not skip_version_update|bool and
+              (update_component is not defined or update_component==srv_component) }
     # Set up the configuration files of the target Pulsar version
-    - { role: pulsar/bookie/bkie_config, when: not skip_version_update|bool }
+    - { role: pulsar/bookie/bkie_config, 
+        when: not skip_version_update|bool and
+              (update_component is not defined or update_component==srv_component) }
     # Start bookkeepers
-    - { role: pulsar/common/pulsar_startSvc, srvStarted: false, when: not skip_version_update|bool }
+    - { role: pulsar/common/pulsar_startSvc, srvStarted: false, 
+        when: not skip_version_update|bool and
+              (update_component is not defined or update_component==srv_component) }
 
 # - Sanity test of whether bookies are up and running properly
 - hosts: bookkeeper
@@ -148,8 +174,11 @@
   become: "{{ sudo_needed }}"
   become_method: sudo
   run_once: true
+  vars:
+    srv_component: 'bookie'
   roles:
-    - { role: pulsar/bookie/bkie_sanityCheck, srv_options: "{{ bookie_jvm_options_b }}" }
+    - { role: pulsar/bookie/bkie_sanityCheck, srv_options: "{{ bookie_jvm_options_b }}",
+        when: (update_component is not defined or update_component==srv_component) }
 
 
 ##########################
@@ -182,22 +211,37 @@
       when: skip_version_update|bool
   roles: 
     # Get Pulsar binary tarball file of the target version to the server host machine
-    - { role: pulsar/common/pulsar_getBinary }
+    - { role: pulsar/common/pulsar_getBinary,
+        when: not skip_version_update|bool and
+              (update_component is not defined or update_component==srv_component) }
     # Stop brokers
-    - { role: pulsar/common/pulsar_stopSvc, when: not skip_version_update|bool }
+    - { role: pulsar/common/pulsar_stopSvc, 
+        when: not skip_version_update|bool and
+              (update_component is not defined or update_component==srv_component) }
     # Backup the configuration files of the current Pulsar version 
     - { role: pulsar/common/pulsar_bkupConfig, cfg_bkup_operation: 'version_update',
-        when: not skip_version_update|bool }
+        when: not skip_version_update|bool and
+              (update_component is not defined or update_component==srv_component) }
     # Clean up the old binary files (in order to avoid mixed libraries), but no data directories
-    - { role: pulsar/common/pulsar_resetBinaryNoData, when: not skip_version_update|bool}
+    - { role: pulsar/common/pulsar_resetBinaryNoData, 
+        when: not skip_version_update|bool and
+              (update_component is not defined or update_component==srv_component) }
     # Install the Pulsar binary of the target version
-    - { role: pulsar/common/pulsar_instBinary, keep_newer_files: no, when: not skip_version_update|bool }
+    - { role: pulsar/common/pulsar_instBinary, keep_newer_files: no, 
+        when: not skip_version_update|bool and
+              (update_component is not defined or update_component==srv_component) }
     # Copy the nar file needed for broker side message filtering
-    - { role: pulsar/broker/_deploy_msg_filter_package, when: enable_srvside_msg_filtering|bool }
+    - { role: pulsar/broker/_deploy_msg_filter_package, 
+        when: enable_srvside_msg_filtering|bool and
+              (update_component is not defined or update_component==srv_component) }
     # Set up the configuration files of the target Pulsar version
-    - { role: pulsar/broker/brkr_config, when: not skip_version_update|bool }
+    - { role: pulsar/broker/brkr_config, 
+        when: not skip_version_update|bool and
+              (update_component is not defined or update_component==srv_component) }
     # Start brokers
-    - { role: pulsar/common/pulsar_startSvc, srvStarted: false, when: not skip_version_update|bool }
+    - { role: pulsar/common/pulsar_startSvc, srvStarted: false, 
+        when: not skip_version_update|bool and
+              (update_component is not defined or update_component==srv_component) }
 
 
 ##########################
@@ -231,25 +275,33 @@
       when: deploy_functions_worker == 'dedicated' and skip_version_update|bool
   roles:
     # Get Pulsar binary tarball file of the target version to the server host machine
-    - { role: pulsar/common/pulsar_getBinary }
+    - { role: pulsar/common/pulsar_getBinary,
+        when: deploy_functions_worker == 'dedicated' and not skip_version_update|bool and
+              (update_component is not defined or update_component==srv_component) }
     # Stop function workers
     - { role: pulsar/common/pulsar_stopSvc, 
-        when: deploy_functions_worker == 'dedicated' and not skip_version_update|bool }
+        when: deploy_functions_worker == 'dedicated' and not skip_version_update|bool and
+              (update_component is not defined or update_component==srv_component) }
     # Backup the configuration files of the current Pulsar version 
     - { role: pulsar/common/pulsar_bkupConfig, cfg_bkup_operation: 'version_update',
-        when: deploy_functions_worker == 'dedicated' and not skip_version_update|bool }
+        when: deploy_functions_worker == 'dedicated' and not skip_version_update|bool and
+              (update_component is not defined or update_component==srv_component) }
     # Clean up the old binary files (in order to avoid mixed libraries), but no data directories
     - { role: pulsar/common/pulsar_resetBinaryNoData, 
-        when: deploy_functions_worker == 'dedicated' and not skip_version_update|bool }
+        when: deploy_functions_worker == 'dedicated' and not skip_version_update|bool and
+              (update_component is not defined or update_component==srv_component) }
     # Install the Pulsar binary of the target version
     - { role: pulsar/common/pulsar_instBinary, keep_newer_files: no, 
-        when: deploy_functions_worker == 'dedicated' and not skip_version_update|bool }
+        when: deploy_functions_worker == 'dedicated' and not skip_version_update|bool and
+              (update_component is not defined or update_component==srv_component) }
     # Set up the configuration files of the target Pulsar version
     - { role: pulsar/functions_worker/fwrkr_config, 
-        when: deploy_functions_worker == 'dedicated' and not skip_version_update|bool }
+        when: deploy_functions_worker == 'dedicated' and not skip_version_update|bool and
+              (update_component is not defined or update_component==srv_component) }
     # Start function workers
     - { role: pulsar/common/pulsar_startSvc, srvStarted: false,  
-        when: deploy_functions_worker == 'dedicated' and not skip_version_update|bool }
+        when: deploy_functions_worker == 'dedicated' and not skip_version_update|bool and
+              (update_component is not defined or update_component==srv_component) }
 
 
 ##########################
@@ -262,7 +314,7 @@
   become: "{{ sudo_needed }}"
   become_method: sudo
   vars:
-    srv_component: "N/A"
+    srv_component: "StdAlnClnt"
     bkup_subfolder_name: "VersionChange-{{ ansible_date_time.epoch }}"
     skip_version_update: true
   pre_tasks:
@@ -274,14 +326,21 @@
       when: skip_version_update|bool
   roles: 
     # Get Pulsar binary tarball file of the target version to the server host machine
-    - { role: pulsar/common/pulsar_getBinary }
+    - { role: pulsar/common/pulsar_getBinary, 
+        when: not skip_version_update|bool and
+              (update_component is not defined or update_component==srv_component) }
     # Backup the configuration files of the current Pulsar version 
     - { role: pulsar/common/pulsar_bkupConfig, cfg_bkup_operation: 'version_update',
-        when: not skip_version_update|bool }
+        when: not skip_version_update|bool and
+              (update_component is not defined or update_component==srv_component) }
     # Clean up the old binary files (in order to avoid mixed libraries), but no data directories
-    - { role: pulsar/common/pulsar_resetBinaryNoData, when: not skip_version_update|bool}
+    - { role: pulsar/common/pulsar_resetBinaryNoData, 
+        when: not skip_version_update|bool and
+              (update_component is not defined or update_component==srv_component) }
     # Install the Pulsar binary of the target version
-    - { role: pulsar/common/pulsar_instBinary, keep_newer_files: no, when: not skip_version_update|bool }
+    - { role: pulsar/common/pulsar_instBinary, keep_newer_files: no, 
+        when: not skip_version_update|bool and
+              (update_component is not defined or update_component==srv_component) }
 
 
 #########################
