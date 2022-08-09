@@ -37,7 +37,7 @@
     group: "{{ pulsar_user_group }}"
     force: "{{ force_existing_adminConsole_jwt_token }}"
   with_items:
-    - { src_file: "{{ local_jwt_src_homedir }}/token/brokers/{{ brkr_super_user_roles[0] }}.jwt", 
+    - { src_file: "{{ local_jwt_src_homedir }}/token/{{ cluster_name }}/brokers/{{ brkr_super_user_roles[0] }}.jwt", 
         dest_file: "{{ tgt_adminConsole_sec_dir }}/jwt/token/{{ brkr_super_user_roles[0] }}.jwt" }
   when: enable_brkr_authNZ is defined and enable_brkr_authNZ|bool
 
@@ -49,11 +49,11 @@
     group: "{{ pulsar_user_group }}"
     force: "{{ force_existing_adminConsole_tls_certs }}"
   with_items:
-    - { src_file: "{{ local_tls_src_homedir }}/certs/adminConsoles/adminConsole.{{ (hostvars[groups['adminConsole'][0]]['private_ip'])|trim|replace('.','-') }}.key-pk8.pem",
+    - { src_file: "{{ local_tls_src_homedir }}/certs/{{ cluster_name }}/{{ srv_component }}s/adminConsole.{{ (hostvars[groups['adminConsole'][0]]['private_ip'])|trim|replace('.','-') }}.key-pk8.pem",
         dest_file: "{{ tgt_adminConsole_sec_dir }}/tls/server/adminConsole.{{ (hostvars[groups['adminConsole'][0]]['private_ip'])|trim|replace('.','-') }}.key-pk8.pem" }
-    - { src_file: "{{ local_tls_src_homedir }}/certs/adminConsoles/adminConsole.{{ (hostvars[groups['adminConsole'][0]]['private_ip'])|trim|replace('.','-') }}.crt.pem",
+    - { src_file: "{{ local_tls_src_homedir }}/certs/{{ cluster_name }}/{{ srv_component }}s/adminConsole.{{ (hostvars[groups['adminConsole'][0]]['private_ip'])|trim|replace('.','-') }}.crt.pem",
         dest_file: "{{ tgt_adminConsole_sec_dir }}/tls/server/adminConsole.{{ (hostvars[groups['adminConsole'][0]]['private_ip'])|trim|replace('.','-') }}.crt.pem" }
-    - { src_file: "{{ local_tls_src_homedir }}/certs/{{ public_cacert_name }}",
+    - { src_file: "{{ local_tls_src_homedir }}/certs/{{ srv_component}}_{{ public_cacert_name }}",
         dest_file: "{{ tgt_adminConsole_sec_dir }}/tls/rootca/{{ public_cacert_name }}" }
   when: enable_brkr_tls is defined and enable_brkr_tls|bool
 
