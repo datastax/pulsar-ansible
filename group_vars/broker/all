@@ -104,4 +104,9 @@ misc_broker_config_dict: {
   , bookkeeper_opportunisticStriping: 'true'    # default false
   # 'systemTopicEnabled' is always enabled
   , topicLevelPoliciesEnabled: 'true'           # default false
+  , managedLedgerCursorBackloggedThreshold: 1000
+  , managedLedgerCacheEvictionTimeThresholdMillis: 2000
+  , managedLedgerMinimumBacklogCursorsForCaching: 4
+  , managedLedgerMinimumBacklogEntriesForCaching: 1000
+  , managedLedgerMaxBacklogBetweenCursorsForCaching: 20000
 }
