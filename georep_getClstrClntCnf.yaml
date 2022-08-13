@@ -1,0 +1,15 @@
+- hosts: broker
+  gather_facts: true
+  any_errors_fatal: true
+  run_once: true
+  tasks: 
+    - file:
+        path: ".georep_wd"
+        state: directory
+    - debug: msg="{{pulsar_client_config_file}}"
+      when: show_debug_msg|bool
+    - fetch: 
+        src: "{{ pulsar_client_config_file }}"
+        dest: ".georep_wd/{{ cluster_name }}-client.conf"
+        flat: yes
+    

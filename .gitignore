@@ -8,3 +8,5 @@ hosts.ini.hostname
 hosts.ini.ip*
 .DS_Store
 collected_srv_files/*
+.georep_setup/*
+.georep_wd/*
