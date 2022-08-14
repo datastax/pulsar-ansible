@@ -2,6 +2,8 @@
   gather_facts: true
   any_errors_fatal: true
   run_once: true
+  vars:
+    srv_component: 'broker'
   tasks: 
     - file:
         path: ".georep_wd"
@@ -9,7 +11,11 @@
     - debug: msg="{{pulsar_client_config_file}}"
       when: show_debug_msg|bool
     - fetch: 
-        src: "{{ pulsar_client_config_file }}"
-        dest: ".georep_wd/{{ cluster_name }}-client.conf"
+        src: "{{ item }}"
+        dest: ".georep_wd/{{ cluster_name }}-{{ item.split('/')[-1] }}"
         flat: yes
+      with_items:
+        - "{{ pulsar_client_config_file }}"
+        - "{{ tgt_jwt_dest_homedir }}/token/{{ brkr_super_user_roles[0] }}.jwt"
+        - "{{ tgt_tls_dest_homedir }}/rootca/{{ srv_component }}_{{ public_cacert_name }}"
     
