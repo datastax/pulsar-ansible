@@ -32,6 +32,7 @@ ssh_user_in_pulsar_group: true
 # Software binary release and version
 # -------------------------------------------
 #
+install_jdk: false
 openjdk_ver: 11
 
 # - DataStax LunaStreaming release

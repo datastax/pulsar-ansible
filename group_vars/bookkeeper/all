@@ -11,13 +11,6 @@ bookie_listening_port: 3181
 # - see comment about "zk_stats_port"
 bookie_stats_port: 8000
 
-# bookkeeper storage deivces
-skip_bookie_block_device_setup: true
-bookie_disk_fs_type: xfs
-bookie_storage_blk_devices: 
-  - /dev/xvdj
-  - /dev/xvdl
-
 # Default journal and ledger data directories (when "customize_datadir" is false)
 dft_bookie_jorunal_data_homedirs:
   - "{{ tgt_pulsar_inst_dir }}/data"

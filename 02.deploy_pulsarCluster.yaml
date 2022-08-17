@@ -11,7 +11,7 @@
   become: "{{ sudo_needed }}"
   become_method: sudo
   roles: 
-    - { role: misc/_inst_openjdk }
+    - { role: misc/_inst_openjdk, when: install_jdk is defined and install_jdk|bool }
 
 - hosts: pulsarClient
   any_errors_fatal: true
@@ -104,8 +104,6 @@
     srv_component: 'zookeeper'
     srv_ports: ["{{ zk_clnt_port }}"]
   roles: 
-    # If needed, mount dedicated storage space to zookeepers
-    - { role: pulsar/zookeeper/zkpr_mntStorage, when: not skip_zk_block_device_setup|bool }
     # Config zookeeper (zookeeper.conf)
     - { role: pulsar/common/pulsar_srvBreadCrumb, pulsar_vm_type: "{{ srv_component }}" }
     - { role: pulsar/zookeeper/zkpr_config }
@@ -138,8 +136,6 @@
     srv_component: 'bookie'
     srv_ports: ["{{ bookie_listening_port }}"]
   roles: 
-    # If needed, mount dedicated storage space to bookkeepers
-    - { role: pulsar/bookie/bkie_mntStorage, when: not skip_bookie_block_device_setup|bool }
     # Config bookkeeper (bookkeeper.conf)
     - { role: pulsar/common/pulsar_srvBreadCrumb, pulsar_vm_type: "{{ srv_component }}" }
     - { role: pulsar/bookie/bkie_config }
@@ -206,7 +202,7 @@
   become_method: sudo
   roles:
     # Config Pulsar client (client.conf)
-    - { role: pulsar/client/clnt_config }
+    - { role: pulsar/client/clnt_config  }
 
 
 #########################
@@ -216,6 +212,14 @@
 - hosts: pulsarClient
   any_errors_fatal: true
   tasks:
+  - name: Check if ~/.profile exists
+    stat:
+      path: ~/.profile
+    register: profile_stat
+  - name: Create ~/.profile if not exists
+    file:
+      path: ~/.profile
+    when: pulsar_distro_stat.stat.exists
   - name: Add Pulsar executables in $PATH system variable
     lineinfile:
       dest: ~/.profile
