@@ -53,8 +53,11 @@
         dest_file: "{{ tgt_adminConsole_sec_dir }}/tls/server/adminConsole.{{ (hostvars[groups['adminConsole'][0]]['private_ip'])|trim|replace('.','-') }}.key-pk8.pem" }
     - { src_file: "{{ local_tls_src_homedir }}/certs/{{ cluster_name }}/{{ srv_component }}s/adminConsole.{{ (hostvars[groups['adminConsole'][0]]['private_ip'])|trim|replace('.','-') }}.crt.pem",
         dest_file: "{{ tgt_adminConsole_sec_dir }}/tls/server/adminConsole.{{ (hostvars[groups['adminConsole'][0]]['private_ip'])|trim|replace('.','-') }}.crt.pem" }
+    - { src_file: "{{ local_tls_src_homedir }}/certs/broker_{{ public_cacert_name }}",
+        dest_file: "{{ tgt_adminConsole_sec_dir }}/tls/rootca/broker_{{ public_cacert_name }}" }
     - { src_file: "{{ local_tls_src_homedir }}/certs/{{ srv_component}}_{{ public_cacert_name }}",
         dest_file: "{{ tgt_adminConsole_sec_dir }}/tls/rootca/{{ public_cacert_name }}" }
+
   when: enable_brkr_tls is defined and enable_brkr_tls|bool
 
 

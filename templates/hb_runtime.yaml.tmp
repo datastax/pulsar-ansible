@@ -1,0 +1,60 @@
+# This is a sample configuration for the Pulsar Heartbeat
+# For all configuration options, see ./src/cfg/config.go
+---
+name: "<<home_cluster>>" # Pulsar cluster name, required
+tokenFilePath: "<<hb_token_path>>" # path to pulsar jwt, takes precedence over token, if both present
+token: "<<hb_admin_token>>" # pulsar jwt
+trustStore: "<<hb_tls_store_path>>" # path to tls truststore
+prometheusConfig:
+  port: "<<hb_prometheus_port>>" #":8080"
+  exposeMetrics: true
+slackConfig:
+  alertUrl: # required for slack integration to work
+tokenOAuthConfig:
+  ClientID: "" # "example-client"
+  ClientSecret: ""  # "example-client-secret"
+  TokenURL: "" # "<token-endpoint of oauth2 provider>"
+sitesConfig:
+  sites: 
+opsGenieConfig:
+  intervalSeconds: 180
+  heartbeatKey: "" # GenieKey key for heartbeat
+  alertKey: "" # GenieKey api key to generate alerts or incidents
+pulsarAdminRestConfig:
+  intervalSeconds: 120
+  Token: "<<hb_admin_token>>" # pulsar jwt, required for pulsarAdminRestConfig to work
+  clusters:
+  - name: "<<home_cluster>>"
+    url: "<<broker_http_url>>"
+    alertPolicy:
+      Ceiling: 10
+      MovingWindowSeconds: 30
+      CeilingInMovingWindow: 10
+pulsarTopicConfig:
+  - latencyBudgetMs: 360
+    intervalSeconds: 60
+    pulsarUrl: "<<broker_pulsar_url>>" # pulsar+ssl://cluster3.gcp.kafkaesque.io:6651
+    topicName: "<<hb_topic_name>>" # this topic must be created before installing heartbeat i.e. "persistent://tenant/ns2/reserved-cluster-monitoring"
+    payloadSizes: [ 15B ]
+    numberOfMessages: 1
+    alertPolicy:
+      Ceiling: 30
+      MovingWindowSeconds: 600
+      CeilingInMovingWindow: 5
+analyticsConfig:
+  apiKey:
+  ingestionURL:
+  insightsWriteKey:
+  insightsAccountId: ""
+k8sConfig:
+  enabled: false
+  pulsarNamespace: default
+brokersConfig:
+  intervalSeconds: 45
+  inclusterRestURL: "<<hb_broker_in_rest_url>>" # "http://pulsar-broker:8080"
+  alertPolicy:
+    Ceiling: 5
+    MovingWindowSeconds: 600
+    CeilingInMovingWindow: 8
+webSocketConfig:
+  null

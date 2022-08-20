@@ -15,5 +15,5 @@
       -srv_cert_expr_days {{ srv_cert_expire_days }} \
       -certSubjLineStr {{ cert_subj_line }}
   register: tlsCertShell
-- debug: msg="({{ srv_component }}) tlsCertShell.failed - {{ tlsCertShell.failed }}"
+- debug: msg="({{ srv_component }}) tlsCertShell.failed - {{ tlsCertShell.failed }} ={{ cluster_name }}={{ srv_component }}={{ srv_host_list }}={{ rootca_key_password }}={{ srv_key_password }}={{ rootca_cert_expire_days }}={{ srv_cert_expire_days }}=certSubjLineStr - {{ cert_subj_line }} "
   when: show_debug_msg|bool and showLocalCmdOutput|bool

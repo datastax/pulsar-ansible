@@ -1,4 +1,69 @@
+
 ---
+#########################
+# Create broker security related folders for client connection on Pular HeartHeat hosts
+# ------------------------
+- name: If broker authN is enabled, create JWT token related security folders on Pulsar HeartHeat hosts
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    mode: "{{ file_permission_mode }}"
+    recurse: yes
+  with_items:
+    - "{{ tgt_heartBeat_sec_dir }}/jwt/token"
+  when: enable_brkr_authNZ is defined and enable_brkr_authNZ|bool
+
+- name: If broker TLS is enabled, create TLS certificate related security folders on Pulsar HeartBeat hosts
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    mode: "{{ file_permission_mode }}"
+    recurse: yes
+  with_items:
+    - "{{ tgt_heartBeat_sec_dir }}/tls/rootca"
+    - "{{ tgt_heartBeat_sec_dir }}/tls/server"
+  when: enable_brkr_tls is defined and enable_brkr_tls|bool
+
+
+#########################
+# Copy locally generated security files to Pulsar client hosts
+# ------------------------
+- name: If broker authN is enabled, copy JWT token file to Pulsar HeartBeat host
+  copy:
+    src: "{{ item.src_file }}/"
+    dest: "{{ item.dest_file }}"
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    force: "{{ force_existing_heartBeat_jwt_token }}"
+  with_items:
+    - { src_file: "{{ local_jwt_src_homedir }}/token/{{ cluster_name }}/brokers/{{ brkr_super_user_roles[0] }}.jwt",
+        dest_file: "{{ tgt_heartBeat_sec_dir }}/jwt/token/{{ brkr_super_user_roles[0] }}.jwt" }
+  when: enable_brkr_authNZ is defined and enable_brkr_authNZ|bool
+
+- name: If TLS is enabled, copy the trusted TLS certificate to Pulsar HeartBeat host
+  copy:
+    src: "{{ item.src_file }}/"
+    dest: "{{ item.dest_file }}"
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    force: "{{ force_existing_heartBeat_tls_certs }}"
+  with_items:
+    - { src_file: "{{ local_tls_src_homedir }}/certs/{{ cluster_name }}/{{ srv_component }}s/heartBeat.{{ (hostvars[groups['heartBeat'][0]]['private_ip'])|trim|replace('.','-') }}.key-pk8.pem",
+        dest_file: "{{ tgt_heartBeat_sec_dir }}/tls/server/heartBeat.{{ (hostvars[groups['heartBeat'][0]]['private_ip'])|trim|replace('.','-') }}.key-pk8.pem" }
+    - { src_file: "{{ local_tls_src_homedir }}/certs/{{ cluster_name }}/{{ srv_component }}s/heartBeat.{{ (hostvars[groups['heartBeat'][0]]['private_ip'])|trim|replace('.','-') }}.crt.pem",
+        dest_file: "{{ tgt_heartBeat_sec_dir }}/tls/server/heartBeat.{{ (hostvars[groups['heartBeat'][0]]['private_ip'])|trim|replace('.','-') }}.crt.pem" }
+    - { src_file: "{{ local_tls_src_homedir }}/certs/broker_{{ public_cacert_name }}",
+        dest_file: "{{ tgt_heartBeat_sec_dir }}/tls/rootca/broker_{{ public_cacert_name }}" }
+    - { src_file: "{{ local_tls_src_homedir }}/certs/{{ srv_component}}_{{ public_cacert_name }}",
+        dest_file: "{{ tgt_heartBeat_sec_dir }}/tls/rootca/{{ public_cacert_name }}" }
+
+  when: enable_brkr_tls is defined and enable_brkr_tls|bool
+
+
 - name: Copy Pulsar HeartBeat runtime config (runtime.yaml) template
   template:
     src: templates/hb_runtime.yaml.tmp
@@ -7,10 +72,25 @@
     group: "{{ pulsar_user_group }}"
     mode: "{{ file_permission_mode_noexec }}"
 
-# - name: Replace Pulsar HeartBeat config setting placeholders with cluster specific information
-#   replace:
-#       path: "{{ tgt_heartBeat_inst_dir }}/runtime.yaml"
-#       regexp: "{{ item.regexp }}"
-#       replace: "{{ item.line }}"
-#   with_items:
-#     - { regexp: '<<home_cluster>>', line: "{{ cluster_name }}" }
+- name: Put the JWT token value in varaible
+  slurp:
+    src: "{{ tgt_heartBeat_sec_dir }}/jwt/token/{{ brkr_super_user_roles[0] }}.jwt"
+  register: client_token
+  when: enable_brkr_authNZ is defined and enable_brkr_authNZ|bool
+
+- name: Replace Pulsar HeartBeat config setting placeholders with cluster specific information
+  replace:
+      path: "{{ tgt_heartBeat_inst_dir }}/runtime.yaml"
+      regexp: "{{ item.regexp }}"
+      replace: "{{ item.line }}"
+  with_items:
+    - { regexp: "{{ placeHolder_homeCluster }}", line: "{{ cluster_name }}" }
+    - { regexp: "{{ placeHolder_hb_token_path }}", line: "{% if enable_brkr_authNZ is defined and enable_brkr_authNZ|bool %}{{ tgt_heartBeat_sec_dir }}/jwt/token/{{ brkr_super_user_roles[0] }}.jwt{% else %}{% endif %}" }
+    - { regexp: "{{ placeHolder_hb_admin_token }}", line: "{% if enable_brkr_authNZ is defined and enable_brkr_authNZ|bool %}{{ client_token['content']|b64decode|trim }}{% else %}{% endif %}" }
+    - { regexp: "{{ placeHolder_hb_tls_store_path }}", line: "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ tgt_heartBeat_sec_dir }}/tls/rootca/{{ public_cacert_name }}{% else %}{% endif %}" }
+    - { regexp: "{{ placeHolder_hb_prometheus_port }}", line: ":{{ hb_prometheus_port }}" }
+    - { regexp: "{{ placeHolder_broker_http_url }}", line: "{% if broker_http_url is defined and broker_http_url|length > 0 %}{{ broker_http_url }}{% else %}{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}https://{{ hostvars[groups['broker'][0]]['webSvcTlsListStr']|trim }}{% else %}http://{{ hostvars[groups['broker'][0]]['webSvcListStr']|trim }}{% endif %}{% endif %}" }
+    - { regexp: "{{ placeHolder_broker_pulsar_url }}", line: "{% if broker_pulsar_url is defined and broker_pulsar_url|length > 0 %}{{ broker_pulsar_url }}{% else %}{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}pulsar+ssl://{{ hostvars[groups['broker'][0]]['brokerSvcTlsListStr']|trim }}{% else %}pulsar://{{ hostvars[groups['broker'][0]]['brokerSvcListStr']|trim }}{% endif %}{% endif %}" }
+    - { regexp: "{{ placeHolder_hb_topic_name }}", line: "{{ hb_topic_name }}" }
+    - { regexp: "{{ placeHolder_hb_broker_in_rest_url }}", line: "{% if hb_broker_in_rest_url is defined and hb_broker_in_rest_url|length > 0 %}{{ hb_broker_in_rest_url }}{% else %}{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}https://{{ hostvars[groups['broker'][0]]['webSvcTlsListStr']|trim }}{% else %}http://{{ hostvars[groups['broker'][0]]['webSvcListStr']|trim }}{% endif %}{% endif %}" }
+

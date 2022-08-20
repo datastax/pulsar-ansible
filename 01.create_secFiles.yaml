@@ -93,3 +93,30 @@
               deploy_adminconsole is defined and
               enable_anco_https is defined and enable_anco_https|bool and 
               skip_anco_tls_certs_generatation is defined and not skip_anco_tls_certs_generatation|bool }
+
+              #########################
+# Generate Pulsar HeartBeat security related files
+# - JWT tokens and keys
+# - TLS certificates and keys
+#
+# This is only relevant when 
+# - HeartBeat deployment is needed, and
+# - HeartBeat security is enabled
+#
+# NOTE: this step will run bash script locally. This means that the localhost
+#       can't be Windows based machine. Linux or Mac machine are fine.
+# -----------------------
+- hosts: localhost
+  connection: local
+  vars:
+    showLocalCmdOutput: true
+    srv_component: 'heartBeat'
+    srv_host_list: "{{ groups['heartBeat']|join(',') }}"
+  roles:
+    - { role: local_process/gen_secFile/create_tls_certs,  
+        srv_key_password: "{{ anco_key_password }}",
+        srv_cert_expire_days: "{{ anco_cert_expire_days }}",
+        when: srv_host_list != "" and 
+              deploy_heartbeat is defined and
+              enable_anco_https is defined and enable_anco_https|bool and 
+              skip_anco_tls_certs_generatation is defined and not skip_anco_tls_certs_generatation|bool }

@@ -5,15 +5,32 @@
 ##
 
 #########################
+# PreWork
+# -----------------------
+# - Get broker list in deseried formats and save them in variables
+#   They are needed in later steps for Pulsar configurations
+- hosts: broker
+  gather_facts: true
+  run_once: true
+  roles:
+    - { role: pulsar/broker/_pre_brokerListVar }
+
+
+#########################
 # HeartBeat Related
 # -----------------------
 - hosts: heartBeat
   become: "{{ sudo_needed }}"
   become_method: sudo
   any_errors_fatal: true
+  gather_facts: true
+  vars:
+    srvStarted: true
+    srv_component: 'heartBeat'
+    srv_ports: ["{{ hb_prometheus_port }}"]
   roles: 
     - { role: heartbeat/hb_instBinary }
     - { role: heartbeat/hb_config }
-  post_tasks:
-    - name: Start Pulsar HeartBeat
-      shell: cd {{ tgt_heartBeat_inst_dir }}; nohup PULSAR_OPS_MONITOR_CFG=./run_time.yaml {{ heartBeat_bin_name.split('.gz')[0] }} 2>&1 &
+    # Check the current status of the HeartBeat application server
+    - { role: misc/_check_svc_status }
+    - { role: heartbeat/hb_startHbSvc }

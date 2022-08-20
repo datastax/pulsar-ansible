@@ -22,3 +22,36 @@ heartBeat_download_url: "{{ heartBeat_download_url_base }}/{{ heartBeat_ver }}/{
 #
 tgt_pkg_heartBeat_dir: "{{ tgt_pkg_homedir }}/pulsar_heart_beat"
 tgt_heartBeat_inst_dir: /opt/pulsarHeartBeat
+tgt_heartBeat_sec_dir: "{{ tgt_heartBeat_inst_dir }}/security"
+
+# - Whehter or not to force replacing the existing HeartBeat server side JWT token files
+force_existing_heartBeat_jwt_token: false
+# - Whehter or not to force replacing the existing HeartBeat server side TLS certificate files
+force_existing_heartBeat_tls_certs: false
+
+hb_token_path: ""
+hb_admin_token: ""
+hb_tls_store_path: ""
+hb_prometheus_port: 8080
+# if broker_http_url is not empty, then it will be applied
+broker_http_url: "http://10.101.33.71:8080"
+# if broker_pulsar_url is not empty, then it will be applied
+broker_pulsar_url: "pulsar://10.101.33.71:6650"
+# hb_topic_name should be created before starting heartbeat
+hb_topic_name: "persistent://public/ns2/reserved-cluster-monitoring"
+hb_broker_in_rest_url: ""
+
+#
+# Template placeholders
+# -------------------------------------------
+#
+# - HeartBeat configuration runtime-template.yml template place holder
+placeHolder_homeCluster: "<<home_cluster>>"
+placeHolder_hb_token_path: "<<hb_token_path>>"
+placeHolder_hb_admin_token: "<<hb_admin_token>>"
+placeHolder_hb_tls_store_path: "<<hb_tls_store_path>>"
+placeHolder_hb_prometheus_port: "<<hb_prometheus_port>>"
+placeHolder_broker_http_url: "<<broker_http_url>>" 
+placeHolder_broker_pulsar_url: "<<broker_pulsar_url>>"
+placeHolder_hb_topic_name: "<<hb_topic_name>>"
+placeHolder_hb_broker_in_rest_url: "<<hb_broker_in_rest_url>>"

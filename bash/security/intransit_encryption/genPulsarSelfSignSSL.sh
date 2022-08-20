@@ -158,9 +158,9 @@ SRV_ROOT_CA_CRL="${srvHostType}_ca.crl.pem"
 
 cp -f openssl.cnf ${srvHostType}_openssl.cnf
 
-sed -i "s/ca.key.pem/${SRV_ROOT_CA_KEY}/g" "${srvHostType}_openssl.cnf"
-sed -i "s/ca.cert.pem/${SRV_ROOT_CA_CERT}/g" "${srvHostType}_openssl.cnf"
-sed -i "s/ca.crl.pem/${SRV_ROOT_CA_CRL}/g" "${srvHostType}_openssl.cnf"
+sed -i '' -e "s/ca.key.pem/${SRV_ROOT_CA_KEY}/g" "${srvHostType}_openssl.cnf"
+sed -i '' -e "s/ca.cert.pem/${SRV_ROOT_CA_CERT}/g" "${srvHostType}_openssl.cnf"
+sed -i '' -e "s/ca.crl.pem/${SRV_ROOT_CA_CRL}/g" "${srvHostType}_openssl.cnf"
 
 if ! [[ -f private/${SRV_ROOT_CA_KEY} && -f certs/${SRV_ROOT_CA_CERT} && $reuseCa -eq 1 ]]; then
   echo

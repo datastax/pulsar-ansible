@@ -39,7 +39,7 @@ openjdk_ver: 11
 # pulsarLS_ver_main: "2.8.3"
 # pulsarLS_ver_secondary: "1.0.14"
 pulsarLS_ver_main: "2.10"
-pulsarLS_ver_secondary: "1.3"
+pulsarLS_ver_secondary: "1.0"
 pulsarLS_ver_signifant: "{{ pulsarLS_ver_main.split('.')[0] }}.{{ pulsarLS_ver_main.split('.')[1] }}"
 pulsarLS_ver: "{{ pulsarLS_ver_main }}.{{ pulsarLS_ver_secondary }}"
 # valid luna streaming binary options: "core" (Pulsar core), "" (base), "all (including all packages, I/O conenctors and message filters)"
@@ -62,7 +62,8 @@ pulsarLS_bin_download_url: "{{ pulsarLS_download_url_base }}/ls{{ pulsarLS_ver_m
 # -------------------------------------------
 #
 # - Local fodler that has 
-local_bin_homedir: "~/DataStax/pulsar_bin/releases/luna_streaming"
+#local_bin_homedir: "~/DataStax/pulsar_bin/releases/luna_streaming"
+local_bin_homedir: "~/Code_Dev/datastax/download"
 
 #
 # Target directories
@@ -114,9 +115,9 @@ minNumRackPerWQ: 2            # default 2
 #       for PROD deployment!
 # -------------------------------------------
 #
-# deploy_functions_worker: "none"
+deploy_functions_worker: "none"
 # deploy_functions_worker: "shared"
-deploy_functions_worker: "dedicated"
+# deploy_functions_worker: "dedicated"
 
 
 #
@@ -263,3 +264,11 @@ deploy_adminconsole: "dedicated"
 enable_anco_https: true
 # - Whether or not to skip generating Pulsar functions worker TLS certificate files on the local host
 skip_anco_tls_certs_generatation: false
+
+#
+# How to deploy Heart Beat
+# - shared: deploy Heart Beat on one of broker nodes
+# - dedicated: deploy Heart Beat on dedicated instances
+#
+#
+deploy_heartbeat: "dedicated"

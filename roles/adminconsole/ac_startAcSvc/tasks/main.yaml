@@ -2,7 +2,7 @@
 - name: Start AdminConsole if it is not running yet
   ## NOTE: Do NOT use Ansible "become_user"! Otherwise, ansible will fail to write .async file under /home/{{ pulsar_user }}
   # become_user: "{{ pulsar_user }}"
-  shell: "cd {{ tgt_adminConsole_inst_dir }}/server/; export NODE_EXTRA_CA_CERTS={{ tgt_adminConsole_sec_dir }}/tls/rootca/{{ public_cacert_name }}; nohup {% if sudo_needed|bool %}sudo -u {{ pulsar_user }} bash {% endif %}npm start 2>&1 &"
+  shell: "cd {{ tgt_adminConsole_inst_dir }}/server/; {% if sudo_needed|bool %}sudo -u {{ pulsar_user }} {% endif %} export NODE_EXTRA_CA_CERTS={{ tgt_adminConsole_sec_dir }}/tls/rootca/{{ public_cacert_name }}; npm start > /tmp/ac_start.out 2>&1 &"
   # Async shell execution with a very large number
   async: 3153600000 # 100 years
   register: ac_startSvc_cmdcat
