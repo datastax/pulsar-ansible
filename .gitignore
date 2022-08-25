@@ -8,5 +8,8 @@ hosts.ini.hostname
 hosts.ini.ip*
 .DS_Store
 collected_srv_files/*
-.georep_setup/*
 .georep_wd/*
+02.deploy_pulsarCluster.sh
+permission_matrix/MyCluster1
+cluster_topology/MyCluster1
+hosts_*.ini

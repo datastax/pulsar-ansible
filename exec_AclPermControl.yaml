@@ -1,0 +1,46 @@
+- hosts: localhost
+  connection: local
+  tasks:
+    - name: Set the current date and time as variables
+      set_fact: |
+        curAnsiCntrlDate={{ ansible_date_time.date }}
+        curAnsiCntrlTime={{ ansible_date_time.time | replace(':','-') }}
+
+- hosts: broker
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  vars:
+    tgtAclFolder: "{{ tgt_pulsar_inst_dir }}/acl/{{ hostvars['localhost']['curAnsiCntrlDate'] }}"
+    tgtAclCliCmdFile: "{{ aclDefRawName }}_pulsarCliCmd_{{ hostvars['localhost']['curAnsiCntrlTime'] }}.sh"
+  tasks:
+    - name: Create ACL execution log directory
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ pulsar_user }}"
+        group: "{{ pulsar_user_group }}"
+        mode: "{{ file_permission_mode }}"
+        recurse: yes
+      with_items:
+        - "{{ tgtAclFolder }}"
+
+    - name: Copy locally generated ACL control execution script file to brokers
+      copy: 
+        src: "permission_matrix/{{ cluster_name }}/{{ aclDefRawName }}_pulsarCliCmdTmpl"
+        dest: "{{ tgtAclFolder }}/{{ tgtAclCliCmdFile }}"
+        owner: "{{ pulsar_user }}"
+        group: "{{ pulsar_user_group }}"
+        mode: "{{ file_permission_mode }}"
+
+    - name: Replace template place holder in the ACL control execution template script file
+      replace: 
+        path: "{{ tgtAclFolder }}/{{ tgtAclCliCmdFile }}"
+        regexp: "<PULSAR_ADMIN_CMD>"
+        replace: "{{ tgt_pulsar_inst_dir }}/bin/pulsar-admin"
+
+    - name: Exeucte the ACL control execution script file
+      shell: "{% if sudo_needed|bool %}sudo -u {{ pulsar_user }} {% endif %}bash {{ tgtAclFolder }}/{{ tgtAclCliCmdFile }}"
+      register: acl_exec_cmdcat
+    - debug: msg="acl_exec_cmdcat.failed - {{ acl_exec_cmdcat.failed }}"
+      when: show_debug_msg|bool

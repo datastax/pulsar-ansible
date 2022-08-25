@@ -1,0 +1,18 @@
+# Pulsar cluster access control list (ACL) definition file
+# -----------------------------------
+# > each line represents a specific permission control (grant or revoke) item in Pulsar
+# > each permission control line has the following fields
+#    0) user role name
+#    1) acl operation
+#       * possible valus: grant, revoke
+#    2) resource type 
+#       * possible values: topic, namespace, subscription
+#    3) resource name, e.g. namespace name, topic name, subscription name
+#    4) acl action (only relevant when resource name is topic or namespace)
+#       * possible values: produce, consume, sources, sinks, functions, packages
+#       * can have multiple values using '+' to concatenate
+# -----------------------------------
+reguser1,revoke,namespace,public/default,produce+consume
+reguser2,revoke,topic,persistent://public/default/testtopic1,produce
+reguser3,revoke,topic,persistent://public/default/testtopic1,consume
+reguser1,grant,subscription,mytestsub,

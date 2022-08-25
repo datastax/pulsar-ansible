@@ -1,0 +1,19 @@
+---
+- name: Check if ~/.profile exists
+  stat:
+    path: ~/.profile
+  register: profile_stat
+- name: Create ~/.profile if not exists
+  file:
+    path: ~/.profile
+  when: pulsar_distro_stat.stat.exists
+- name: Add Pulsar executables in $PATH system variable
+  lineinfile:
+    dest: ~/.profile
+    state: present
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { regexp: "^PULSAR_HOME=", line: "PULSAR_HOME={{ tgt_pulsar_inst_dir }}" }
+    # No match add the line at EOF
+    - { regexp: "NO-MATCH", line: "PATH=\"$PULSAR_HOME/bin:$PATH\"" }
