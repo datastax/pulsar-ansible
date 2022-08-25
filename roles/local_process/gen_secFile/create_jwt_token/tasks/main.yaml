@@ -5,10 +5,14 @@
     ./cleanupToken.sh \
       -clst_name {{ cluster_name}} \
       -host_type {{ srv_component }}
+  when: cleanLocalSecStaging is defined and cleanLocalSecStaging|bool
+- name: ({{ srv_component }}) If authN/authR are enabled, call a bash script to create JWT token files
+  shell: |
+    cd bash/security/authentication/jwt
     ./genUserJwtToken.sh -r \
       -clst_name {{ cluster_name}} \
       -host_type {{ srv_component }} \
-      -user_list {{ brkr_super_user_roles_list }}
+      -user_list {{ user_roles_list }}
   register: jwtTokenShell
 - debug: msg="({{ srv_component }}) jwtTokenShell.failed - {{ jwtTokenShell.failed }}"
   when: show_debug_msg|bool and showLocalCmdOutput|bool

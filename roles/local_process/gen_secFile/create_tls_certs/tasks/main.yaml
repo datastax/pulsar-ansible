@@ -1,10 +1,14 @@
 ---
-- name: ({{ srv_component }}) If TLS is enabled, call a bash script to create TLS certificate files
+- name: ({{ srv_component }}) If needed, clean up the local security file staging folder
   shell: |
     cd bash/security/intransit_encryption; 
     ./cleanupCert.sh \
       -clst_name {{ cluster_name}} \
-      -host_type {{ srv_component }}; 
+      -host_type {{ srv_component }}
+  when: cleanLocalSecStaging is defined and cleanLocalSecStaging|bool
+- name: ({{ srv_component }}) If TLS is enabled, call a bash script to create TLS certificate files
+  shell: |
+    cd bash/security/intransit_encryption; 
     ./genPulsarSelfSignSSL.sh -r \
       -clst_name {{ cluster_name }} \
       -host_type {{ srv_component }} \

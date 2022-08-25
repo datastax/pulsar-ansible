@@ -11,7 +11,8 @@
   become: "{{ sudo_needed }}"
   become_method: sudo
   roles: 
-    - { role: misc/_inst_openjdk, when: install_jdk is defined and install_jdk|bool }
+    - { role: misc/_inst_openjdk, 
+        when: install_jdk is defined and install_jdk|bool }
 
 - hosts: pulsarClient
   any_errors_fatal: true
@@ -37,7 +38,7 @@
     - name: Copy the nar file needed for broker side message filtering
       include_role:
         name: pulsar/broker/_deploy_msg_filter_package
-      when: enable_srvside_msg_filtering|bool
+      when: deploy_status=="add" and enable_srvside_msg_filtering|bool
 
 
 #########################
@@ -105,12 +106,12 @@
     srv_ports: ["{{ zk_clnt_port }}"]
   roles: 
     # Config zookeeper (zookeeper.conf)
-    - { role: pulsar/common/pulsar_srvBreadCrumb, pulsar_vm_type: "{{ srv_component }}" }
-    - { role: pulsar/zookeeper/zkpr_config }
+    - { role: pulsar/common/pulsar_srvBreadCrumb, pulsar_vm_type: "{{ srv_component }}", when: deploy_status=="add" }
+    - { role: pulsar/zookeeper/zkpr_config, when: deploy_status=="add" }
     # Check the current status of zookeepers
-    - { role: misc/_check_svc_status }
+    - { role: misc/_check_svc_status, when: deploy_status=="add" }
     # Start zookepers
-    - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ zk_jvm_options }}" }
+    - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ zk_jvm_options }}", when: deploy_status=="add" }
 
 # - Initialzie Pulsar cluster metadata after zookeepers are up and running
 - hosts: zookeeper
@@ -119,7 +120,7 @@
   become_method: sudo
   run_once: true
   roles: 
-    - { role: pulsar/zookeeper/zkpr_initMetadata, srv_options: "{{ zk_jvm_options }}" }
+    - { role: pulsar/zookeeper/zkpr_initMetadata, srv_options: "{{ zk_jvm_options }}", when: scaleOut|bool }
 
 
 #########################
@@ -137,12 +138,12 @@
     srv_ports: ["{{ bookie_listening_port }}"]
   roles: 
     # Config bookkeeper (bookkeeper.conf)
-    - { role: pulsar/common/pulsar_srvBreadCrumb, pulsar_vm_type: "{{ srv_component }}" }
-    - { role: pulsar/bookie/bkie_config }
+    - { role: pulsar/common/pulsar_srvBreadCrumb, pulsar_vm_type: "{{ srv_component }}", when: deploy_status=="add" }
+    - { role: pulsar/bookie/bkie_config, when: deploy_status=="add" }
     # Check the current status of bookies
-    - { role: misc/_check_svc_status }
+    - { role: misc/_check_svc_status, when: deploy_status=="add" }
     # Start bookies
-    - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ bookie_jvm_options }}" }
+    - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ bookie_jvm_options }}", when: deploy_status=="add" }
 
 # - Sanity test of whether bookies are up and running properly
 - hosts: bookkeeper
@@ -151,7 +152,7 @@
   become_method: sudo
   run_once: true
   roles:
-    - { role: pulsar/bookie/bkie_sanityCheck, srv_options: "{{ bookie_jvm_options_b }}" }
+    - { role: pulsar/bookie/bkie_sanityCheck, srv_options: "{{ bookie_jvm_options_b }}", when: scaleOut|bool }
 
 
 #########################
@@ -175,12 +176,12 @@
       ]
   roles: 
     # Config broker (broker.conf)
-    - { role: pulsar/common/pulsar_srvBreadCrumb, pulsar_vm_type: "{{ srv_component }}" }
-    - { role: pulsar/broker/brkr_config }
+    - { role: pulsar/common/pulsar_srvBreadCrumb, pulsar_vm_type: "{{ srv_component }}", when: deploy_status=="add" }
+    - { role: pulsar/broker/brkr_config, when: deploy_status=="add" }
     # Check the current status of brokers
-    - { role: misc/_check_svc_status }
+    - { role: misc/_check_svc_status, when: deploy_status=="add" }
     # Start brokers
-    - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ broker_jvm_options }}" }
+    - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ broker_jvm_options }}", when: deploy_status=="add" }
 
 # - Initialzie transaction coordinator metadata when needed
 - hosts: broker
@@ -189,7 +190,8 @@
   become_method: sudo
   run_once: true
   roles: 
-    - { role: pulsar/broker/brkr_initTransMeta, srv_options: "{{ broker_jvm_options }}" }
+    - { role: pulsar/broker/brkr_initTransMeta, srv_options: "{{ broker_jvm_options }}", 
+        when: enable_transaction|bool and deploy_status=="add" }
  
 
 #########################
