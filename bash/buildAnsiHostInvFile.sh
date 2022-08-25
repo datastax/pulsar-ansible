@@ -44,9 +44,9 @@ validHostTypeArr=("zookeeper" "bookkeeper" "broker" "functions_worker" "standAlo
 validHostTypeListStr="${validHostTypeArr[@]}"
 debugMsg "validHostTypeListStr=${validHostTypeListStr}"
 
-validPulsarSrvTypeArr=("zookeeper" "bookkeeper" "broker" "functions_worker")
-validPulsarSrvTypeListStr="${validPulsarSrvTypeArr[@]}"
-debugMsg "validPulsarSrvTypeListStr=${validPulsarSrvTypeListStr}"
+validPulsarHostTypeArr=("zookeeper" "bookkeeper" "broker" "functions_worker" "standAloneClient")
+validPulsarHostTypeListStr="${validPulsarHostTypeArr[@]}"
+debugMsg "validPulsarHostTypeListStr=${validPulsarHostTypeListStr}"
 
 validDeployStatusArr=("current" "add" "remove")
 validDeployStatusListStr="${validDeployStatusArr[@]}"
@@ -75,8 +75,8 @@ while [[ "$#" -gt 0 ]]; do
    shift
 done
 
-clstTopFile="${clstrToplogyRawDefHomeDir}/${clstrName}/clusterDefRaw.txt"
-lastClstTopFile="${clstrToplogyRawDefHomeDir}/${clstrName}/clusterDefRaw_last.txt"
+clstTopFile="${clstrToplogyRawDefHomeDir}/${clstrName}/clusterDefRaw"
+lastClstTopFile="${clstrToplogyRawDefHomeDir}/${clstrName}/clusterDefRaw_last"
 debugMsg "clstTopFile=${clstTopFile}"
 debugMsg "lastClstTopFile=${lastClstTopFile}"
 
@@ -221,14 +221,14 @@ for hostType in "${validHostTypeArr[@]}"; do
         scaleOut="true"
     fi
 
-    if [[ "${validPulsarSrvTypeListStr}" =~ "${hostType}" ]]; then
+    if [[ "${validPulsarHostTypeListStr}" =~ "${hostType}" ]]; then
         outputMsg "[${hostType}:vars]"
         outputMsg "scaleOut=\"${scaleOut}\""
     fi
     outputMsg "[${hostType}]"
 
     for index in "${!internalIpSrvTypeArr[@]}"; do
-        if [[ "${validPulsarSrvTypeListStr}" =~ "${hostType}" ]]; then
+        if [[ "${validPulsarHostTypeListStr}" =~ "${hostType}" ]]; then
             hostInvLine="${internalIpSrvTypeArr[$index]} private_ip=${externalIpSrvTypeArr[$index]} deploy_status=${deployStatusSrvTypeArr[$index]}"
         else
             hostInvLine="${internalIpSrvTypeArr[$index]} private_ip=${externalIpSrvTypeArr[$index]}"

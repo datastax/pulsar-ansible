@@ -23,12 +23,12 @@
     # - create Pulsar user and group
     # - prepare binary folder structure
     # - etc.
-    - { role: pulsar/common/pulsar_prepBinary }
+    - { role: pulsar/common/pulsar_prepBinary, when: deploy_status=="add"}
     # Get Pulsar binary tarball file of the target version to the server host machine
-    - { role: pulsar/common/pulsar_getBinary }
+    - { role: pulsar/common/pulsar_getBinary, when: deploy_status=="add" }
     # Install Pulsar binary
     # - "keep_newer_files: yes" means not to overwrite existing Pulsar files
-    - { role: pulsar/common/pulsar_instBinary, keep_newer_files: yes }
+    - { role: pulsar/common/pulsar_instBinary, keep_newer_files: yes, when: deploy_status=="add" }
 
 - hosts: broker
   any_errors_fatal: true
@@ -204,7 +204,7 @@
   become_method: sudo
   roles:
     # Config Pulsar client (client.conf)
-    - { role: pulsar/client/clnt_config  }
+    - { role: pulsar/client/clnt_config, when: deploy_status=="add"  }
 
 
 #########################
@@ -213,22 +213,5 @@
 # - Update .profile for all hosts in cluster
 - hosts: pulsarClient
   any_errors_fatal: true
-  tasks:
-  - name: Check if ~/.profile exists
-    stat:
-      path: ~/.profile
-    register: profile_stat
-  - name: Create ~/.profile if not exists
-    file:
-      path: ~/.profile
-    when: pulsar_distro_stat.stat.exists
-  - name: Add Pulsar executables in $PATH system variable
-    lineinfile:
-      dest: ~/.profile
-      state: present
-      regexp: "{{ item.regexp }}"
-      line: "{{ item.line }}"
-    with_items:
-      - { regexp: "^PULSAR_HOME=", line: "PULSAR_HOME={{ tgt_pulsar_inst_dir }}" }
-      # No match add the line at EOF
-      - { regexp: "NO-MATCH", line: "PATH=\"$PULSAR_HOME/bin:$PATH\"" }
+  roles:
+    - { role: misc/_update_profile, when: deploy_status=="add"  }

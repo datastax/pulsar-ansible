@@ -47,7 +47,7 @@
     - { regexp: "^pulsarServiceUrl:", 
         line: "pulsarServiceUrl: {% if enable_brkr_tls is defined and enable_brkr_tls|bool %}pulsar+ssl://{{ hostvars[groups['broker'][0]]['brokerSvcTlsListStr']|trim }}{% else %}pulsar://{{ hostvars[groups['broker'][0]]['brokerSvcListStr']|trim }}{% endif %}" }
     - { regexp: "^(#\\s?)?brokerClientTrustCertsFilePath:", 
-        line: "brokerClientTrustCertsFilePath: {% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ tgt_pulsar_sec_dir }}/tls/rootca/{{ public_cacert_name }}{% else %} {% endif %}" }
+        line: "brokerClientTrustCertsFilePath: {% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ tgt_pulsar_sec_dir }}/tls/rootca/broker_{{ public_cacert_name }}{% else %} {% endif %}" }
 
 - name: Modify Pulsar functions worker config for misc settings
   lineinfile:
