@@ -12,7 +12,7 @@
 #       * possible values: produce, consume, sources, sinks, functions, packages
 #       * can have multiple values using '+' to concatenate
 # -----------------------------------
-reguser1,revoke,namespace,public/default,produce+consume
-reguser2,revoke,topic,persistent://public/default/testtopic1,produce
-reguser3,revoke,topic,persistent://public/default/testtopic1,consume
-reguser1,grant,subscription,mytestsub,
+reguser1,grant,namespace,public/default,produce+consume
+reguser2,grant,topic,persistent://public/default/testtopic1,produce
+reguser3,grant,topic,persistent://public/default/testtopic1,consume
+reguser1,grant,namspace-subscription,public/default:mytestsub,

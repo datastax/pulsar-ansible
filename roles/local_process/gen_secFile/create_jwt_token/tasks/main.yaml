@@ -1,5 +1,5 @@
 ---
-- name: ({{ srv_component }}) If authN/authR are enabled, call a bash script to create JWT token files
+- name: ({{ srv_component }}) If needed, clean up the local JWT token file staging folder
   shell: |
     cd bash/security/authentication/jwt
     ./cleanupToken.sh \

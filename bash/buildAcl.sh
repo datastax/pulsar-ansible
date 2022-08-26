@@ -47,7 +47,7 @@ validAclOpTypeArr=("grant" "revoke")
 validAclOpTypeListStr="${validAclOpTypeArr[@]}"
 debugMsg "validAclOpTypeListStr=${validAclOpTypeListStr}"
 
-validResourceTypeArr=("topic" "namespace" "subscription" )
+validResourceTypeArr=("topic" "namespace" "ns-subscription" "tp-subscription")
 validResourceTypeListStr="${validResourceTypeArr[@]}"
 debugMsg "validResourceTypeListStr=${validResourceTypeListStr}"
 
@@ -93,7 +93,7 @@ done
 ANSI_HOSTINV_FILE="hosts_${clstrName}.ini"
 
 aclDefExecLogHomeDir="${aclRawDefHomeDir}/${clstrName}/logs"
-mkdir -p "${aclDefExecLogHomeDir}"
+mkdir -p "${aclDefExecLogHomeDir}/acl_perm_exec_log"
 
 aclDefFilePath="${aclRawDefHomeDir}/${clstrName}/${aclDefFileName}"
 
@@ -189,7 +189,7 @@ while read LINE || [ -n "${LINE}" ]; do
     # Resource type specific validity check
     tp_re="^(persistent|non-persistent)://[[:alnum:]_-]+/[[:alnum:]_-]+/[[:alnum:]_-]+$"
     ns_re="^[[:alnum:]_-]+/[[:alnum:]_-]+$"
-    sb_re="^[[:alnum:]_-]+$"
+    ns_sb_re="^[[:alnum:]_-]+/[[:alnum:]_-]+:[[:alnum:]_-]+$"
     if [[ "${resourceType}" == "topic" ]]; then
         if ! [[ "${resourceName}" =~ ${tp_re} ]]; then
             echo "[ERROR] Invalid resource name pattern ('${resourceName}') for the specified resource type '${resourceType}' on line \"${LINE}\". Expecting name pattern: \"${tp_re}\"!" 
@@ -200,9 +200,9 @@ while read LINE || [ -n "${LINE}" ]; do
             echo "[ERROR] Invalid resource name pattern ('${resourceName}') for the specified resource type '${resourceType}' on line \"${LINE}\". Expecting name pattern: \"${ns_re}\"!" 
             exit 100
         fi
-    elif [[ "${resourceType}" == "subscription" ]]; then
-        if ! [[ "${resourceName}" =~ ${sb_re} ]]; then
-            echo "[ERROR] Invalid resource name pattern ('${resourceName}') for the specified resource type '${resourceType}' on line \"${LINE}\". Expecting name pattern: \"${sb_re}\"!" 
+    elif [[ "${resourceType}" == "ns-subscription" ]]; then
+        if ! [[ "${resourceName}" =~ ${ns_sb_re} ]]; then
+            echo "[ERROR] Invalid resource name pattern ('${resourceName}') for the specified resource type '${resourceType}' on line \"${LINE}\". Expecting name pattern: \"${ns_sb_re}\"!" 
             exit 110
         fi
     fi
@@ -248,7 +248,7 @@ if [[ "${skipRoleJwt}" == "false" ]]; then
     echo "${stepCnt}. Call Ansible script to create JWT tokens for all roles specified in the ACL raw definition file"
     echo "   execution log file: ${ansiTcExecLog}"
     ansible-playbook -i ${ANSI_HOSTINV_FILE} ${ansiPlaybookName} \
-        --extra-vars="cleanLocalSecStaging=false user_roles_list=${uniqueRoleNameList// /,}" \
+        --extra-vars="cleanLocalSecStaging=false user_roles_list=${uniqueRoleNameList// /,} jwtTokenOnly=true brokerOnly=true" \
         --private-key=${ansiPrivKey} \
         -u ${ansiSshUser} -v > ${ansiTcExecLog} 2>&1
 
@@ -268,6 +268,8 @@ echo "${stepCnt}. Generate pulsar-amdin command template file to grant/revoke pe
 pulsarCliAclExecTemplFile="${aclRawDefHomeDir}/${clstrName}/${aclDefFileName}_pulsarCliCmdTmpl"
 echo "#! /bin/bsh" > ${pulsarCliAclExecTemplFile}
 echo >> ${pulsarCliAclExecTemplFile}
+echo "aclIndex=0" >> ${pulsarCliAclExecTemplFile}
+echo >> ${pulsarCliAclExecTemplFile}
 
 for index in "${!roleNameArr[@]}"; do
     roleName=${roleNameArr[$index]}
@@ -284,28 +286,44 @@ for index in "${!roleNameArr[@]}"; do
     elif [[ "${resourceType}" == "topic" ]]; then
         adminCmd="topics"
         adminSubCmd="${aclOp}-permission"
-    elif [[ "${resourceType}" == "subscription" ]]; then
+    elif [[ "${resourceType}" == "ns-subscription" ]]; then
         adminCmd="namespaces"
         adminSubCmd="${aclOp}-subscription-permission"
+    #
+    ## future work: topic subscription
+    #
+    # elif [[ "${resourceType}" == "ns-subscription" ]]; then
+    #     adminCmd="namespaces"
+    #     adminSubCmd="${aclOp}-subscription-permission"
     fi
 
     pulsarAdminCmdStrToExec="<PULSAR_ADMIN_CMD> ${adminCmd} ${adminSubCmd}"
 
-    if [[ "${resourceType}" == "subscription" ]]; then
-        pulsarAdminCmdStrToExec="${pulsarAdminCmdStrToExec} --subscription ${resourceName} --roles ${roleName}"
+    if [[ "${resourceType}" == "ns-subscription" ]]; then
+        # for "ns-subscription", the resource name is in format "<tenant>/<namespace>:<subscription>"
+        IFS=':' read -r -a nsSubArr <<< "${resourceName}"
+        pulsarAdminCmdStrToExec="${pulsarAdminCmdStrToExec} ${nsSubArr[0]} --subscription ${nsSubArr[1]} --roles ${roleName}"
+    #
+    ## future work: topic subscription
+    #
+    # elif [[ "${resourceType}" == "ns-subscription" ]]; then
+    #     pulsarAdminCmdStrToExec="TBD ..."
     else
         pulsarAdminCmdStrToExec="${pulsarAdminCmdStrToExec} ${resourceName} --role ${roleName}"
+        if [[ "${aclOp}" == "grant" ]]; then
+            pulsarAdminCmdStrToExec="${pulsarAdminCmdStrToExec} --actions ${aclActionListStr}"
+        fi
     fi
 
-    if [[ "${aclOp}" == "grant" ]]; then
-        pulsarAdminCmdStrToExec="${pulsarAdminCmdStrToExec} --actions ${aclActionListStr}"
-    fi
-
+    echo 'aclIndex=$((aclIndex+1))' >> ${pulsarCliAclExecTemplFile}
     echo "${pulsarAdminCmdStrToExec}" >> ${pulsarCliAclExecTemplFile}
-    
+    echo 'if [[ $? -ne 0 ]]; then' >> ${pulsarCliAclExecTemplFile}
+    echo '    exit ${aclIndex}' >> ${pulsarCliAclExecTemplFile}
+    echo 'fi' >> ${pulsarCliAclExecTemplFile}
+    echo >> ${pulsarCliAclExecTemplFile}  
 done
+echo 'exit 0' >> ${pulsarCliAclExecTemplFile}
 echo "   done!"
-
 
 echo
 stepCnt=$((stepCnt+1))
@@ -321,7 +339,7 @@ ansible-playbook -i ${ANSI_HOSTINV_FILE} ${ansiPlaybookName} \
     -u ${ansiSshUser} -v > ${ansiTcExecLog} 2>&1
 
 if [[ $? -ne 0 ]]; then
-    echo "   [ERROR] Failed to create specifie JWT tokens for the specified roles!" 
+    echo "   [ERROR] Not all Pulsar ACL permission management commands are executed successfully! Please check the remote execute log!" 
     exit 120
 else
     echo "   done!"

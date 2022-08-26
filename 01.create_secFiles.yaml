@@ -15,9 +15,11 @@
 - hosts: localhost
   connection: local
   vars:
-    cleanLocalSecStaging: "true"
+    cleanLocalSecStaging: true
     showLocalCmdOutput: true
     srv_component: 'broker'
+    jwtTokenOnly: false
+    brokerOnly: false
     # srv_host_list: "{{ groups['broker']['private_ip']|join(',') }}"
     srv_host_list: "{{ groups['broker'] | map('extract', hostvars, ['private_ip']) | join(',') }}"
   roles:
@@ -30,7 +32,8 @@
     - { role: local_process/gen_secFile/create_tls_certs,
         srv_key_password: "{{ brkr_key_password }}",
         srv_cert_expire_days: "{{ brkr_cert_expire_days }}",
-        when: srv_host_list != "" and 
+        when: not jwtTokenOnly|bool and 
+              srv_host_list != "" and 
               enable_brkr_tls is defined and enable_brkr_tls|bool and 
               skip_brkr_tls_certs_generatation is defined and not skip_brkr_tls_certs_generatation|bool }
 
@@ -54,6 +57,8 @@
     showLocalCmdOutput: true
     srv_component: 'functions_worker'
     srv_host_list: "{{ groups['functions_worker']|join(',') }}"
+    jwtTokenOnly: false
+    brokerOnly: false
   roles:
     - { role: local_process/gen_secFile/create_jwt_token, 
         user_roles_list: "{{ fwrkr_super_user_roles_list_str }}",
@@ -65,7 +70,9 @@
     - { role: local_process/gen_secFile/create_tls_certs,
         srv_key_password: "{{ fwrkr_key_password }}",
         srv_cert_expire_days: "{{ fwrkr_cert_expire_days }}",
-        when: srv_host_list != "" and 
+        when: not brokerOnly|bool and
+              not jwtTokenOnly|bool and 
+              srv_host_list != "" and 
               deploy_functions_worker is defined and deploy_functions_worker == 'dedicated' and
               enable_fwrkr_tls is defined and enable_fwrkr_tls|bool and 
               skip_fwrkr_tls_certs_generatation is defined and not skip_fwrkr_tls_certs_generatation|bool }
@@ -88,9 +95,13 @@
     showLocalCmdOutput: true
     srv_component: 'adminConsole'
     srv_host_list: "{{ groups['adminConsole']|join(',') }}"
+    jwtTokenOnly: false
+    brokerOnly: false
   roles:
     - { role: local_process/gen_secFile/create_tls_certs,  
         srv_key_password: "{{ anco_key_password }}",
         srv_cert_expire_days: "{{ anco_cert_expire_days }}",
-        when: srv_host_list != "" and 
+        when: not brokerOnly|bool and
+              not jwtTokenOnly|bool and 
+              srv_host_list != "" and 
               enable_anco_https is defined and enable_anco_https|bool }
