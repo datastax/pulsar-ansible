@@ -187,9 +187,9 @@ while read LINE || [ -n "${LINE}" ]; do
     fi
 
     # Resource type specific validity check
-    tp_re="^(persistent|non-persistent)://[[:alnum:]_-]+/[[:alnum:]_-]+/[[:alnum:]_-]+$"
-    ns_re="^[[:alnum:]_-]+/[[:alnum:]_-]+$"
-    ns_sb_re="^[[:alnum:]_-]+/[[:alnum:]_-]+:[[:alnum:]_-]+$"
+    tp_re="^(persistent|non-persistent)://[[:alnum:]_.-]+/[[:alnum:]_.-]+/[[:alnum:]_.-]+$"
+    ns_re="^[[:alnum:]_.-]+/[[:alnum:]_.-]+$"
+    ns_sb_re="^[[:alnum:]_.-]+/[[:alnum:]_.-]+:[[:alnum:]_.-]+$"
     if [[ "${resourceType}" == "topic" ]]; then
         if ! [[ "${resourceName}" =~ ${tp_re} ]]; then
             echo "[ERROR] Invalid resource name pattern ('${resourceName}') for the specified resource type '${resourceType}' on line \"${LINE}\". Expecting name pattern: \"${tp_re}\"!" 

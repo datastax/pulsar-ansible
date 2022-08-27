@@ -107,7 +107,7 @@ if ! [[ -f ${ansiPrivKey1// } && -f ${ansiPrivKey2// } ]]; then
     exit 40
 fi
 
-re='^([a-zA-Z0-9]+/[a-zA-Z0-9,]+)+$'
+re='^([[:alnum:]_.-]+/[[:alnum:]_.,-]+)+$'
 if ! [[ ${tntNsList} =~ ${re} ]]; then
     echo "[ERROR] Invalid value for the input parameter of 'tntNsList'. Format of 'tenant/namespace,tenant/namespace,...' is expected." 
     exit 50
@@ -199,6 +199,8 @@ echo "   >> Check \"webSvcUrl\", \"brokerServiceUrl\", and \"authPlugin\" settin
 pulsarClientConf1=".georep_wd/${pulsarClusterName1}-client.conf"
 if [[ -f "${pulsarClientConf1}" ]]; then
     webSvcUrl1=$(grep -v ^\# ${pulsarClientConf1} | grep webServiceUrl | awk -F= '{print $2}' | tr -d '"')
+    IFS=',' read -r -a tmpArr1 <<< "${webSvcUrl1}"
+    restApiUrl1=${tmpArr1[0]}
     brokerSvcUrl1=$(grep -v ^\# ${pulsarClientConf1} | grep brokerServiceUrl | awk -F= '{print $2}' | tr -d '"')
     authPlugin1=$(grep -v ^\# ${pulsarClientConf1} | grep authPlugin | awk -F= '{print $2}' | tr -d '"')
     jwtBrkrTokenFilePath1=$(grep -v ^\# ${pulsarClientConf1} | grep authParams | awk -F= '{print $2}' | tr -d '"')
@@ -210,6 +212,7 @@ else
     exit 100 
 fi
 debugMsg "webSvcUrl1=${webSvcUrl1}"
+debugMsg "restApiUrl1=${restApiUrl1}"
 debugMsg "brokerSvcUrl1=${brokerSvcUrl1}"
 debugMsg "authPlugin1=${authPlugin1}"
 debugMsg "jwtBrkrTokenFilePath1=${jwtBrkrTokenFilePath1}"
@@ -243,6 +246,8 @@ echo "   >> Check \"webSvcUrl\", \"brokerServiceUrl\", and \"authPlugin\" settin
 pulsarClientConf2=".georep_wd/${pulsarClusterName2}-client.conf"
 if [[ -f "${pulsarClientConf2}" ]]; then
     webSvcUrl2=$(grep -v ^\# ${pulsarClientConf2} | grep webServiceUrl | awk -F= '{print $2}' | tr -d '"')
+    IFS=',' read -r -a tmpArr2 <<< "${webSvcUrl2}"
+    restApiUrl2=${tmpArr2[0]}
     brokerSvcUrl2=$(grep -v ^\# ${pulsarClientConf2} | grep brokerServiceUrl | awk -F= '{print $2}' | tr -d '"')
     authPlugin2=$(grep -v ^\# ${pulsarClientConf2} | grep authPlugin | awk -F= '{print $2}' | tr -d '"')
     jwtBrkrTokenFilePath2=$(grep -v ^\# ${pulsarClientConf2} | grep authParams | awk -F= '{print $2}' | tr -d '"')
@@ -254,6 +259,7 @@ else
     exit 130 
 fi
 debugMsg "webSvcUrl2=${webSvcUrl2}"
+debugMsg "restApiUrl2=${restApiUrl2}"
 debugMsg "brokerSvcUrl2=${brokerSvcUrl2}"
 debugMsg "authPlugin2=${authPlugin2}"
 debugMsg "jwtBrkrTokenFilePath2=${jwtBrkrTokenFilePath2}"
@@ -288,7 +294,7 @@ echo
 #
 setupRemoteClstrOnLocal () {
     local firstClstrName=${1}
-    local firstClstrWebSvcUrl=${2}
+    local firstClstrRestApiUrl=${2}
     local firstClstrJwtTokenFile=${3}
     local firstClstrCaCertFile=${4}
     local secondClstrName=${5}
@@ -301,7 +307,7 @@ setupRemoteClstrOnLocal () {
 
     echo "   >> Check if the remote cluster \"${secondClstrName}\" has already existed on the local cluster: ${firstClstrName}"
     local curlCmdGetClstrList="curl -sS -X GET \
-    --url '${firstClstrWebSvcUrl}/admin/v2/clusters' \
+    --url '${firstClstrRestApiUrl}/admin/v2/clusters' \
     --cacert '${firstClstrCaCertFile}' \
     --header 'Authorization: Bearer $(cat ${firstClstrJwtTokenFile})' \
     --write-out '%{http_code}' \
@@ -331,7 +337,7 @@ setupRemoteClstrOnLocal () {
         echo "   >> ${curlCrtUpdClstrCmdDescVerb} the remote cluster \"${secondClstrName}\" on the local cluster: ${firstClstrName}"
         local curlCrtUpdClstrCmdLog=".georep_wd/logs/${firstClstrName}-curlUpdate.log"
         local curlCrtUpdClstrCmd="curl -sS -X ${curlCrtUpdClstrCmdTerm} \
-        --url '${firstClstrWebSvcUrl}/admin/v2/clusters/${secondClstrName}' \
+        --url '${firstClstrRestApiUrl}/admin/v2/clusters/${secondClstrName}' \
         --cacert '${firstClstrCaCertFile}' \
         --header 'Authorization: Bearer $(cat ${firstClstrJwtTokenFile})' \
         --header 'Content-Type: application/json' \
@@ -358,10 +364,10 @@ setupRemoteClstrOnLocal () {
 if [[ "${skipClstrSetup}" == "false" ]]; then
     # Set up the geo-replication on the 1st clsuter
     stepCnt=$((stepCnt+1))
-    echo "${stepCnt}. Set up remote cluster \"${pulsarClusterName1}\" on the loocal cluster: ${pulsarClusterName2}"
+    echo "${stepCnt}. Set up remote cluster \"${pulsarClusterName2}\" on the loocal cluster: ${pulsarClusterName1}"
     setupRemoteClstrOnLocal \
         "${pulsarClusterName1}" \
-        "${webSvcUrl1}" \
+        "${restApiUrl1}" \
         "${localJwtTokenFile1}" \
         "${localTsTrustCertFile1}" \
         "${pulsarClusterName2}" \
@@ -378,7 +384,7 @@ if [[ "${skipClstrSetup}" == "false" ]]; then
     echo "${stepCnt}. Set up remote cluster \"${pulsarClusterName1}\" on the loocal cluster: ${pulsarClusterName2}"
     setupRemoteClstrOnLocal \
         "${pulsarClusterName2}" \
-        "${webSvcUrl2}" \
+        "${restApiUrl2}" \
         "${localJwtTokenFile2}" \
         "${localTsTrustCertFile2}" \
         "${pulsarClusterName1}" \
@@ -398,14 +404,14 @@ fi
 checkTntExistence () {
     local clstrName=${1}
     local tenantName=${2}
-    local clstrWebSvcUrl=${3}
+    local clstrRestApiUrl=${3}
     local clstrJwtTokenFile=${4}
     local clstrCaCertFile=${5}
     local errorCode=${6}
 
     echo "   >> Check if tenant \"${tenantName}\" exists on cluster: ${clstrName}"
     local curlCmdGetTntList="curl -sS -X GET \
-    --url '${clstrWebSvcUrl}/admin/v2/tenants' \
+    --url '${clstrRestApiUrl}/admin/v2/tenants' \
     --cacert '$(pwd)/${clstrCaCertFile}' \
     --header 'Authorization: Bearer $(cat ${clstrJwtTokenFile})' \
     --write-out '%{http_code}' \
@@ -440,21 +446,21 @@ crtUpdTnt () {
     local secondClstrName=${2}
     local tntExistence=${3}
     local tenantName=${4}
-    local clstrWebSvcUrl=${5}
+    local clstrRestApiUrl=${5}
     local clstrJwtTokenFile=${6}
     local clstrCaCertFile=${7}
     local errorCode=${8}
 
     local curlCmdTerm=PUT
     local culCmdDescVerb="Create"
-    if [[ "${tntExistence}" == "yes" ]]; then
-        local curlCmdTerm=POST
+    if [[ ${tntExistence} -eq 1 ]]; then
+        curlCmdTerm=POST
         culCmdDescVerb="Update"
     fi
 
     echo "   >> ${culCmdDescVerb} tenant \"${tenantName}\" on cluster: ${firstClstrName}"
     local curlCmdTntCrtUpd="curl -sS -X ${curlCmdTerm} \
-    --url '${clstrWebSvcUrl}/admin/v2/tenants/${tenantName}' \
+    --url '${clstrRestApiUrl}/admin/v2/tenants/${tenantName}' \
     --cacert '$(pwd)/${clstrCaCertFile}' \
     --header 'Authorization: Bearer $(cat ${clstrJwtTokenFile})' \
     --header 'Content-Type: application/json' \
@@ -477,14 +483,14 @@ checkNsExistence () {
     local clstrName=${1}
     local tenantName=${2}
     local namespaceName=${3}
-    local clstrWebSvcUrl=${4}
+    local clstrRestApiUrl=${4}
     local clstrJwtTokenFile=${5}
     local clstrCaCertFile=${6}
     local errorCode=${7}
 
     echo "   >> Check if namespace \"${tenantName}/${namespaceName}\" exists on cluster: ${clstrName}"
     local curlCmdGetNsList="curl -sS -X GET \
-    --url '${clstrWebSvcUrl}/admin/v2/namespaces/${tenantName}' \
+    --url '${clstrRestApiUrl}/admin/v2/namespaces/${tenantName}' \
     --cacert '$(pwd)/${clstrCaCertFile}' \
     --header 'Authorization: Bearer $(cat ${clstrJwtTokenFile})' \
     --write-out '%{http_code}' \
@@ -520,26 +526,34 @@ crtUpdNs () {
     local tntExistence=${3}
     local tenantName=${4}
     local namespaceName=${5}
-    local clstrWebSvcUrl=${6}
+    local clstrRestApiUrl=${6}
     local clstrJwtTokenFile=${7}
     local clstrCaCertFile=${8}
     local errorCode=${9}
-
-    local curlCmdTerm=PUT
+    
     local culCmdDescVerb="Create"
-    if [[ "${tntExistence}" == "yes" ]]; then
-        local curlCmdTerm=POST
+    local curlCmdNsCrtUpd="curl -sS -X PUT \
+        --url '${clstrRestApiUrl}/admin/v2/namespaces/${tenantName}/${namespaceName}' \
+        --cacert '$(pwd)/${clstrCaCertFile}' \
+        --header 'Authorization: Bearer $(cat ${clstrJwtTokenFile})' \
+        --header 'Content-Type: application/json' \
+        --data '{ \"replication_clusters\": [\"${firstClstrName}\",\"${secondClstrName}\"] }' \
+        --write-out '%{http_code}'"
+        
+    if [[ ${tntExistence} -eq 1 ]]; then
         culCmdDescVerb="Update"
+
+        curlCmdNsCrtUpd="curl -sS -X POST \
+        --url '${clstrRestApiUrl}/admin/v2/namespaces/${tenantName}/${namespaceName}/replication' \
+        --cacert '$(pwd)/${clstrCaCertFile}' \
+        --header 'Authorization: Bearer $(cat ${clstrJwtTokenFile})' \
+        --header 'Content-Type: application/json' \
+        --data '[\"${firstClstrName}\",\"${secondClstrName}\"]' \
+        --write-out '%{http_code}'"
     fi
 
     echo "   >> ${culCmdDescVerb} namespace \"${tenantName}/${namespaceName}\" on cluster: ${firstClstrName}"
-    local curlCmdNsCrtUpd="curl -sS -X ${curlCmdTerm} \
-    --url '${clstrWebSvcUrl}/admin/v2/namespaces/${tenantName}/${namespaceName}' \
-    --cacert '$(pwd)/${clstrCaCertFile}' \
-    --header 'Authorization: Bearer $(cat ${clstrJwtTokenFile})' \
-    --header 'Content-Type: application/json' \
-    --data '{ \"replication_clusters\": [\"${firstClstrName}\",\"${secondClstrName}\"] }' \
-    --write-out '%{http_code}'"
+
     debugMsg "curlCmdTntCrtUpd=${curlCmdNsCrtUpd}"
 
     local responseCode=$(eval ${curlCmdNsCrtUpd})
@@ -570,20 +584,20 @@ for tntNs in "${tntNsArr[@]}"; do
             checkTntExistence \
                 "${pulsarClusterName1}" \
                 "${tntName}" \
-                "${webSvcUrl1}" \
+                "${restApiUrl1}" \
                 "${localJwtTokenFile1}" \
                 "${localTsTrustCertFile1}" \
                 180
             tntOnCluster1=$?
             
             # Create or update the tenant on the 1st Pulsar cluster
-            if [[ ${tntOnCluster1} -eq 0 || "${forceTntNsUpdate}" == "yes" ]]; then
+            if [[ ${tntOnCluster1} -eq 0 || "${forceTntNsUpdate}" == "true" ]]; then
                 crtUpdTnt \
                     ${pulsarClusterName1} \
                     ${pulsarClusterName2} \
                     ${tntOnCluster1} \
                     ${tntName} \
-                    ${webSvcUrl1} \
+                    ${restApiUrl1} \
                     ${localJwtTokenFile1} \
                     ${localTsTrustCertFile1} \
                     190
@@ -593,20 +607,20 @@ for tntNs in "${tntNsArr[@]}"; do
             checkTntExistence \
                 "${pulsarClusterName2}" \
                 "${tntName}" \
-                "${webSvcUrl2}" \
+                "${restApiUrl2}" \
                 "${localJwtTokenFile2}" \
                 "${localTsTrustCertFile2}" \
                 200
             tntOnCluster2=$?
             
             # Create or update the tenant on the 2nd Pulsar cluster
-            if [[ ${tntOnCluster2} -eq 0 || "${forceTntNsUpdate}" == "yes" ]]; then
+            if [[ ${tntOnCluster2} -eq 0 || "${forceTntNsUpdate}" == "true" ]]; then
                 crtUpdTnt \
                     ${pulsarClusterName2} \
                     ${pulsarClusterName1} \
                     ${tntOnCluster2} \
                     ${tntName} \
-                    ${webSvcUrl2} \
+                    ${restApiUrl2} \
                     ${localJwtTokenFile2} \
                     ${localTsTrustCertFile2} \
                     210
@@ -623,21 +637,21 @@ for tntNs in "${tntNsArr[@]}"; do
             "${pulsarClusterName1}" \
             "${tntName}" \
             "${nsName}" \
-            "${webSvcUrl1}" \
+            "${restApiUrl1}" \
             "${localJwtTokenFile1}" \
             "${localTsTrustCertFile1}" \
             220
         nsOnCluster1=$?
 
         # Create or update the namespace for the tenant on the 1st Pulsar cluster
-        if [[ ${nsOnCluster1} -eq 0 || "${forceTntNsUpdate}" == "yes" ]]; then
+        if [[ ${nsOnCluster1} -eq 0 || "${forceTntNsUpdate}" == "true" ]]; then
             crtUpdNs \
                 ${pulsarClusterName1} \
                 ${pulsarClusterName2} \
                 ${tntOnCluster1} \
                 ${tntName} \
                 ${nsName} \
-                ${webSvcUrl1} \
+                ${restApiUrl1} \
                 ${localJwtTokenFile1} \
                 ${localTsTrustCertFile1} \
                 230
@@ -648,21 +662,21 @@ for tntNs in "${tntNsArr[@]}"; do
             "${pulsarClusterName2}" \
             "${tntName}" \
             "${nsName}" \
-            "${webSvcUrl2}" \
+            "${restApiUrl2}" \
             "${localJwtTokenFile2}" \
             "${localTsTrustCertFile2}" \
             240
         nsOnCluster2=$?
 
         # Create or update the namespace for the tenant on the 2nd Pulsar cluster
-        if [[ ${nsOnCluster2} -eq 0 || "${forceTntNsUpdate}" == "yes" ]]; then
+        if [[ ${nsOnCluster2} -eq 0 || "${forceTntNsUpdate}" == "true" ]]; then
             crtUpdNs \
                 ${pulsarClusterName2} \
                 ${pulsarClusterName1} \
                 ${tntOnCluster1} \
                 ${tntName} \
                 ${nsName} \
-                ${webSvcUrl2} \
+                ${restApiUrl2} \
                 ${localJwtTokenFile2} \
                 ${localTsTrustCertFile2} \
                 250

@@ -56,12 +56,14 @@ usage() {
    echo
    echo "Usage: buildAnsiHostInvFile.sh [-h]"
    echo "                                -clstrName <cluster_name>"
+   echo "                                -hostDns <whehter_using_dnsname>"
    echo "       -h : Show usage info"
    echo "       -clstrName : Pulsar cluster name"
+   echo "       -hostDns   : Whehter using host DNS name (true) or host IP (faslse)"
    echo
 }
 
-if [[ $# -eq 0 || $# -gt 2 ]]; then
+if [[ $# -eq 0 || $# -gt 4 ]]; then
    usage
    exit 10
 fi
@@ -70,6 +72,7 @@ while [[ "$#" -gt 0 ]]; do
    case $1 in
       -h) usage; exit 0 ;;
       -clstrName) clstrName=$2; shift ;;
+      -hostDns) hostDns=$2; shift ;;
       *) echo "[ERROR] Unknown parameter passed: $1"; exit 20 ;;
    esac
    shift
@@ -77,13 +80,21 @@ done
 
 clstTopFile="${clstrToplogyRawDefHomeDir}/${clstrName}/clusterDefRaw"
 lastClstTopFile="${clstrToplogyRawDefHomeDir}/${clstrName}/clusterDefRaw_last"
+
 debugMsg "clstTopFile=${clstTopFile}"
 debugMsg "lastClstTopFile=${lastClstTopFile}"
+debugMsg "hostDns=${hostDns}"
 
 # Check if the corrsponding Pulsar cluster definition file exists
 if ! [[ -f "${clstTopFile}" ]]; then
     echo "[ERROR] The spefified Pulsar cluster doesn't have the corresponding topology definition file: ${clstTopFile}";
     exit 30
+fi
+
+re='(true|false)'
+if ! [[ ${hostDns} =~ $re ]]; then
+  echo "[ERROR] Invalid value for the input parameter '-hostDns'. Boolean value (true or false) is expected." 
+  exit 40
 fi
 
 tgtAnsiHostInvFileName="hosts_${clstrName}.ini"
@@ -111,48 +122,50 @@ while read LINE || [ -n "${LINE}" ]; do
     case "${LINE}" in \#*) continue ;; esac
     IFS=',' read -r -a FIELDS <<< "${LINE#/}"
 
-    internalIp=${FIELDS[0]}
-    externalIp=${FIELDS[1]}
-    if [[ -z "${externalIp// }" ]]; then
-        externalIp=${internalIp}
-    fi 
-    providedHostTypeList=${FIELDS[2]}
-    region=${FIELDS[3]}
-    aZone=${FIELDS[4]}
-    deployStatus=${FIELDS[5]}
+    if [[ -n "${LINE// }" ]]; then
+        internalIp=${FIELDS[0]}
+        externalIp=${FIELDS[1]}
+        if [[ -z "${externalIp// }" ]]; then
+            externalIp=${internalIp}
+        fi 
+        providedHostTypeList=${FIELDS[2]}
+        region=${FIELDS[3]}
+        aZone=${FIELDS[4]}
+        deployStatus=${FIELDS[5]}
 
-    debugMsg "internalIp=${internalIp}"
-    debugMsg "externalIp=${externalIp}"
-    debugMsg "hostTypeList=${providedHostTypeList}"
-    debugMsg "region=${region}"
-    debugMsg "aZone=${aZone}"
-    debugMsg "deployStatus=${deployStatus}"
-    
-    if [[ -z "${internalIp// }"||  -z "${providedHostTypeList// }" || 
-          -z "${region// }" || -z "${aZone// }" || -z "${deployStatus// }" ]]; then
-        echo "[ERROR] Invalid server host defintion line: \"${LINE}\". All fields (except 2nd) must not be empty!" 
-        exit 40
-    fi
-
-    containsElementInArr "${deployStatus}" "${validDeployStatusArr[@]}"
-    if [[ $? -eq 1 ]]; then
-        echo "[ERROR] Invalid server deployment status in line: \"${LINE}\"." 
-        exit 50
-    fi
-
-    for hostType in $(echo ${providedHostTypeList} | sed "s/+/ /g"); do        
-        containsElementInArr "${hostType}" "${validHostTypeArr[@]}"
-        if [[ $? -eq 1 ]]; then
-            echo "[ERROR] Invalid host machine type in line: \"${LINE}\"." 
+        debugMsg "internalIp=${internalIp}"
+        debugMsg "externalIp=${externalIp}"
+        debugMsg "hostTypeList=${providedHostTypeList}"
+        debugMsg "region=${region}"
+        debugMsg "aZone=${aZone}"
+        debugMsg "deployStatus=${deployStatus}"
+        
+        if [[ -z "${internalIp// }"||  -z "${providedHostTypeList// }" || 
+            -z "${region// }" || -z "${aZone// }" || -z "${deployStatus// }" ]]; then
+            echo "[ERROR] Invalid server host defintion line: \"${LINE}\". All fields (except 2nd) must not be empty!" 
             exit 50
         fi
 
-        internalHostIpMap[${hostType}]+="${internalIp} "
-        externalHostIpMap[${hostType}]+="${externalIp} "
-        regionMap[${hostType}]+="${region} "
-        azMap[${hostType}]+="${aZone} "
-        deployStatusMap[${hostType}]+="${deployStatus} "
-    done
+        containsElementInArr "${deployStatus}" "${validDeployStatusArr[@]}"
+        if [[ $? -eq 1 ]]; then
+            echo "[ERROR] Invalid server deployment status in line: \"${LINE}\"." 
+            exit 60
+        fi
+
+        for hostType in $(echo ${providedHostTypeList} | sed "s/+/ /g"); do        
+            containsElementInArr "${hostType}" "${validHostTypeArr[@]}"
+            if [[ $? -eq 1 ]]; then
+                echo "[ERROR] Invalid host machine type in line: \"${LINE}\"." 
+                exit 70
+            fi
+
+            internalHostIpMap[${hostType}]+="${internalIp} "
+            externalHostIpMap[${hostType}]+="${externalIp} "
+            regionMap[${hostType}]+="${region} "
+            azMap[${hostType}]+="${aZone} "
+            deployStatusMap[${hostType}]+="${deployStatus} "
+        done
+    fi
 
 done < ${clstTopFile}
 
@@ -183,9 +196,8 @@ outputMsg() {
 
 
 outputMsg "[all:vars]"
-outputMsg "ansible_python_interpreter=/usr/bin/python3"
 outputMsg "cluster_name=${clstrName}"
-outputMsg "use_dns_name=\"false\""
+outputMsg "use_dns_name=\"${hostDns}\""
 outputMsg ""
 outputMsg "[LSCluster:children]"
 outputMsg "pulsarServer"
@@ -229,9 +241,9 @@ for hostType in "${validHostTypeArr[@]}"; do
 
     for index in "${!internalIpSrvTypeArr[@]}"; do
         if [[ "${validPulsarHostTypeListStr}" =~ "${hostType}" ]]; then
-            hostInvLine="${internalIpSrvTypeArr[$index]} private_ip=${externalIpSrvTypeArr[$index]} deploy_status=${deployStatusSrvTypeArr[$index]}"
+            hostInvLine="${externalIpSrvTypeArr[$index]} private_ip=${internalIpSrvTypeArr[$index]} deploy_status=${deployStatusSrvTypeArr[$index]}"
         else
-            hostInvLine="${internalIpSrvTypeArr[$index]} private_ip=${externalIpSrvTypeArr[$index]}"
+            hostInvLine="${externalIpSrvTypeArr[$index]} private_ip=${internalIpSrvTypeArr[$index]}"
         fi 
 
         if [[ "${hostType}" == "bookkeeper" ]]; then

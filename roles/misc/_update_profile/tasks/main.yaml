@@ -1,16 +1,16 @@
 ---
-- name: Check if ~/.profile exists
+- name: Check if ~/.bash_profile exists
   stat:
-    path: ~/.profile
-  register: profile_stat
-- name: Create ~/.profile if not exists
+    path: ~/.bash_profile
+  register: bash_profile_stat
+- name: Create ~/.bash_profile if not exists
   file:
-    path: ~/.profile
-  when: pulsar_distro_stat.stat.exists
+    path: ~/.bash_profile
+    state: touch
+  when: not bash_profile_stat.stat.exists
 - name: Add Pulsar executables in $PATH system variable
   lineinfile:
-    dest: ~/.profile
-    state: present
+    dest: ~/.bash_profile
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items:

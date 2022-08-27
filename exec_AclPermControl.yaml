@@ -41,6 +41,16 @@
       with_items:
         - { regexp: "<PULSAR_ADMIN_CMD>", line: "{{ tgt_pulsar_inst_dir }}/bin/pulsar-admin" }
 
+
+- hosts: broker
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  run_once: true
+  vars:
+    tgtAclFolder: "{{ tgt_pulsar_inst_dir }}/acl/{{ hostvars['localhost']['curAnsiCntrlDate'] }}"
+    tgtAclCliCmdFile: "{{ aclDefRawName }}_pulsarCliCmd_{{ hostvars['localhost']['curAnsiCntrlTime'] }}.sh"
+  tasks:
     - name: Exeucte the ACL control execution script file
       shell: "{% if sudo_needed|bool %}sudo -u {{ pulsar_user }} {% endif %}bash {{ tgtAclFolder }}/{{ tgtAclCliCmdFile }}"
       register: acl_exec_cmdcat

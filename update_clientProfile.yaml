@@ -31,8 +31,5 @@
 # -----------------------
 - hosts: pulsarClient
   any_errors_fatal: true
-  become: "{{ sudo_needed }}"
-  become_method: sudo
   roles:
-    # Config Pulsar client (client.conf)
-    - { role: pulsar/client/clnt_config, when: deploy_status=="add"  }
+    - { role: misc/_update_profile  }
