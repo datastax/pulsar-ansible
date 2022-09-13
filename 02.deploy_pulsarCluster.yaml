@@ -4,8 +4,15 @@
 ##
 
 #########################
+#
+# Validity check for the specified host inventory file- hosts: localhost
+- hosts: localhost
+  connection: local
+  gather_facts: true
+  roles: 
+    - { role: misc/_check_hostInvValidity }
+
 # Install Java and Pulsar binaries
-# -----------------------
 - hosts: LSCluster
   any_errors_fatal: true
   become: "{{ sudo_needed }}"
@@ -120,7 +127,7 @@
   become_method: sudo
   run_once: true
   roles: 
-    - { role: pulsar/zookeeper/zkpr_initMetadata, srv_options: "{{ zk_jvm_options }}", when: scaleOut|bool }
+    - { role: pulsar/zookeeper/zkpr_initMetadata, srv_options: "{{ zk_jvm_options }}", when: isScaling|bool }
 
 
 #########################
@@ -152,7 +159,7 @@
   become_method: sudo
   run_once: true
   roles:
-    - { role: pulsar/bookie/bkie_sanityCheck, srv_options: "{{ bookie_jvm_options_b }}", when: scaleOut|bool }
+    - { role: pulsar/bookie/bkie_sanityCheck, srv_options: "{{ bookie_jvm_options_b }}", when: isScaling|bool }
 
 
 #########################

@@ -228,14 +228,14 @@ for hostType in "${validHostTypeArr[@]}"; do
     IFS=' ' read -r -a azSrvTypeArr <<< "${azSrvTypeList}"
     IFS=' ' read -r -a deployStatusSrvTypeArr <<< "${deployStatusSrvTypeList}"
 
-    scaleOut="false"
+    isScaling="false"
     if [[ "${deployStatusSrvTypeList}" =~ "add" ]]; then
-        scaleOut="true"
+        isScaling="true"
     fi
 
     if [[ "${validPulsarHostTypeListStr}" =~ "${hostType}" ]]; then
         outputMsg "[${hostType}:vars]"
-        outputMsg "scaleOut=\"${scaleOut}\""
+        outputMsg "isScaling=\"${isScaling}\""
     fi
     outputMsg "[${hostType}]"
 

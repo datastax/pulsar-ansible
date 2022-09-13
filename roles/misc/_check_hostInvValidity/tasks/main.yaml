@@ -1,0 +1,30 @@
+---
+- name: Check existene of the mandatory groups - zookeeper, bookkeeper, and broker
+  assert: 
+    that: false
+    fail_msg: "Missing or empty groups - 'zookeeper', 'bookkeeper', and 'broker'. Server hosts are expected in these groups!"
+  when: ('zookeeper' not in groups) and
+        (inventory_hostname not in groups['zookeeper']|default([])) and
+        ('bookkeeper' not in groups) and
+        (inventory_hostname not in groups['bookkeeper']|default([])) and
+        ('broker' not in groups) and
+        (inventory_hostname not in groups['broker']|default([]))
+
+- name: Check mandatory global variables
+  assert: 
+    that: false
+    fail_msg: "Missing the mandatory global variables - 'cluster_name' and 'use_dns_name'!"
+  when: (cluster_name is not defined) and 
+        (use_dns_name is not defined)
+
+- name: Check mandatory group variables for zookeeper, bookkeeper, and broker
+  assert: 
+    that: false
+    fail_msg: "Missing the mandatory group level variables - 'isScaling' and 'deploy_status'. Please make sure using the bash script ('bash/buildAnsiHostInvFile.sh') to automatically generate the host inventory file based on the cluster topology raw definition file!"
+  when: (hostvars[groups['zookeeper'][0]]['isScaling'] is not defined) and 
+        (hostvars[groups['zookeeper'][0]]['deploy_statsu'] is not defined) and
+        (hostvars[groups['bookkeeper'][0]]['isScaling'] is not defined) and
+        (hostvars[groups['bookkeeper'][0]]['deploy_statsu'] is not defined) and
+        (hostvars[groups['broker'][0]]['isScaling'] is not defined) and
+        (hostvars[groups['broker'][0]]['deploy_statsu'] is not defined)
+    

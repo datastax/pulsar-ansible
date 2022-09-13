@@ -72,12 +72,11 @@
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items:
-    - { regexp: "^authenticationEnabled=", line: "authenticationEnabled=true" }
+    - { regexp: "^authenticationEnabled=", line: "authenticationEnabled={{ enable_brkr_authNZ }}" }
     - { regexp: "^authenticationProviders=", line: "authenticationProviders=org.apache.pulsar.broker.authentication.AuthenticationProviderToken" }
-    - { regexp: "^authorizationEnabled=", line: "authorizationEnabled=true" }
+    - { regexp: "^authorizationEnabled=", line: "authorizationEnabled={{ enable_brkr_authNZ }}" }
     - { regexp: "^superUserRoles=", line: "superUserRoles={{ brkr_super_user_roles_list_str }}" }
     - { regexp: "^tokenPublicKey=", line: "tokenPublicKey=file://{{ tgt_jwt_dest_homedir }}/key/{{ srv_component }}_jwt_public.key" }
-    - { regexp: "^brokerClientTlsEnabled=", line: "brokerClientTlsEnabled=true" }
     - { regexp: "^brokerClientAuthenticationPlugin=", line: "brokerClientAuthenticationPlugin=org.apache.pulsar.client.impl.auth.AuthenticationToken" }
     - { regexp: "^brokerClientAuthenticationParameters=", line: "brokerClientAuthenticationParameters=file://{{ tgt_jwt_dest_homedir }}/token/{{ brkr_super_user_roles[0] }}.jwt" }
   when: enable_brkr_authNZ is defined and enable_brkr_authNZ|bool
@@ -88,6 +87,7 @@
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items:
+    - { regexp: "^brokerClientTlsEnabled=", line: "brokerClientTlsEnabled={{ enable_brkr_tls }}" }
     - { regexp: "^brokerServicePortTls=", line: "brokerServicePortTls={{ broker_svc_port_tls }}" }
     - { regexp: "^webServicePortTls=", line: "webServicePortTls={{ web_svc_port_tls }}" }
     - { regexp: "^tlsKeyFilePath=", line: "tlsKeyFilePath={{ tgt_tls_dest_homedir }}/server/{{ srv_key_name }}" }
