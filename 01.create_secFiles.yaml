@@ -99,9 +99,9 @@
     brokerOnly: false
   roles:
     - { role: local_process/gen_secFile/create_tls_certs,  
-        srv_key_password: "{{ anco_key_password }}",
-        srv_cert_expire_days: "{{ anco_cert_expire_days }}",
+        srv_key_password: "{{ ac_key_password }}",
+        srv_cert_expire_days: "{{ ac_cert_expire_days }}",
         when: not brokerOnly|bool and
               not jwtTokenOnly|bool and 
               srv_host_list != "" and 
-              enable_anco_https is defined and enable_anco_https|bool }
+              enable_ac_https is defined and enable_ac_https|bool }

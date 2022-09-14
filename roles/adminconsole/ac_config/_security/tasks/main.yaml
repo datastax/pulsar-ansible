@@ -1,0 +1,97 @@
+---
+#########################
+# Create broker security related folders for client connection on Pular AdminConsole hosts
+# ------------------------
+- name: If broker authN is enabled, create JWT token related security folders on Pulsar AdminConsole hosts (used for connecting to brokers)
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    mode: "{{ file_permission_mode }}"
+  with_items:
+    - "{{ tgt_adminConsole_sec_dir }}/jwt/token"
+  when: enable_brkr_authNZ is defined and enable_brkr_authNZ|bool
+
+- name: If broker TLS is enabled, create TLS certificate related security folders on Pulsar AdminConsole hosts (used for connecting to brokers)
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    mode: "{{ file_permission_mode }}"
+  with_items:
+    - "{{ tgt_adminConsole_sec_dir }}/tls/rootca"
+    - "{{ tgt_adminConsole_sec_dir }}/tls/server"
+  when: enable_ac_https is defined and enable_ac_https|bool
+
+
+#########################
+# Copy locally generated security files to Pulsar client hosts
+# ------------------------
+- name: If broker authN is enabled, copy JWT token file to Pulsar AdminConsole host (used for connecting to brokers)
+  copy:
+    src: "{{ item.src_file }}/"
+    dest: "{{ item.dest_file }}"
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+  with_items:
+    - { src_file: "{{ local_jwt_src_homedir }}/token/{{ cluster_name }}/brokers/{{ brkr_super_user_roles[0] }}.jwt", 
+        dest_file: "{{ tgt_adminConsole_sec_dir }}/jwt/token/brkr_super_user.jwt" }
+  when: enable_brkr_authNZ is defined and enable_brkr_authNZ|bool
+
+- name: If TLS is enabled, copy the trusted TLS certificate to Pulsar AdminConsole host (used for connecting to brokers)
+  copy:
+    src: "{{ item.src_file }}/"
+    dest: "{{ item.dest_file }}"
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    force: "{{ force_tgt_ac_tls_certs }}"
+  with_items:
+    - { src_file: "{{ local_tls_src_homedir }}/certs/{{ cluster_name }}/{{ srv_component }}s/adminConsole.{{ (hostvars[groups['adminConsole'][0]]['private_ip'])|trim|replace('.','-') }}.key-pk8.pem",
+        dest_file: "{{ ac_https_key_file }}" }
+    - { src_file: "{{ local_tls_src_homedir }}/certs/{{ cluster_name }}/{{ srv_component }}s/adminConsole.{{ (hostvars[groups['adminConsole'][0]]['private_ip'])|trim|replace('.','-') }}.crt.pem",
+        dest_file: "{{ ac_https_cert_file }}" }
+    - { src_file: "{{ local_tls_src_homedir }}/certs/{{ srv_component}}_{{ public_cacert_name }}",
+        dest_file: "{{ ac_https_public_ca_file }}" }
+  when: enable_ac_https is defined and enable_ac_https|bool
+
+
+#########################
+# Configure AdminConsole application server for security related settings
+# ------------------------
+- name: Put the JWT token value in varaible
+  slurp:
+    src: "{{ tgt_adminConsole_sec_dir }}/jwt/token/brkr_super_user.jwt"
+  register: client_token
+  when: enable_brkr_authNZ is defined and enable_brkr_authNZ|bool
+# - debug: msg={{ client_token['content'] | b64decode | trim }}
+#   when: show_debug_msg|bool and enable_brkr_authNZ is defined and enable_brkr_authNZ|bool
+
+- name: Configure security AuthN related settings for Pulsar AdminConsole
+  vars:
+    effective_token_value: "{{ client_token['content']|b64decode|trim }}"
+  replace:
+      path: "{{ tgt_adminConsole_inst_dir }}/config/local.json"
+      regexp: "{{ item.regexp }}"
+      replace: "{{ item.line }}"
+  with_items:
+    - { regexp: '^    "auth_mode":(.*),',        line: '    "auth_mode": "user",' }
+    - { regexp: '^        "token_path":(.*),',   line: '        "token_path": "{{ tgt_adminConsole_sec_dir }}/jwt/token/brkr_super_user.jwt",' }
+    - { regexp: '^        "admin_token":(.*),',   line: '        "admin_token": "{{ effective_token_value }}",' }
+    - { regexp: '^            "username":(.*),', line: '            "username": "{{ ac_auth_user }}",' }
+    - { regexp: '^            "password":(.*)',  line: '            "password": "{{ ac_auth_user_pass }}"' }
+  when: enable_brkr_authNZ is defined and enable_brkr_authNZ|bool
+
+- name: Configure security HTTPS related settings for Pulsar AdminConsole
+  replace:
+      path: "{{ tgt_adminConsole_inst_dir }}/config/local.json"
+      regexp: "{{ item.regexp }}"
+      replace: "{{ item.line }}"
+  with_items:
+    - { regexp: '^            "verify_certs":(.*),$',        line: '            "verify_certs": "{{ ac_ssl_verify_certs }}",' }
+    - { regexp: '^            "hostname_validation":(.*),$', line: '            "hostname_validation": "{{ ac_ssl_hostname_validation }}",' }
+    - { regexp: '^            "ca_path":(.*),$',             line: '            "ca_path": "{{ ac_https_public_ca_file }}",' }
+    - { regexp: '^            "cert_path":(.*),$',           line: '            "cert_path": "{{ ac_https_cert_file }}",' }
+    - { regexp: '^            "key_path":(.*)$',             line: '            "key_path": "{{ ac_https_key_file }}"'  }
+  when: enable_ac_https is defined and enable_ac_https|bool

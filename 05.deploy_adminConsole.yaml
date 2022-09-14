@@ -32,7 +32,7 @@
   roles:
     - { role: misc/_inst_njs }
     - { role: adminconsole/ac_instBinary }
-    - { role: adminconsole/ac_configAc }
+    - { role: adminconsole/ac_config }
     # Check the current status of the AdminConsole application server
     - { role: misc/_check_svc_status }
     # Start the AdminConsole application server

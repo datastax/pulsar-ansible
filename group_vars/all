@@ -189,7 +189,7 @@ force_tgt_tls_certs: false
 # - Wether or not to enable Pulsar JWT authentication and authorization
 enable_brkr_authNZ: true
 # - Whether or not to enable Pulsar In-Transit TLS encryption
-enable_brkr_tls: true
+enable_brkr_tls: false
 
 enable_brkr_security: "{{ (enable_brkr_authNZ is defined and enable_brkr_authNZ|bool) or (enable_brkr_tls is defined and enable_brkr_tls|bool) }}"
 
@@ -243,23 +243,22 @@ fwrkr_cert_expire_days: 730
 # - (functions worker) server private key expiry days
 fwrkr_key_password: "MyFwrkrSrvCertPass"
 
-##
-# Pulsar AdminConsole server: signed certificate related settings
-#
-# - (Admin Console) server certificate expiry days
-anco_cert_expire_days: 730
-# - (Admin Console) server private key expiry days
-anco_key_password: "MyAncoSrvCertPass"
 
 #
-# How to deploy Admin Console
-# - shared: deploy Admin Console on one of broker nodes
-# - dedicated: deploy Admin Console on dedicated instances
+# >>> AdminConsole related security: HTTPS 
 #
 #
-deploy_adminconsole: "dedicated"
-
-# - Whether or not to enable Admin Console In-Transit TLS encryption
-enable_anco_https: true
+# - Wether or not to enable AdminConsole HTTPS
+enable_ac_https: false
 # - Whether or not to skip generating Pulsar functions worker TLS certificate files on the local host
-skip_anco_tls_certs_generatation: false
+skip_ac_tls_certs_generatation: false
+# - Whehter or not to force replacing the existing AdminConsole server side TLS certificate files
+force_tgt_ac_tls_certs: true
+
+
+# - (Admin Console) server certificate expiry days
+ac_cert_expire_days: 730
+# - (Admin Console) server private key expiry days
+ac_key_password: "MyAncoSrvCertPass"
+
+enable_ac_security: "{{ (enable_brkr_authNZ is defined and enable_brkr_authNZ|bool) or (enable_ac_https is defined and enable_ac_https|bool) }}"

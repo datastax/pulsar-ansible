@@ -1,0 +1,33 @@
+---
+- name: Copy Pulsar AdminConsole dashboard config (local.json) template
+  template:
+    src: templates/ac_local.json.tmp
+    dest: "{{ tgt_adminConsole_inst_dir }}/config/local.json"
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    mode: "{{ file_permission_mode_noexec }}"
+
+- name: Replace Pulsar AdminConsole config setting placeholders with cluster specific information
+  vars:
+    broker_websvc_url: "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}https://{{ hostvars[groups['broker'][0]]['webSvcTlsListStr']|trim }}{% else %}http://{{ hostvars[groups['broker'][0]]['webSvcListStr']|trim }}{% endif %}"
+    broker_pulsarvc_url: "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}pulsar+ssl://{{ hostvars[groups['broker'][0]]['brokerSvcTlsListStr']|trim }}{% else %}pulsar://{{ hostvars[groups['broker'][0]]['brokerSvcListStr']|trim }}{% endif %}"
+    functions_worker_disabled: "{% if deploy_functions_worker is not defined or deploy_functions_worker == 'none' or (deploy_functions_worker == 'dedicated' and ('functions_worker' not in groups or inventory_hostname not in groups['functions_worker']|default([])) ) %}true{% else %}false{% endif %}"
+  replace:
+      path: "{{ tgt_adminConsole_inst_dir }}/config/local.json"
+      regexp: "{{ item.regexp }}"
+      replace: "{{ item.line }}"
+  with_items:
+    - { regexp: '^    "cluster_name":(.*),$',       line: '    "cluster_name": "{{ cluster_name }}",' }
+    - { regexp: '^    "tenant":(.*),$',             line: '    "tenant": "{{ ac_tenant_dft }}",' }
+    - { regexp: '^        "port":(.*),$',           line: '        "port": "{{ ac_listen_port }}",' }
+    - { regexp: '^        "pulsar_url":(.*),$',     line: '        "pulsar_url": "{{ broker_websvc_url }}",' }
+    # TODO:
+    # - This is a workaround for now: use the same value of "pulsar_url" for "websocket_url".
+    # - Otherwise, the server won't start
+    # - In the future, this should be set based on actual Pulsar cluster web socket configuration
+    - { regexp: '^        "websocket_url":(.*),$',  line: '        "websocket_url": "{{ broker_websvc_url }}",' }
+    - { regexp: '^        "log_level":(.*),$',      line: '        "log_level": "{{ ac_log_level }}",' }
+    - { regexp: '^    "api_version":(.*),$',        line: '    "api_version": "{{ pulsarLS_ver_main }}",' }
+    - { regexp: '^    "functions_disabled":(.*),$', line: '    "functions_disabled": "{{ functions_worker_disabled }}",' }
+    - { regexp: '^        "pulsar":(.*),$',         line: '        "pulsar": "{{ broker_pulsarvc_url }}",' }
+    - { regexp: '^        "ws":(.*),$',             line: '        "ws": "{{ broker_websvc_url }}",' }

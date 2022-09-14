@@ -1,0 +1,13 @@
+---
+# AdminConsole base configuration (non-security)
+- include_role:
+    name: adminconsole/ac_config/_base
+
+# AdminConsole security related configuration
+- include_role:
+    name: adminconsole/ac_config/_security
+  vars:
+    ac_https_cert_file: "{{ tgt_adminConsole_sec_dir }}/tls/server/adminConsole.{{ (hostvars[groups['adminConsole'][0]]['private_ip'])|trim|replace('.','-') }}.crt.pem"
+    ac_https_key_file: "{{ tgt_adminConsole_sec_dir }}/tls/server/adminConsole.{{ (hostvars[groups['adminConsole'][0]]['private_ip'])|trim|replace('.','-') }}.key-pk8.pem"
+    ac_https_public_ca_file: "{{ tgt_adminConsole_sec_dir }}/tls/rootca/{{ public_cacert_name }}"
+  when: enable_ac_security is defined and enable_ac_security|bool

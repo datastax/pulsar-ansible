@@ -38,83 +38,16 @@ tgt_adminConsole_sec_dir: "{{ tgt_adminConsole_inst_dir }}/security"
 # - AdminConsole listending port (DO NOT change it. This is a constant)
 ac_listen_port: 6454
 
-# - Whehter or not to force replacing the existing AdminConsole server side JWT token files
-force_existing_adminConsole_jwt_token: false
-# - Whehter or not to force replacing the existing AdminConsole server side TLS certificate files
-force_existing_adminConsole_tls_certs: false
-
 # - Setting authorization mode for AdminConsole
-ac_auth_mode: "user"
-ac_auth_user: "admin"
-ac_auth_user_pass: "admin123"
+ac_auth_user: "acAdmin"
+ac_auth_user_pass: "MyAcAdminPa$$w0Rd"
 
 # - Setting default start up tenant for AdminConsole
-ac_tenant: "public"
-
-# - oauth integration information
-ac_client_id: ""
+ac_tenant_dft: "public"
 
 # - AdminConsole log level
 ac_log_level: "debug"
 
-ac_token_secret: ""
-
 # - Setting ssl information
-ac_ssl_verify_certs: ""
-ac_ssl_hostname_validation: ""
-ac_ssl_ca_path: ""
-ac_ssl_cert_path: ""
-ac_ssl_key_path: ""
-
-# - Setting K8s information
-ac_k8s_ns: "pulsar"
-ac_k8s_host: ""
-ac_k8s_svc_port: ""
-
-# - Setting AdminConsole feature enable / disable option
-ac_notice_text: ""
-ac_function_disabled: "true"
-ac_render_monitoring_tab: "false"
-ac_grafana_url: ""
-ac_client_disabled: "true"
-ac_ho_broker_svc_url: ""
-ac_ho_broker_http_url: ""
-ac_ho_web_svc_url: ""
-
-
-#
-# Template placeholders
-# -------------------------------------------
-#
-# - AdminConsole configuration local.json template place holder
-placeHolder_listenPort: "<<ac_listen_port>>"
-placeHolder_authMode: "<<ac_auth_mode>>"
-placeHolder_authUser: "<<ac_auth_user>>"
-placeHolder_authUserPass: "<<ac_auth_user_pass>>"
-placeHolder_homeCluster: "<<home_cluster>>"
-placeHolder_tenant: "<<ac_tenant>>"
-placeHolder_clientId: "<<ac_client_id>>"
-placeHolder_logLevel: "<<ac_log_level>>"
-placeHolder_tokenSecret: "<<ac_token_secret>>"
-placeHolder_sslVerifyCerts: "<<ac_ssl_verify_certs>>"
-placeHolder_sslHostnameValidation: "<<ac_ssl_hostname_validation>>"
-placeHolder_sslCaPath: "<<ac_ssl_ca_path>>"
-placeHolder_sslCertPath: "<<ac_ssl_cert_path>>"
-placeHolder_sslKeyPath: "<<ac_ssl_key_path>>"
-placeHolder_k8sNs: "<<ac_k8s_ns>>"
-placeHolder_k8sHost: "<<ac_k8s_host>>"
-placeHolder_k8sSvcPort: "<<ac_k8s_svc_port>>"
-placeHolder_noticeText: "<<ac_notice_text>>"
-placeHolder_functionDisabled: "<<ac_function_disabled>>"
-placeHolder_renderMonitoringTab: "<<ac_render_monitoring_tab>>"
-placeHolder_grafanaUrl: "<<ac_grafana_url>>"
-placeHolder_clientDisabled: "<<ac_client_disabled>>"
-placeHolder_brokerHttpUrl: "<<ac_ho_broker_http_url>>"
-placeHolder_apiVersion: "<<api_version>>"
-placeHolder_brokerSvcUrl: "<<broker_http_url>>"
-placeHolder_webSvcUrl: "<<web_svc_url>>"
-placeHolder_tokenPath: "<<ac_token_path>>"
-placeHolder_clientToken: "<<ac_admin_token>>"
-placeHolder_caCertificate: "<<ca_certificate>>"
-placeHolder_hoBrokerSvcUrl: "<<ac_ho_broker_svc_url>>"
-placeHolder_hoWebSvcUrl: "<<ac_ho_web_svc_url>>"
+ac_ssl_verify_certs: "true"
+ac_ssl_hostname_validation: "true"
