@@ -16,7 +16,7 @@
 #   when: show_debug_msg|bool
 - name: Start the Pulsar server component ({{ srv_component }}), if it is not running yet
   # NOTE: replace "functions_worker" to "functions-worker"
-  shell: "{% if sudo_needed|bool %}sudo -u {{ pulsar_user }} {% endif %}{{ srv_options|trim }} {{ tgt_pulsar_inst_dir }}/bin/pulsar-daemon start {{ srv_component | replace('_', '-') }}"
+  shell: "{% if sudo_needed|bool %}sudo -u {{ pulsar_user }} {% endif %}{{ srv_options }} {{ tgt_pulsar_inst_dir }}/bin/pulsar-daemon start {{ srv_component | replace('_', '-') }}"
   when: not srvStarted|trim|bool
 
 - name: Wait until the Pulsar server component ({{ srv_component }}) is ready

@@ -118,7 +118,7 @@
     # Check the current status of zookeepers
     - { role: misc/_check_svc_status, when: deploy_status=="add" }
     # Start zookepers
-    - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ zk_jvm_options }}", when: deploy_status=="add" }
+    - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ zk_jvm_options|trim|replace('\n',' ') }}", when: deploy_status=="add" }
 
 # - Initialzie Pulsar cluster metadata after zookeepers are up and running
 - hosts: zookeeper
@@ -127,7 +127,7 @@
   become_method: sudo
   run_once: true
   roles: 
-    - { role: pulsar/zookeeper/zkpr_initMetadata, srv_options: "{{ zk_jvm_options }}", when: isScaling|bool }
+    - { role: pulsar/zookeeper/zkpr_initMetadata, srv_options: "{{ zk_jvm_options_b|trim|replace('\n',' ') }}", when: isScaling|bool }
 
 
 #########################
@@ -150,7 +150,7 @@
     # Check the current status of bookies
     - { role: misc/_check_svc_status, when: deploy_status=="add" }
     # Start bookies
-    - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ bookie_jvm_options }}", when: deploy_status=="add" }
+    - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ bookie_jvm_options|trim|replace('\n',' ') }}", when: deploy_status=="add" }
 
 # - Sanity test of whether bookies are up and running properly
 - hosts: bookkeeper
@@ -159,7 +159,7 @@
   become_method: sudo
   run_once: true
   roles:
-    - { role: pulsar/bookie/bkie_sanityCheck, srv_options: "{{ bookie_jvm_options_b }}", when: isScaling|bool }
+    - { role: pulsar/bookie/bkie_sanityCheck, srv_options: "{{ bookie_jvm_options_b|trim|replace('\n',' ') }}", when: isScaling|bool }
 
 
 #########################
@@ -188,7 +188,7 @@
     # Check the current status of brokers
     - { role: misc/_check_svc_status, when: deploy_status=="add" }
     # Start brokers
-    - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ broker_jvm_options }}", when: deploy_status=="add" }
+    - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ broker_jvm_options|trim|replace('\n',' ') }}", when: deploy_status=="add" }
 
 # - Initialzie transaction coordinator metadata when needed
 - hosts: broker
@@ -197,7 +197,7 @@
   become_method: sudo
   run_once: true
   roles: 
-    - { role: pulsar/broker/brkr_initTransMeta, srv_options: "{{ broker_jvm_options }}", 
+    - { role: pulsar/broker/brkr_initTransMeta, srv_options: "{{ broker_jvm_options|trim|replace('\n',' ') }}", 
         when: enable_transaction|bool and deploy_status=="add" }
  
 

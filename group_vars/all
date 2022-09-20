@@ -142,6 +142,22 @@ local_collected_srvfiles_homedir: collected_srv_files
 
 
 #
+# Misc settigns 
+# -------------------------------------------
+#
+# commong JVM settings that applies to all Pulsar server components
+common_jvm_settings: |
+  PULSAR_EXTRA_OPTS="-XX:+PerfDisableSharedMem {{ component_pulsar_extra_opts | default('') }}"
+  PULSAR_GC="-XX:+UseG1GC -XX:MaxGCPauseMillis=10 -XX:+HeapDumpOnOutOfMemoryError -XX:+ExitOnOutOfMemoryError {{ component_pulsar_gc | default('') }}"
+  PULSAR_GC_LOG="-Xlog:gc*,safepoint:{{ tgt_pulsar_gc_log_homedir }}/pulsar_gc_%p.log:time,uptime,tags:filecount=10,filesize=20M"
+
+# Use which version as the zookeeper metadata server. Valid opions: 
+# true:  use the (default) format for broker
+# false: use the format for bookkeeper
+zk_metadata_srv_format_broker: "false"
+
+
+#
 # Pulsar security settings
 # -------------------------------------------
 #
@@ -189,7 +205,7 @@ force_tgt_tls_certs: false
 # - Wether or not to enable Pulsar JWT authentication and authorization
 enable_brkr_authNZ: true
 # - Whether or not to enable Pulsar In-Transit TLS encryption
-enable_brkr_tls: false
+enable_brkr_tls: true
 
 enable_brkr_security: "{{ (enable_brkr_authNZ is defined and enable_brkr_authNZ|bool) or (enable_brkr_tls is defined and enable_brkr_tls|bool) }}"
 
@@ -249,7 +265,7 @@ fwrkr_key_password: "MyFwrkrSrvCertPass"
 #
 #
 # - Wether or not to enable AdminConsole HTTPS
-enable_ac_https: false
+enable_ac_https: true
 # - Whether or not to skip generating Pulsar functions worker TLS certificate files on the local host
 skip_ac_tls_certs_generatation: false
 # - Whehter or not to force replacing the existing AdminConsole server side TLS certificate files

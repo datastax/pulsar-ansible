@@ -72,7 +72,7 @@
     srvStarted: true
     srv_component: 'zookeeper'
     srv_ports: ["{{ zk_clnt_port }}"]
-    srv_options: "{{ zk_jvm_options }}"
+    srv_options: "{{ zk_jvm_options|trim|replace('\n',' ') }}"
     bkup_subfolder_name: "VersionChange-{{ ansible_date_time.epoch }}"
     skip_version_update: true
   pre_tasks:
@@ -128,7 +128,7 @@
     srvStarted: true
     srv_component: 'bookie'
     srv_ports: ["{{ bookie_listening_port }}"]
-    srv_options: "{{ bookie_jvm_options }}"
+    srv_options: "{{ bookie_jvm_options|trim|replace('\n',' ') }}"
     bkup_subfolder_name: "VersionChange-{{ ansible_date_time.epoch }}"
     skip_version_update: true
   pre_tasks:
@@ -177,7 +177,7 @@
   vars:
     srv_component: 'bookie'
   roles:
-    - { role: pulsar/bookie/bkie_sanityCheck, srv_options: "{{ bookie_jvm_options_b }}",
+    - { role: pulsar/bookie/bkie_sanityCheck, srv_options: "{{ bookie_jvm_options_b|trim|replace('\n',' ') }}",
         when: (update_component is not defined or update_component==srv_component) }
 
 
@@ -199,7 +199,7 @@
         "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ web_svc_port_tls }}{% else %}{{ web_svc_port }}{% endif %}",
         "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ broker_svc_port_tls }}{% else %}{{ broker_svc_port }}{% endif %}"
       ]
-    srv_options: "{{ broker_jvm_options }}"
+    srv_options: "{{ broker_jvm_options|trim|replace('\n',' ') }}"
     bkup_subfolder_name: "VersionChange-{{ ansible_date_time.epoch }}"
     skip_version_update: true
   pre_tasks:
@@ -262,7 +262,7 @@
     srv_ports: [
       "{% if enable_fwrkr_tls|bool %}{{ funcs_worker_port_tls }}{% else %}{{ funcs_worker_port }}{% endif %}"
     ]
-    srv_options: "{{ funcs_worker_jvm_options }}"
+    srv_options: "{{ funcs_worker_jvm_options|trim|replace('\n',' ') }}"
     bkup_subfolder_name: "VersionChange-{{ ansible_date_time.epoch }}"
     skip_version_update: true
   pre_tasks:

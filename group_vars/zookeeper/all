@@ -4,6 +4,7 @@
 #
 zk_conf_file: "{{ tgt_pulsar_inst_dir }}/conf/zookeeper.conf"
 pulsar_mem_zk: "-Xms1g -Xmx1g -XX:MaxDirectMemorySize=2g"
+pulsar_mem_zk_b: "-Xms1g -Xmx1g"
 
 zk_clnt_port: 2181
 zk_admin_srv_enable: true
@@ -23,9 +24,15 @@ tgt_pulsar_zk_data_homedir: "{% if customize_datadir is defined and customize_da
 zk_storage_mnt_path: "{{ tgt_pulsar_zk_data_homedir }}/zookeeper"
 
 # extra JVM options to start zookeepers
-zk_jvm_options: > 
+component_pulsar_extra_opts: "-Dstats_server_port={{ zk_stats_port }}"
+component_pulsar_gc: "-XX:HeapDumpPath={{ tgt_pulsar_log_homedir }}/zookeeper"
+zk_jvm_options: >
   {% if customize_jvm is defined and customize_jvm|bool %}PULSAR_MEM="{{ pulsar_mem_zk }}"{% endif %}
-  PULSAR_EXTRA_OPTS="-Dstats_server_port={{ zk_stats_port }} -XX:+PerfDisableSharedMem"
-  PULSAR_GC="-XX:+UseG1GC -XX:MaxGCPauseMillis=10"
-  PULSAR_GC_LOG="-Xlog:gc*,safepoint:{{ tgt_pulsar_gc_log_homedir }}/pulsar_gc_%p.log:time,uptime,tags:filecount=10,filesize=20M"
-  PULSAR_LOG_DIR="{{ tgt_pulsar_log_homedir }}/zookeeper" 
+  {{ common_jvm_settings }}
+  PULSAR_LOG_DIR="{{ tgt_pulsar_log_homedir }}/zookeeper"
+
+# JVM options to run Pulsar CLI commands
+zk_jvm_options_b: >
+  {% if customize_jvm is defined and customize_jvm|bool %}PULSAR_MEM="{{ pulsar_mem_zk_b }}"{% endif %}
+  {{ common_jvm_settings }}
+  PULSAR_LOG_DIR="{{ tgt_pulsar_log_homedir }}/zookeeper"

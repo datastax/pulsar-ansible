@@ -66,4 +66,4 @@
     # Check the current status of functions worker
     - { role: misc/_check_svc_status }
     # Start functions worker
-    - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ funcs_worker_jvm_options }}" }
+    - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ funcs_worker_jvm_options|trim|replace('\n',' ') }}" }

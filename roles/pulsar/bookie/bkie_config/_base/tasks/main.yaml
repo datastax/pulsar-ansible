@@ -41,10 +41,19 @@
     - { regexp: "^(#\\s?)?ensemblePlacementPolicy=", line: "ensemblePlacementPolicy=org.apache.bookkeeper.client.RackawareEnsemblePlacementPolicy" }
   when: config_rackAwareness is defined and config_rackAwareness|bool
 
-- name: Modify Pulsar bookkeeper config file for misc settings
+- name: Modify Pulsar bookkeeper config file for misc, official settings
   lineinfile:
     path: "{{ bookie_conf_file }}"
     regexp: "^(#\\s?)?{{ item.key }}="
     line: "{{ item.key }}={{ item.value }}"
   with_items:
     - "{{ lookup('dict', misc_bookie_config_dict) }}"
+
+- name: Modify Pulsar bookkeeper config file for misc, experimental settings
+  lineinfile:
+    path: "{{ bookie_conf_file }}"
+    regexp: "^(#\\s?)?{{ item.key }}="
+    line: "{{ item.key }}={{ item.value }}"
+  with_items:
+    - "{{ lookup('dict', misc_bookie_config_dict_experimental) }}"
+  when: use_bookie_experimental_feature is defined and use_bookie_experimental_feature|bool

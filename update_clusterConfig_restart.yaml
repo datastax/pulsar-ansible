@@ -109,7 +109,7 @@
     # Start function workers
     - { role: pulsar/common/pulsar_startSvc,  
         srvStarted: false, 
-        srv_options: "{{ funcs_worker_jvm_options }}",
+        srv_options: "{{ funcs_worker_jvm_options|trim|replace('\n',' ') }}",
         when: (deploy_functions_worker is defined and deploy_functions_worker == 'dedicated') and 
               (restart_component is not defined or restart_component==srv_component) }
 
@@ -146,7 +146,7 @@
         when: (rolling_restart_only is not defined or not rolling_restart_only|bool) and 
               (restart_component is not defined or restart_component==srv_component) }
     # Start brokers
-    - { role: pulsar/common/pulsar_startSvc, srvStarted: false, srv_options: "{{ broker_jvm_options }}",
+    - { role: pulsar/common/pulsar_startSvc, srvStarted: false, srv_options: "{{ broker_jvm_options|trim|replace('\n',' ') }}",
         when: (restart_component is not defined or restart_component==srv_component) }
 
 # Update and restart bookkeeper
@@ -176,7 +176,7 @@
         when: (rolling_restart_only is not defined or not rolling_restart_only|bool) and
               (restart_component is not defined or restart_component==srv_component) }
     # Start bookies
-    - { role: pulsar/common/pulsar_startSvc, srvStarted: false, srv_options: "{{ bookie_jvm_options }}", 
+    - { role: pulsar/common/pulsar_startSvc, srvStarted: false, srv_options: "{{ bookie_jvm_options|trim|replace('\n',' ') }}", 
         when: (restart_component is not defined or restart_component==srv_component) }
 
 # Update and restart bookkeeper 
@@ -206,7 +206,7 @@
         when: (rolling_restart_only is not defined or not rolling_restart_only|bool) and
               (restart_component is not defined or restart_component==srv_component) }
     # Start zookeepers
-    - { role: pulsar/common/pulsar_startSvc, srvStarted: false, srv_options: "{{ zk_jvm_options }}", 
+    - { role: pulsar/common/pulsar_startSvc, srvStarted: false, srv_options: "{{ zk_jvm_options|trim|replace('\n',' ') }}", 
         when: (restart_component is not defined or restart_component==srv_component) }
 
 

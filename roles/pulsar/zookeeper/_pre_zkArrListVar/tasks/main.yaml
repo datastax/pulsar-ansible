@@ -44,7 +44,11 @@
     metaSvcZkListStrVar: |
       {% set zklist = [] %}
       {% for node in groups['zookeeper'] %}
+      {% if zk_metadata_srv_format_broker is not defined or zk_metadata_srv_format_broker|bool  %}
       {%   set ignored = zklist.append('metadata-store:zk:' ~ hostvars[node].private_ip ~ ':' ~ zk_clnt_port) %}
+      {% else  %}
+      {%   set ignored = zklist.append('metadata-store:zk://' ~ hostvars[node].private_ip ~ ':' ~ zk_clnt_port ~ '/ledgers') %}
+      {% endif %}
       {% endfor %}
       {{ zklist|join(',') }}
 - debug: msg="metaSvcZkListStrVar - {{ metaSvcZkListStrVar|trim }}"
@@ -63,7 +67,11 @@
     metaSvcZkListStrVar2: |
       {% set zklist = [] %}
       {% for node in groups['zookeeper'] %}
+      {% if zk_metadata_srv_format_broker is not defined or zk_metadata_srv_format_broker|bool  %}
       {%   set ignored = zklist.append('zk:' ~ hostvars[node].private_ip ~ ':' ~ zk_clnt_port) %}
+      {% else  %}
+      {%   set ignored = zklist.append('zk://' ~ hostvars[node].private_ip ~ ':' ~ zk_clnt_port ~ '/ledgers') %}
+      {% endif %}
       {% endfor %}
       {{ zklist|join(',') }}
 - debug: msg="metaSvcZkListStrVar2 - {{ metaSvcZkListStrVar2|trim }}"

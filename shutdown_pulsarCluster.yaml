@@ -16,9 +16,13 @@
     ]
   roles:
     # Check the current status of function workers
-    - { role: misc/_check_svc_status, when: deploy_functions_worker == 'dedicated' }
+    - { role: misc/_check_svc_status, 
+        when: (deploy_functions_worker == 'dedicated') and  
+              (stop_component is not defined or stop_component==srv_component) }
     # Stop function workers
-    - { role: pulsar/common/pulsar_stopSvc, when: deploy_functions_worker == 'dedicated' }
+    - { role: pulsar/common/pulsar_stopSvc, 
+        when: (deploy_functions_worker == 'dedicated') and  
+              (stop_component is not defined or stop_component==srv_component) }
 
 # Stop brokers 
 - hosts: broker
@@ -34,9 +38,11 @@
       ]
   roles:
     # Check the current status of brokers
-    - { role: misc/_check_svc_status }
+    - { role: misc/_check_svc_status,
+        when: (stop_component is not defined or stop_component==srv_component) }
     # Stop brokers
-    - { role: pulsar/common/pulsar_stopSvc }
+    - { role: pulsar/common/pulsar_stopSvc,
+        when: (stop_component is not defined or stop_component==srv_component) }
 
 # Stop bookies 
 - hosts: bookkeeper
@@ -50,9 +56,11 @@
     srv_ports: ["{{ bookie_listening_port }}"]
   roles:
     # Check the current status of bookies
-    - { role: misc/_check_svc_status }
+    - { role: misc/_check_svc_status, 
+        when: (stop_component is not defined or stop_component==srv_component) }
     # Stop bookies
-    - { role: pulsar/common/pulsar_stopSvc }
+    - { role: pulsar/common/pulsar_stopSvc,
+        when: (stop_component is not defined or stop_component==srv_component) }
   post_tasks:
     - name: If requested, clean-up bookkeeper data directories
       shell: rm -rf {{ item }}
@@ -75,9 +83,11 @@
     srv_ports: ["{{ zk_clnt_port }}"]
   roles:
     # Check the current status of zookeepers
-    - { role: misc/_check_svc_status }
+    - { role: misc/_check_svc_status,
+        when: (stop_component is not defined or stop_component==srv_component) }
     # Stop zookeepers
-    - { role: pulsar/common/pulsar_stopSvc }
+    - { role: pulsar/common/pulsar_stopSvc,
+        when: (stop_component is not defined or stop_component==srv_component) }
   post_tasks:
     - name: If requested, clean-up zookeeper data directories
       shell: rm -rf {{ item }}

@@ -10,7 +10,7 @@
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items:
-    - { regexp: "^metadataServiceUri=", line: "metadataServiceUri={{ hostvars[groups['zookeeper'][0]]['metaSvcZkListStrVar']|trim }}" }
+    - { regexp: "^metadataServiceUri=", line: "metadataServiceUri={{ hostvars[groups['zookeeper'][0]]['metaSvcZkListStrVar2']|trim }}" }
 
 - name: Comment out old version specific bookkeeper config settings
   replace:

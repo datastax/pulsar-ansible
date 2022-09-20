@@ -4,6 +4,7 @@
 #
 bookie_conf_file: "{{ tgt_pulsar_inst_dir }}/conf/bookkeeper.conf"
 pulsar_mem_bookie: "-Xms4g -Xmx4g -XX:MaxDirectMemorySize=4g"
+pulsar_mem_bookie_b: "-Xms1g -Xmx1g"
 
 bookie_listening_port: 3181
 
@@ -20,27 +21,27 @@ dft_bookie_ledger_data_homedirs:
 # Non-default journal and ledger data directories (when "customize_datadir" is true)
 # - Multiple directories are supported 
 cust_bookie_jorunal_data_homedirs:
-  - /var/lib/pulsar/bookie/journal/data1
-  - /var/lib/pulsar/bookie/journal/data2 
+  - "/var/lib/pulsar/bookie/journal/data1"
+  - "/var/lib/pulsar/bookie/journal/data2"
 cust_bookie_ledger_data_homedirs:
-  - /var/lib/pulsar/bookie/ledger/data1
-  - /var/lib/pulsar/bookie/ledger/data2
+  - "/var/lib/pulsar/bookie/ledger/data1"
+  - "/var/lib/pulsar/bookie/ledger/data2"
 
 tgt_pulsar_bookie_journal_data_homedirs: "{% if customize_datadir is defined and customize_datadir|bool %}{{ cust_bookie_jorunal_data_homedirs }}{% else %}{{ dft_bookie_jorunal_data_homedirs }}{% endif %}"
 tgt_pulsar_bookie_ledger_data_homedirs: "{% if customize_datadir is defined and customize_datadir|bool %}{{ cust_bookie_ledger_data_homedirs }}{% else %}{{ dft_bookie_ledger_data_homedirs }}{% endif %}"
 
 
 # extra JVM options to start bookkeepers
+component_pulsar_extra_opts: ""
+component_pulsar_gc: "-XX:HeapDumpPath={{ tgt_pulsar_log_homedir }}/bookkeeper"
 bookie_jvm_options: > 
-  {% if customize_jvm is defined and customize_jvm|bool %}PULSAR_MEM="{{ pulsar_mem_bookie }}" {% endif %}
-  PULSAR_EXTRA_OPTS="-XX:+PerfDisableSharedMem"
-  PULSAR_GC="-XX:+UseG1GC -XX:MaxGCPauseMillis=10"
-  PULSAR_GC_LOG="-Xlog:gc*,safepoint:{{ tgt_pulsar_gc_log_homedir }}/pulsar_gc_%p.log:time,uptime,tags:filecount=10,filesize=20M"
+  {% if customize_jvm is defined and customize_jvm|bool %}PULSAR_MEM="{{ pulsar_mem_bookie }}"{% endif %}
+  {{ common_jvm_settings }}
   PULSAR_LOG_DIR="{{ tgt_pulsar_log_homedir }}/bookkeeper"
 
-# JVM options to run bookie commands
+# JVM options to run bookie CLI commands
 bookie_jvm_options_b: > 
-  {% if customize_jvm is defined and customize_jvm|bool %}BOOKIE_MEM="{{ pulsar_mem_bookie }}" {% endif %}
+  {% if customize_jvm is defined and customize_jvm|bool %}BOOKIE_MEM="{{ pulsar_mem_bookie_b }}" {% endif %}
   BOOKIE_EXTRA_OPTS="-XX:+PerfDisableSharedMem"
   BOOKIE_GC_LOG=" "
   BOOKIE_GC="-Xlog:gc*,safepoint:{{ tgt_pulsar_gc_log_homedir }}/pulsar_gc_%p.log:time,uptime,tags:filecount=10,filesize=20M"
@@ -104,5 +105,30 @@ misc_bookie_config_dict: {
   , logSizeLimit: 1073741824        ## for large disk capacity, use the default value
 
   # - Other performance related settings 
-  , verifyMetadataOnGC: 'true'    # default false
+  , verifyMetadataOnGC: 'true'
+
+  # - Back Pressure
+  , maxPendingReadRequestsPerThread: 10000
+
+  # - no autorecovery
+  , autoRecoveryDaemonEnabled: 'false'   # default true
+}
+
+# Sometimes espeically with custom build, there might be some settings
+# not generally available in the official Pulsar build yet. Put these
+# settings here as experimental features
+#
+# NOTE: 
+# - You can explicitly DISABLE this feature in the Pulsar builds that 
+#   does't have these experimental settings. 
+# - Or you can leave as is which is simply no-op and won't have any 
+#   impact to  the Pulsar cluster
+use_bookie_experimental_feature: true
+
+misc_bookie_config_dict_experimental: {
+  # - Back Pressure
+  maxAddsInProgressLimit: 10000
+  , maxReadsInProgressLimit: 10000
+  , closeChannelOnResponseTimeout: 'true'
+  , waitTimeoutOnResponseBackpressureMs: 100
 }
