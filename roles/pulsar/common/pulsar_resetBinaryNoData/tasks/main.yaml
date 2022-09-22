@@ -1,4 +1,12 @@
 ---
+- name: Make sure Pulsar binary files (including subfolders) are under the correct ownership
+  file:
+    path: "{{ tgt_pulsar_inst_dir }}"
+    state: directory
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    recurse: yes
+
 - name: Delete all Pulsar binary files (including subfolders), but excluding data subdirectory if so
   shell: |
     cd {{ tgt_pulsar_inst_dir }} 

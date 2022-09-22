@@ -37,6 +37,12 @@
     # - "keep_newer_files: yes" means not to overwrite existing Pulsar files
     - { role: pulsar/common/pulsar_instBinary, keep_newer_files: yes, when: deploy_status=="add" }
 
+
+## 
+# This step is not needed when DS LS release option is base or all.
+# - pulsarLS_bin_opt: "" or "all"
+# This step is needed when DS LS release option is core
+# - pulsarLS_bin_opt: "core"
 - hosts: broker
   any_errors_fatal: true
   become: "{{ sudo_needed }}"
@@ -45,7 +51,8 @@
     - name: Copy the nar file needed for broker side message filtering
       include_role:
         name: pulsar/broker/_deploy_msg_filter_package
-      when: deploy_status=="add" and enable_srvside_msg_filtering|bool
+      when: deploy_status=="add" and enable_srvside_msg_filtering|bool and 
+            pulsarLS_bin_opt=="core"
 
 
 #########################

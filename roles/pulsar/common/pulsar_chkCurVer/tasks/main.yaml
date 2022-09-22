@@ -1,7 +1,6 @@
 ---
 - name: Check the existing Pulsar version
-  shell: |
-    {% if sudo_needed|bool %}sudo -u {{ pulsar_user }} {% endif %}{{ tgt_pulsar_inst_dir }}/bin/pulsar version
+  shell: "{% if sudo_needed|bool %}sudo -u {{ pulsar_user }} {% endif %}{{ common_jvm_settings|trim|replace('\n',' ') }} {{ tgt_pulsar_inst_dir }}/bin/pulsar version"
   register: pulsar_ver_output
 
 - name: Set existing Pulsar version in a variable  

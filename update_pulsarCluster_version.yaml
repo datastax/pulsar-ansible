@@ -232,7 +232,7 @@
               (update_component is not defined or update_component==srv_component) }
     # Copy the nar file needed for broker side message filtering
     - { role: pulsar/broker/_deploy_msg_filter_package, 
-        when: enable_srvside_msg_filtering|bool and
+        when: enable_srvside_msg_filtering|bool and pulsarLS_bin_opt=="core" and
               (update_component is not defined or update_component==srv_component) }
     # Set up the configuration files of the target Pulsar version
     - { role: pulsar/broker/brkr_config, 
