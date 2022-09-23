@@ -69,7 +69,7 @@
       with_items:
         - "{{ tgt_pulsar_bookie_journal_data_homedirs }}"
         - "{{ tgt_pulsar_bookie_ledger_data_homedirs }}"
-      when: purge_pulsar is defined and purge_pulsar|bool
+      when: purge_pulsar is defined and purge_pulsar|bool and stop_component is not defined
 
 # Stop zookeepers 
 - hosts: zookeeper
@@ -95,7 +95,7 @@
       #   warn: no
       with_items:
         - "{{ tgt_pulsar_zk_data_homedir }}"
-      when: purge_pulsar is defined and purge_pulsar|bool 
+      when: purge_pulsar is defined and purge_pulsar|bool and stop_component is not defined
 
 # Clean up pulsar binaries and logs
 - hosts: pulsarServer
@@ -112,4 +112,4 @@
       - "{{ tgt_pulsar_gc_log_homedir }}"
       - "{{ tgt_pulsar_log_homedir }}"
       # - "{{ tgt_pkg_dir }}"
-    when: purge_pulsar is defined and purge_pulsar|bool
+    when: purge_pulsar is defined and purge_pulsar|bool and stop_component is not defined

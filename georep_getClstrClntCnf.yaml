@@ -18,4 +18,3 @@
         - "{{ pulsar_client_config_file }}"
         - "{{ tgt_jwt_dest_homedir }}/token/{{ brkr_super_user_roles[0] }}.jwt"
         - "{{ tgt_tls_dest_homedir }}/rootca/{{ srv_component }}_{{ public_cacert_name }}"
-    

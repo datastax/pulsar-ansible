@@ -108,19 +108,10 @@
         line: "bookkeeperClientEnforceMinNumRacksPerWriteQuorum={{ enforceMinNumRackPerWQ|lower }}" }
   when: config_rackAwareness is defined and config_rackAwareness|bool
 
-- name: Modify Pulsar broker config file for misc, official settings
+- name: Modify Pulsar broker config file for misc settings
   lineinfile:
     path: "{{ broker_conf_file }}"
     regexp: "^(#\\s?)?{{ item.key }}="
     line: "{{ item.key }}={{ item.value }}"
   with_items:
     - "{{ lookup('dict', misc_broker_config_dict) }}"
-
-- name: Modify Pulsar broker config file for misc, experimental settings 
-  lineinfile:
-    path: "{{ broker_conf_file }}"
-    regexp: "^(#\\s?)?{{ item.key }}="
-    line: "{{ item.key }}={{ item.value }}"
-  with_items:
-    - "{{ lookup('dict', misc_broker_config_dict_experimental) }}"
-  when: use_broker_experimental_feature is defined and use_broker_experimental_feature|bool

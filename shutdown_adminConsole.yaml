@@ -23,4 +23,3 @@
         - "{{ tgt_adminConsole_sec_dir }}"
         # - "{{ tgt_pkg_adminConsole_dir }}"
       when: purge_adminConsole is defined and purge_adminConsole|bool
-

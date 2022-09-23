@@ -111,23 +111,12 @@ misc_bookie_config_dict: {
   , maxPendingReadRequestsPerThread: 10000
 
   # - no autorecovery
-  , autoRecoveryDaemonEnabled: 'false'   # default true
-}
+  , autoRecoveryDaemonEnabled: 'false'
 
-# Sometimes espeically with custom build, there might be some settings
-# not generally available in the official Pulsar build yet. Put these
-# settings here as experimental features
-#
-# NOTE: 
-# - You can explicitly DISABLE this feature in the Pulsar builds that 
-#   does't have these experimental settings. 
-# - Or you can leave as is which is simply no-op and won't have any 
-#   impact to  the Pulsar cluster
-use_bookie_experimental_feature: true
-
-misc_bookie_config_dict_experimental: {
-  # - Back Pressure
-  maxAddsInProgressLimit: 10000
+  # Sometimes especially with custom build, there might be some settings
+  # not generally available in the official Pulsar build yet. Put these
+  # settings below as experimental features. For builds that don't support
+  , maxAddsInProgressLimit: 10000
   , maxReadsInProgressLimit: 10000
   , closeChannelOnResponseTimeout: 'true'
   , waitTimeoutOnResponseBackpressureMs: 100

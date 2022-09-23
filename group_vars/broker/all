@@ -5,6 +5,7 @@
 broker_conf_file: "{{ tgt_pulsar_inst_dir }}/conf/broker.conf"
 broker_func_worker_file: "{{ tgt_pulsar_inst_dir }}/conf/functions_worker.yml"
 pulsar_mem_broker: "-Xms4g -Xmx4g -XX:MaxDirectMemorySize=8g"
+#pulsar_mem_broker: "-Xms5g -Xmx5g -XX:MaxDirectMemorySize=5g"
 
 broker_svc_port: 6650
 broker_svc_port_tls: 6651
@@ -46,7 +47,6 @@ msg_filter_package_name: "pulsar-jms-{{ msg_filter_package_version }}-nar.nar"
 
 msg_filter_pkg_download_url_base: "https://github.com/datastax/pulsar-jms/releases/download"
 msg_filter_pkg_download_url: "{{ msg_filter_pkg_download_url_base }}/{{ msg_filter_package_version }}/{{ msg_filter_package_name }}"
-
 
 
 #
@@ -96,8 +96,8 @@ msg_filter_pkg_download_url: "{{ msg_filter_pkg_download_url_base }}/{{ msg_filt
 misc_broker_config_dict: {
   forceDeleteTenantAllowed: 'false'             # default false
   , forceDeleteNamespaceAllowed: 'false'        # default false
-  , allowAutoTopicCreation: 'false'              # default false
-  , allowAutoSubscriptionCreation: 'false'       # default false
+  , allowAutoTopicCreation: 'false'             # default false
+  , allowAutoSubscriptionCreation: 'false'      # default false
   , brokerDeleteInactiveTopicsEnabled: 'false'  # default true 
   , topicFencingTimeoutSeconds: '5'             # default 0
   , webSocketServiceEnabled: 'true'             # default false
@@ -115,21 +115,12 @@ misc_broker_config_dict: {
   , exposeProducerLevelMetricsInPrometheus: 'false'
   , exposeManagedCursorMetricsInPrometheus: 'false'
   , loadBalancerNamespaceBundleMaxSessions: 0
-}
-
-# Sometimes espeically with custom build, there might be some settings
-# not generally available in the official Pulsar build yet. Put these
-# settings here as experimental features
-#
-# NOTE: 
-# - You can explicitly DISABLE this feature in the Pulsar builds that 
-#   does't have these experimental settings. 
-# - Or you can leave as is which is simply no-op and won't have any 
-#   impact to  the Pulsar cluster
-use_broker_experimental_feature: true
-
-misc_broker_config_dict_experimental: {
-  cacheEvictionByMarkDeletedPosition: 'false'
-  , bookkeeper_waitTimeoutOnBackpressureMs: 50 
   , dispatchThrottlingForFilteredEntriesEnabled: 'true'
+  # Sometimes especially with custom build, there might be some settings
+  # not generally available in the official Pulsar build yet. Put these
+  # settings below as experimental features. For builds that don't support
+  # these settings, just leave them as is and they won't have any impact
+  , cacheEvictionByMarkDeletedPosition: 'false'
+  , bookkeeper_waitTimeoutOnBackpressureMs: 50 
+  , numWorkerThreadsForNonPersistentTopic: 32
 }

@@ -3,8 +3,8 @@
 #   stat:
 #     path: "{{ tgt_pkg_pulsar_dir }}/{{ pulsarLS_bin_name }}"
 #   register: pulsar_distro_stat
-# # - debug: msg="{{pulsar_distro_stat.stat.exists }}, {{ internet_download }}"
-# #   when: show_debug_msg|bool
+# - debug: msg="{{pulsar_distro_stat.stat.exists }}, {{ internet_download }}"
+#   when: show_debug_msg|bool
 
 - name: Check if the target Pulsar binary exists on the target host yet. If not, copy it from local host when 'internet_download' is false
   copy:

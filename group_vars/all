@@ -62,6 +62,7 @@ pulsarLS_bin_download_url: "{{ pulsarLS_download_url_base }}/ls{{ pulsarLS_ver_m
 # - Local fodler that has 
 local_bin_homedir: "~/DataStax/pulsar_bin/releases/luna_streaming"
 
+
 #
 # Target directories
 # -------------------------------------------
@@ -196,6 +197,7 @@ cert_subj_line: "/C=US/ST=TX/L=Dallas/O=mytest.com"
 force_tgt_jwt_token: false
 # - Whehter or not to force replacing the existing Pulsar server side TLS certificate files
 force_tgt_tls_certs: false
+
 
 #
 # >>> Broker related security: JWT token and in-transit TLS encryption
