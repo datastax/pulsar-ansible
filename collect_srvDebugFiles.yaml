@@ -53,7 +53,8 @@
     purge_tgt_tmp_file: true
   roles:
     - { role: pulsar/common/_fetch_srvFile, 
-        when: srv_types is not defined or srv_component in srv_types }
+        when: (srv_types is not defined or srv_component in srv_types) and 
+              (srvhost_ptn is not defined or srvhost_ptn in private_ip) }
 
 - hosts: bookkeeper
   any_errors_fatal: true
@@ -65,7 +66,8 @@
     purge_tgt_tmp_file: true
   roles:
     - { role: pulsar/common/_fetch_srvFile, 
-        when: srv_types is not defined or srv_component in srv_types }
+        when: (srv_types is not defined or srv_component in srv_types) and 
+              (srvhost_ptn is not defined or srvhost_ptn in private_ip) }
 
 - hosts: broker
   any_errors_fatal: true
@@ -77,4 +79,19 @@
     purge_tgt_tmp_file: true
   roles:
     - { role: pulsar/common/_fetch_srvFile, 
-        when: srv_types is not defined or srv_component in srv_types }
+        when: (srv_types is not defined or srv_component in srv_types) and
+              (srvhost_ptn is not defined or srvhost_ptn in private_ip) }
+
+- hosts: functions_worker
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  vars:
+    srv_component: "functions_worker"
+    bkup_subfolder: "{{ hostvars[groups['pulsarServer'][0]]['curEpochTime'] }}"
+    purge_tgt_tmp_file: true
+  roles:
+    - { role: pulsar/common/_fetch_srvFile, 
+        when: (deploy_functions_worker is defined and deploy_functions_worker == 'dedicated') and
+              (srv_types is not defined or srv_component in srv_types) and
+              (srvhost_ptn is not defined or srvhost_ptn in private_ip) }
