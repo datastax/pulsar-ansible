@@ -21,7 +21,7 @@
   vars:
     node_index : "{{ groups['functions_worker'].index(inventory_hostname) }}"
   lineinfile:
-    path: "{{ funcs_worker_conf_file }}"
+    path: "{{ functions_worker_conf_file }}"
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items:
@@ -51,7 +51,7 @@
 
 - name: Modify Pulsar functions worker config for misc settings
   lineinfile:
-    path: "{{ funcs_worker_conf_file }}"
+    path: "{{ functions_worker_conf_file }}"
     regexp: "^(#\\s?)?{{ item.key }}:"
     line: "{{ item.key }}: {{ item.value }}"
   with_items:

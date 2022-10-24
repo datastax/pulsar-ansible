@@ -1,0 +1,18 @@
+---
+- name: "[{{ srv_component }}] Check if Pulsar server component ({{ srv_component }}) process ID file already exists"
+  stat:
+    path: "{{ tgt_pulsar_inst_dir }}/bin/pulsar-{{ srv_component_internal }}.pid"
+  register: srv_pid_file
+# - debug: msg="[{{ srv_component }}] srv_pid_file - {{ srv_pid_file }}"
+#   when: show_debug_msg|bool
+
+- name: "[{{ srv_component }}] Cat the content of the server process ID file"
+  shell: "cat {{ srv_pid_file.stat.path }}"
+  register: catcmd
+  when: srv_pid_file.stat.exists
+
+- name: "[{{ srv_component }}] Get the PID number"
+  set_fact:
+    srv_pid_num: "{% if not catcmd.failed|default('false') %}{{ catcmd.stdout }}{% else %}-1{% endif %}"
+- debug: msg="[{{ srv_component }}] srv_pid_num - {{ srv_pid_num }}"
+  when: show_debug_msg|bool and srv_pid_file.stat.exists

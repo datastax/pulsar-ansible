@@ -1,0 +1,8 @@
+---
+- name: Update Pulsar log flush behavior
+  lineinfile:
+    dest: "{{ tgt_pulsar_inst_dir }}/conf/log4j2.yaml"
+    state: present
+    regexp: "^\\s*immediateFlush:"
+    line: "      immediateFlush: true"
+  when: (immediate_flush is defined and immediate_flush|bool)

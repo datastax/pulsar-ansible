@@ -2,9 +2,12 @@
 #  Pulsar functions worker specific settings
 # -------------------------------------------
 #
-funcs_worker_conf_file: "{{ tgt_pulsar_inst_dir }}/conf/functions_worker.yml"
-pulsar_mem_funcs_worker: "-Xms4g -Xmx4g -XX:MaxDirectMemorySize=8g"
+functions_worker_conf_file: "{{ tgt_pulsar_inst_dir }}/conf/functions_worker.yml"
+pulsar_mem_funcs_worker: "{% if prod_jvm_setting|bool %}-Xms4g -Xmx4g -XX:MaxDirectMemorySize=8g{% else %}-Xms1g -Xmx1g{% endif %}"
+
+# This is the extra JVM options for deployed functions
 pulsar_extra_jvm_opts: "-XX:+PerfDisableSharedMem -XX:+ExitOnOutOfMemoryError"
+
 
 funcs_worker_port: 6750
 funcs_worker_port_tls: 6751

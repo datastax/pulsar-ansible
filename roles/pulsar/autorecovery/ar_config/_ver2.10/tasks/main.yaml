@@ -1,0 +1,21 @@
+#########################
+# Bookkeeper configuration settings that are specific
+# to version 2.10(.*)
+# 
+# NOTE: "bike_config/common" role must be executed first
+# -----------------------
+- name: Modify version 2.10 specific bookkeeper config settings
+  lineinfile:
+    path: "{{ autorecovery_conf_file }}"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { regexp: "^metadataServiceUri=", line: "metadataServiceUri={{ hostvars[groups['zookeeper'][0]]['metaSvcZkListStrVar2']|trim }}" }
+
+- name: Comment out old version specific bookkeeper config settings
+  replace:
+    path: "{{ autorecovery_conf_file }}"
+    regexp: "{{ item.regexp }}"
+    replace: "{{ item.replace }}"
+  with_items:
+    - { regexp: '(^zkServers=)(.*)$', replace: '#\1 \2' }

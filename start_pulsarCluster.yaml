@@ -1,4 +1,12 @@
 ---
+- hosts: pulsarServer
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  roles: 
+    # Enable "srv_select_criteria" variable for server selection
+    - { role: pulsar/common/pulsar_setGlobalVars }
+
 # Start Zookeeper servers
 - hosts: zookeeper
   any_errors_fatal: true
@@ -6,15 +14,13 @@
   become_method: sudo
   vars:
     srvStarted: true
-    srv_component: 'zookeeper'
     srv_ports: ["{{ zk_clnt_port }}"]
   roles: 
     # Check the current status of zookeepers
-    - { role: misc/_check_svc_status, 
-        when: (start_component is not defined or start_component==srv_component) }
+    - { role: misc/_check_svc_status, when: srv_select_criteria }
     # Start zookepers
     - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ zk_jvm_options|trim|replace('\n',' ') }}", 
-        when: (start_component is not defined or start_component==srv_component) }
+        when: srv_select_criteria }
 
 # Start Bookkeeper nodes
 - hosts: bookkeeper
@@ -23,15 +29,13 @@
   become_method: sudo
   vars:
     srvStarted: true
-    srv_component: 'bookie'
     srv_ports: ["{{ bookie_listening_port }}"]
   roles: 
     # Check the current status of bookies
-    - { role: misc/_check_svc_status, 
-        when: (start_component is not defined or start_component==srv_component) }
+    - { role: misc/_check_svc_status, when: srv_select_criteria }
     # Start bookies
     - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ bookie_jvm_options|trim|replace('\n',' ') }}", 
-        when: (start_component is not defined or start_component==srv_component) }
+        when: srv_select_criteria }
 
 # - Sanity test of whether bookies are up and running properly
 - hosts: bookkeeper
@@ -40,7 +44,7 @@
     srv_component: 'bookie'
   roles:
     - { role: pulsar/bookie/bkie_sanityCheck, srv_options: "{{ bookie_jvm_options_b|trim|replace('\n',' ') }}", 
-        when: (start_component is not defined or start_component==srv_component) }
+        when: srv_select_criteria }
 
 # Start Pulsar broker nodes
 - hosts: broker
@@ -49,20 +53,34 @@
   become_method: sudo
   vars:
     srvStarted: true
-    srv_component: 'broker'
     srv_ports: [
         "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ web_svc_port_tls }}{% else %}{{ web_svc_port }}{% endif %}",
         "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ broker_svc_port_tls }}{% else %}{{ broker_svc_port }}{% endif %}"
       ] 
   roles: 
     # Check the current status of brokers
-    - { role: misc/_check_svc_status, 
-        when: (start_component is not defined or start_component==srv_component) }
+    - { role: misc/_check_svc_status, when: srv_select_criteria }
     # Start brokers
     - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ broker_jvm_options|trim|replace('\n',' ') }}", 
-        when: (start_component is not defined or start_component==srv_component) }
+        when: srv_select_criteria }
 
-# Start dedicated function workers, if relevant
+# Start dedicated autorecovery nodes, if relevant
+- hosts: autorecovery
+  gather_facts: true
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  vars:
+    srvStarted: true
+    srv_ports: ["{{ autorecovery_stats_port }}"]
+  roles: 
+    # Check the current status of bookies
+    - { role: misc/_check_svc_status, when: srv_select_criteria }
+    # Start bookies
+    - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ autorecovery_jvm_options|trim|replace('\n',' ') }}", 
+        when: srv_select_criteria and (autorecovery_option=="dedicated") }
+
+# Start dedicated functions worker nodes, if relevant
 - hosts: functions_worker
   gather_facts: true
   any_errors_fatal: true
@@ -71,7 +89,6 @@
   vars:
     hostNameStr2: "{{ private_ip | replace('.', '-') }}"
     srvStarted: true
-    srv_component: 'functions_worker'
     srv_key_name: "{{ srv_component }}.{{ hostNameStr2 }}.key-pk8.pem"
     srv_cert_name: "{{ srv_component }}.{{ hostNameStr2 }}.crt.pem"
     srv_ports: [
@@ -79,9 +96,7 @@
       ]
   roles:
     - { role: misc/_check_svc_status, 
-        when: (deploy_functions_worker == 'dedicated') and  
-              (start_component is not defined or start_component==srv_component) }
+        when: srv_select_criteria and deploy_functions_worker=='dedicated' }
     # Start functions worker
     - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ funcs_worker_jvm_options|trim|replace('\n',' ') }}", 
-        when: deploy_functions_worker == 'dedicated' and  
-              (start_component is not defined or start_component==srv_component) }
+        when: srv_select_criteria and deploy_functions_worker=='dedicated' }

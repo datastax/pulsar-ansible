@@ -1,0 +1,18 @@
+---
+- hosts: pulsarClient
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  roles: 
+    # Set global variables to be used in other tasks/roles
+    - { role: pulsar/common/pulsar_setGlobalVars, varList: 'all' }
+    # Configure Pulsar client (client.conf)
+    - { role: pulsar/client/clnt_config,
+        when: srv_select_criteria and (scope is not defined or scope=="config") }
+
+- hosts: pulsarClient
+  any_errors_fatal: true
+  roles: 
+    # Update bash_profile
+    - { role: misc/_update_profile, 
+        when: srv_select_criteria and (scope is not defined or scope=="profile") }

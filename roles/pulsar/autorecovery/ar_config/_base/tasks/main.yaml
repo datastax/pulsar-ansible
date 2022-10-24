@@ -1,0 +1,17 @@
+---
+- name: Modify (dedicated) auto recovery config file for mandatory settings
+  lineinfile:
+    path: "{{ autorecovery_conf_file }}"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { regexp: "^zkServers=", line: "zkServers={{ hostvars[groups['zookeeper'][0]]['zkListStrVar']|trim }}" }
+    - { regexp: "^autoRecoveryDaemonEnabled=", line: "autoRecoveryDaemonEnabled=true" }
+
+- name: Modify (Dedicated) auto recovery config file for misc settings
+  lineinfile:
+    path: "{{ autorecovery_conf_file }}"
+    regexp: "^(#\\s?)?{{ item.key }}="
+    line: "{{ item.key }}={{ item.value }}"
+  with_items:
+    - "{{ lookup('dict', misc_autorecovery_config_dict) }}"

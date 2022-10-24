@@ -1,0 +1,36 @@
+---
+## Log for all Pulsar severs
+- name: "[{{ srv_component, srv_host }}] Create local folder (timestamp based) to host server logs"
+  file:
+    path: "{{ local_collected_srvfiles_homedir }}/{{ bkup_subfolder }}/log/{{ srv_component }}/{{ srv_host }}"
+    state: directory
+  when: (file_types is not defined or 'all' in file_types or 'log' in file_types)
+
+## Config for all Pulsar servers
+- name: "[{{ srv_host }}] Create local folder (timestamp based) to host server configuration"
+  file:
+    path: "{{ local_collected_srvfiles_homedir }}/{{ bkup_subfolder }}/config/{{ srv_component }}/{{ srv_host }}"
+    state: directory
+  when: (file_types is not defined or 'all' in file_types or 'cfg' in file_types) 
+
+## Gclog for all Pulsar servers
+- name: "[{{ srv_host }}] Create local folder (timestamp based) to host server gc log"
+  file:
+    path: "{{ local_collected_srvfiles_homedir }}/{{ bkup_subfolder }}/gclog/{{ srv_component }}/{{ srv_host }}"
+    state: directory
+  when: (file_types is not defined or 'all' in file_types or 'gclog' in file_types)
+
+## Thread dump for all Pulsar servers
+- name: "[{{ srv_host }}] Create local folder (timestamp based) to host server thread dump"
+  file:
+    path: "{{ local_collected_srvfiles_homedir }}/{{ bkup_subfolder }}/thrdump/{{ srv_component }}/{{ srv_host }}"
+    state: directory
+  when: (file_types is not defined or 'all' in file_types or 'thrdump' in file_types)
+
+## Heap dump for all Pulsar servers
+#  - must specify "file_types" variable and include "heapdump" as part of it
+- name: "[{{ srv_host }}] Create local folder (timestamp based) to host server heap dump"
+  file:
+    path: "{{ local_collected_srvfiles_homedir }}/{{ bkup_subfolder }}/heapdump/{{ srv_component }}/{{ srv_host }}"
+    state: directory
+  when: file_types is defined and ('all' in file_types or 'heapdump' in file_types)

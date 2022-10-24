@@ -1,97 +1,42 @@
+---
+- hosts: pulsarClient
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  roles: 
+    # Set global variables to be used in other tasks/roles
+    - { role: pulsar/common/pulsar_setGlobalVars, srvSelVarOnly: true }
 
 - hosts: pulsarServer
   run_once: true
   tasks:
     - name: Set the current epoch time as a variable
       set_fact: curEpochTime={{ ansible_date_time.iso8601 }}
-      # set_fact: curEpochTime={{ ansible_date_time.date }}
-    # - debug: "msg={{curEpochTime}}"
 
 - hosts: localhost
   gather_facts: true
   connection: local
   vars:
     bkup_subfolder: "{{ hostvars[groups['pulsarServer'][0]]['curEpochTime'] }}"
-    srv_hosts:
-      broker: "{{ groups['broker'] }}"
-      bookkeeper: "{{ groups['bookkeeper'] }}"
-      zookeeper: "{{ groups['zookeeper'] }}"
-  pre_tasks:
   tasks:
     # - debug: "msg={{ srv_hosts | dict2items | subelements('value') }}"
     # - debug: "msg={{ item.0.key }}/{{ item.1 }}"
     #   loop: "{{ srv_hosts | dict2items | subelements('value') }}"
-
-    - name: Create local folders for zookeeper related debug info
+    - name: Create local server debug folders for all server groups
       include_role: 
-        name: local_process/setup_srvDebug
-      vars:
-        srv_component: "zookeeper"
-      loop: "{{ srv_hosts[srv_component] }}"
-
-    - name: Create local folders for bookkeeper related debug info
-      include_role: 
-        name: local_process/setup_srvDebug
-      vars:
-        srv_component: "bookkeeper"
-      loop: "{{ srv_hosts[srv_component] }}"
-
-    - name: Create local folders for broker related debug info
-      include_role: 
-        name: local_process/setup_srvDebug
-      vars:
-        srv_component: "broker"
-      loop: "{{ srv_hosts[srv_component] }}"
-
-- hosts: zookeeper
+        name: local_process/setup_srvDebugDirForGrp
+      when: "groups[srv_component]|length > 0 and hostvars[groups[srv_component][0]]['srv_select_criteria']"
+      with_items: 
+        - "{{ hostvars[groups['pulsarServer'][0]]['srv_component_list'] }}"
+      loop_control:
+        loop_var: srv_component
+  
+- hosts: pulsarServer
   any_errors_fatal: true
   become: "{{ sudo_needed }}"
   become_method: sudo
   vars:
-    srv_component: "zookeeper"
-    bkup_subfolder: "{{ hostvars[groups['pulsarServer'][0]]['curEpochTime'] }}"
+    bkup_subfolder: "{{ curEpochTime }}"
     purge_tgt_tmp_file: true
   roles:
-    - { role: pulsar/common/_fetch_srvFile, 
-        when: (srv_types is not defined or srv_component in srv_types) and 
-              (srvhost_ptn is not defined or srvhost_ptn in private_ip) }
-
-- hosts: bookkeeper
-  any_errors_fatal: true
-  become: "{{ sudo_needed }}"
-  become_method: sudo
-  vars:
-    srv_component: "bookkeeper"
-    bkup_subfolder: "{{ hostvars[groups['pulsarServer'][0]]['curEpochTime'] }}"
-    purge_tgt_tmp_file: true
-  roles:
-    - { role: pulsar/common/_fetch_srvFile, 
-        when: (srv_types is not defined or srv_component in srv_types) and 
-              (srvhost_ptn is not defined or srvhost_ptn in private_ip) }
-
-- hosts: broker
-  any_errors_fatal: true
-  become: "{{ sudo_needed }}"
-  become_method: sudo
-  vars:
-    srv_component: "broker"
-    bkup_subfolder: "{{ hostvars[groups['pulsarServer'][0]]['curEpochTime'] }}"
-    purge_tgt_tmp_file: true
-  roles:
-    - { role: pulsar/common/_fetch_srvFile, 
-        when: (srv_types is not defined or srv_component in srv_types) and
-              (srvhost_ptn is not defined or srvhost_ptn in private_ip) }
-
-- hosts: functions_worker
-  any_errors_fatal: true
-  become: "{{ sudo_needed }}"
-  become_method: sudo
-  vars:
-    srv_component: "functions_worker"
-    bkup_subfolder: "{{ hostvars[groups['pulsarServer'][0]]['curEpochTime'] }}"
-    purge_tgt_tmp_file: true
-  roles:
-    - { role: pulsar/common/_fetch_srvFile, 
-        when: (deploy_functions_worker is defined and deploy_functions_worker == 'dedicated') and
-              (srv_types is not defined or srv_component in srv_types) and
-              (srvhost_ptn is not defined or srvhost_ptn in private_ip) }
+    - { role: pulsar/common/_fetch_srvFile, when: srv_select_criteria }

@@ -1,5 +1,0 @@
-{% set zklist = [] %}
-{% for node in groups['zookeeper'] %}
-{%   set ignored = zklist.append(hostvars[node].private_ip ~ ':' ~ zk_clnt_port) %}
-{% endfor %}
-{{ zklist|join(',') }}

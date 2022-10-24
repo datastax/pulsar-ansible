@@ -1,0 +1,32 @@
+---
+- hosts: autorecovery
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  run_once: true
+  roles: 
+    # Enable "srv_select_criteria" variable for server selection
+    - { role: pulsar/common/pulsar_setGlobalVars }
+
+- hosts: autorecovery
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  run_once: true
+  vars:
+    # only possible values are: 'enable' or 'disable'
+    aroptype: "enable"
+    srv_options: "{{ autorecovery_jvm_options|trim|replace('\n',' ') }}" 
+  tasks:
+    - name: Validity check of the 'aroptype' variable value
+      assert: 
+        that: false
+        fail_msg: "Only 'enable' and 'disable' are expected values of the 'aroptyp' variable"
+      when: not (aroptype=='enable' or aroptype=='disable')
+    - name: Autorecovery manual operation type - "{{ aroptype }}"
+      shell: "{% if sudo_needed|bool %}sudo -u {{ pulsar_user }} {% endif %}{{ srv_options|trim }} {{ tgt_pulsar_inst_dir }}/bin/bookkeeper shell autorecovery -{{ aroptype }}"
+      no_log: true
+      register: ar_shell_cmd
+      when: srv_select_criteria
+    - debug: msg="ar_shell_cmd - {{ ar_shell_cmd }}"
+      when: srv_select_criteria and show_debug_msg|bool
