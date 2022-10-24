@@ -278,3 +278,8 @@ ac_cert_expire_days: 730
 ac_key_password: "MyAncoSrvCertPass"
 
 enable_ac_security: "{{ (enable_brkr_authNZ is defined and enable_brkr_authNZ|bool) or (enable_ac_https is defined and enable_ac_https|bool) }}"
+
+##
+# Ansible controller node specific settings
+#
+pulsar_controller_node_bin: "{{ tgt_pulsar_inst_dir }}/bin/pulsar"    

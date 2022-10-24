@@ -5,6 +5,8 @@
     ./cleanupToken.sh \
       -clst_name {{ cluster_name}} \
       -host_type {{ srv_component }}
+  environment:
+    whichPulsar: "{{ pulsar_controller_node_bin }}"
   when: cleanLocalSecStaging is defined and cleanLocalSecStaging|bool
 - name: ({{ srv_component }}) If authN/authR are enabled, call a bash script to create JWT token files
   shell: |
