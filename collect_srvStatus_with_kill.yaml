@@ -4,8 +4,8 @@
   become: "{{ sudo_needed }}"
   become_method: sudo
   roles: 
-    # Set global variables to be used in other tasks/roles
-    - { role: pulsar/common/pulsar_setGlobalVars, srvSelVarOnly: true }
+    # Enable "srv_select_criteria" variable for server selection
+    - { role: pulsar/common/pulsar_setGlobalVars }
 
 - hosts: pulsarServer
   any_errors_fatal: true
