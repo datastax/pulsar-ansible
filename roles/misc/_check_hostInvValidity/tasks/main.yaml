@@ -12,10 +12,10 @@
 # Make sure the global variable setting is in sync with it.
 - name: "Auto-recovery node validity check"
   assert:
-    that: not ( (groups['autorecovery'] is defined and groups['autorecovery']|length>0 and 
-                 autorecovery_option is defined and autorecovery_option != 'dedicated') or 
-                (groups['autorecovery'] is not defined or groups['autorecovery']|length==0 and 
-                 autorecovery_option is defined and autorecovery_option == 'dedicated') )
+    that: ( ( (groups['autorecovery'] is defined and groups['autorecovery']|length>0) and 
+              (autorecovery_option is defined and autorecovery_option == 'dedicated') ) or
+            ( (groups['autorecovery'] is not defined or groups['autorecovery']|length==0) and 
+              (autorecovery_option is defined and autorecovery_option != 'dedicated') ) )
     fail_msg: "Inocrrect combination of the global variable 'auto-recovery' and the actual 'autorecovery' host inventory host setup!"
  
 - name: Check mandatory global variables

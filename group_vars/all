@@ -154,7 +154,8 @@ local_collected_srvfiles_homedir: collected_srv_files
 # - dedicated  : dedicated auto-recovery daemon process on [sep]arated hosts from bookie hosts
 #   (NOTE: Does NOT support having auto-recovery and bookkeeper are separate processes sharing the same host)
 # -------------------------------------------
-autorecovery_option: "dedicated"
+autorecovery_option: "integrated"
+# autorecovery_option: "dedicated"
 
 
 #

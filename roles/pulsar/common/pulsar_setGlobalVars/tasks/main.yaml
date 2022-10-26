@@ -197,7 +197,7 @@
         {%       if count.append(count.pop() + 1) %}{% endif %}
         {%     endif %}
         {%   endfor %}
-        {%   set _ = nodeCntDict.update({hostvars[groups[grp_name][0]]['srv_component']:count.pop()}) %}
+        {%   set _ = nodeCntDict.update({grp_name:count.pop()}) %}
         {% endfor %}
         {{ nodeCntDict|trim|default({}) }}
   when: varList is defined and (varList == 'all' or varList == 'srvCnt')
@@ -220,7 +220,7 @@
         {%       set _ = rack_list.append(hostvars[node].rack_name) %}
         {%     endif %}
         {%   endfor %}
-        {%   set _ = rackCntDict.update({hostvars[groups[grp_name][0]]['srv_component']:rack_list|unique|length}) %}
+        {%   set _ = rackCntDict.update({grp_name:rack_list|unique|length}) %}
         {% endfor %}
         {{ rackCntDict|trim|default({}) }}
   when: varList is defined and (varList == 'all' or varList == 'srvCnt')
