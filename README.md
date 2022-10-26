@@ -487,8 +487,8 @@ This bash script is used to grant user access privileges to the Pulsar cluster (
 First, we need to define an ACL request list to be granted against a specific cluster, which is a text file named **aclDefRaw** under the following folder
 ```
 permission_matrix/
-├── <pulsar_cluster_name>
-│   └── aclDefRaw
+└── <pulsar_cluster_name>
+    └── aclDefRaw
 ```
  
 This file contains a list of lines with each line representing a particular ACL permission request to access a Pulsar cluster. Each line is composed of a set of fields that are comma separated. An example content of this file is as below:
