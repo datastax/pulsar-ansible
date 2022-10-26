@@ -53,7 +53,7 @@ echo
 
 inputParamListStr=$(echo $@ | sed -e 's/-l\s*//g')
 
-ansiCmd="ansible-playbook ${inputParamListStr// } -i ${ANSI_HOSTINV_FILE} --private-key ${ANSI_SSH_PRIV_KEY} -u ${ANSI_SSH_USER} ${ANSI_DEBUG_LVL}"
+ansiCmd="ansible-playbook ${inputParamListStr} -i ${ANSI_HOSTINV_FILE} --private-key ${ANSI_SSH_PRIV_KEY} -u ${ANSI_SSH_USER} ${ANSI_DEBUG_LVL}"
 if [[ ${outputToLog} -eq 1 ]]; then
     ansiCmd="${ansiCmd} | tee -a ${execLogDir}/${execLogFile}"
 fi

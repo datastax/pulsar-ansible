@@ -236,9 +236,10 @@
     ensemble_size: |
       {% if force_message_rf_setting is defined and force_message_rf_setting|bool %}
       {{ cust_ensemble_size }}
+      {% elif pulsarSrvNodeCntDict['bookkeeper']|int > 3 %}
+      4
       {% else %}
-      {% set cntToCompare = [pulsarSrvNodeCntDict['bookkeeper'], 3] %}
-      {{ cntToCompare|min }}
+      {{ pulsarSrvNodeCntDict['bookkeeper']|int }}
       {% endif %}
   when: varList is defined and (varList == 'all' or varList == 'srvCnt')
 - debug: msg="ensemble_size={{ ensemble_size|trim }}"
@@ -249,12 +250,12 @@
     write_quorum_cnt: |
       {% if force_message_rf_setting is defined and force_message_rf_setting|bool %}
       {{ cust_write_quorum }}
-      {% elif ensemble_size|trim|int > 3 %}
+      {% elif pulsarSrvNodeCntDict['bookkeeper']|int > 3 %}
       3
-      {% elif ensemble_size|trim|int < 2 %}
-      {{ ensemble_size|trim|int }}
+      {% elif pulsarSrvNodeCntDict['bookkeeper']|int == 3 %}
+      2
       {% else %}
-      {{ ensemble_size|trim|int - 1 }}
+      {{ pulsarSrvNodeCntDict['bookkeeper']|int }}
       {% endif %}
   when: varList is defined and (varList == 'all' or varList == 'srvCnt')
 - debug: msg="write_quorum_cnt={{ write_quorum_cnt|trim }}"
@@ -265,10 +266,12 @@
     ack_quorum_cnt: |
       {% if force_message_rf_setting is defined and force_message_rf_setting|bool %}
       {{ cust_ack_quorum }}
-      {% elif write_quorum_cnt|trim|int > 2 %}
-      {{ write_quorum_cnt|trim|int - 1 }}
+      {% elif pulsarSrvNodeCntDict['bookkeeper']|int > 3 %}
+      2
+      {% elif pulsarSrvNodeCntDict['bookkeeper']|int == 3 %}
+      2
       {% else %}
-      {{ write_quorum_cnt|trim|int }}
+      {{ pulsarSrvNodeCntDict['bookkeeper']|int }}
       {% endif %}
   when: varList is defined and (varList == 'all' or varList == 'srvCnt')
 - debug: msg="ack_quorum_cnt={{ ack_quorum_cnt|trim }}"

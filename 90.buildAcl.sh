@@ -26,9 +26,6 @@ if [[ ${bashVerMajor} -lt 4 ]]; then
 fi
 
 DEBUG=false
-DFT_ANSI_SSH_PRIV_KEY="/Users/yabinmeng/.ssh/id_rsa_ymtest"
-DFT_ANSI_SSH_USER="automaton"
-
 
 # only 1 parameter: the message to print for debug purpose
 debugMsg() {
@@ -60,15 +57,15 @@ usage() {
    echo "Usage: buildAnsiHostInvFile.sh [-h]"
    echo "                                -clstrName <cluster_name>"
    echo "                                -aclDef <acl_definition_file>"
-   echo "                               [-skipRoleJwt] <skip_role_jwt_generation>"
-   echo "                               [-ansiPrivKey <ansi_private_key>"
-   echo "                               [-ansiSshUser <ansi_ssh_user>"
+   echo "                                -ansiPrivKey <ansi_private_key>"
+   echo "                                -ansiSshUser <ansi_ssh_user>"
+   echo "                                [-skipRoleJwt] <skip_role_jwt_generation>"
    echo "       -h : Show usage info"
    echo "       -clstrName : Pulsar cluster name"
    echo "       -aclDef : Pulsar ACL definition file"
+   echo "       -ansiPrivKey : The private SSH key file used to connect to Ansible hosts"
+   echo "       -ansiSshUser : The SSH user used to connect to Ansible hosts"
    echo "       [-skipRoleJwt] : Whether to skip JWT token generation for the specified roles"
-   echo "       [-ansiPrivKey] : The private SSH key file used to connect to Ansible hosts"
-   echo "       [-ansiSshUser] : The SSH user used to connect to Ansible hosts"
    echo
 }
 
@@ -90,29 +87,25 @@ while [[ "$#" -gt 0 ]]; do
    shift
 done
 
-ANSI_HOSTINV_FILE="hosts_${clstrName}.ini"
+if [[ -z "${clstrName// }" || -z "${aclDef// }" ||
+      -z "${ansiPrivKey// }" || -z "${ansiSshUser// }" ]]; then
+    echo "  [ERROR] Mandatory input parameters are missing!"
+    usage()
+    exit 30    
+fi
 
-aclDefExecLogHomeDir="${aclRawDefHomeDir}/${clstrName}/logs"
-mkdir -p "${aclDefExecLogHomeDir}/acl_perm_exec_log"
+ANSI_HOSTINV_FILE="hosts_${clstrName}.ini"
+# Check if the corrsponding Ansible host inventory file for the specified cluster exists
+if ! [[ -f "$(pwd)/${ANSI_HOSTINV_FILE}" ]]; then
+    echo "[ERROR] Can't find the corresponding host inventory file for the specific Pulsar cluster: \"${ANSI_HOSTINV_FILE}\"";
+    exit 40
+fi
 
 aclDefFilePath="${aclRawDefHomeDir}/${clstrName}/${aclDefFileName}"
-
-if [[ -z "${ansiPrivKey// }" ]]; then
-    ansiPrivKey=${DFT_ANSI_SSH_PRIV_KEY}
-fi
-
-if [[ -z "${ansiSshUser// }" ]]; then
-    ansiSshUser=${DFT_ANSI_SSH_USER}
-fi
-
-debugMsg "aclDefFilePath=${aclDefFilePath}"
-debugMsg "ansiPrivKey=${ansiPrivKey}"
-debugMsg "ansiSshUser=${ansiSshUser}"
-
 # Check if the corrsponding Pulsar cluster definition file exists
 if ! [[ -f "${aclDefFilePath}" ]]; then
     echo "[ERROR] Can't find the specified ACL raw definition file of the specific Pulsar cluster: ${aclDefFilePath}";
-    exit 30
+    exit 50
 fi
 
 re='(true|false)'
@@ -121,8 +114,17 @@ if [[ -z "${skipRoleJwt// }" ]]; then
 fi
 if ! [[ ${skipRoleJwt} =~ $re ]]; then
     echo "[ERROR] Invalid value for the following input parameter of '-skipRoleJwt'. Value 'true' or 'false' is expected." 
-    exit 40
+    exit 60
 fi
+
+debugMsg "aclDefFilePath=${aclDefFilePath}"
+debugMsg "ansiPrivKey=${ansiPrivKey}"
+debugMsg "ansiSshUser=${ansiSshUser}"
+debugMsg "skipRoleJwt=${skipRoleJwt}"
+
+
+aclDefExecLogHomeDir="${aclRawDefHomeDir}/${clstrName}/logs"
+mkdir -p "${aclDefExecLogHomeDir}/acl_perm_exec_log"
 
 
 ##
