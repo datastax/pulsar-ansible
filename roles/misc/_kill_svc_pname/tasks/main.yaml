@@ -1,0 +1,14 @@
+---
+- name: Get the process IDs of the specified server process
+  shell: "pgrep {{ srv_process_name }}"
+  ignore_errors: yes
+  register: pids_of_server
+- debug: msg="pids_of_server - {{ pids_of_server }}"
+  when: show_debug_msg|bool
+
+- name: Kill the process IDs 
+  shell: "kill -TERM {{ item }}"
+  with_items:
+    - "{{ pids_of_server['stdout_lines'] }}"
+  ignore_errors: yes
+  when: not pids_of_server['failed'] and pids_of_server['stdout_lines']|length > 0
