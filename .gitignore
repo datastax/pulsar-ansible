@@ -9,7 +9,8 @@ hosts.ini.ip*
 .DS_Store
 collected_srv_files/*
 .georep_wd/*
-02.deploy_pulsarCluster.sh
 permission_matrix/MyCluster1
 cluster_topology/MyCluster1
 hosts_*.ini
+automation_exec_logs/*
+bash/buildAnsiHostInvFile.sh.bkup_share_host

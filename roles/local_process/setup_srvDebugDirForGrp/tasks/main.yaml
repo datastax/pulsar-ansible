@@ -1,0 +1,7 @@
+---
+- name: "Create local server debug folders server group {{ srv_component }}"
+  include_role: 
+    name: local_process/setup_srvDebugDirForHost
+  loop: "{{ groups[srv_component] }}"
+  loop_control:
+    loop_var: srv_host

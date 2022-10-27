@@ -21,7 +21,7 @@
     jwtTokenOnly: false
     brokerOnly: false
     # srv_host_list: "{{ groups['broker']['private_ip']|join(',') }}"
-    srv_host_list: "{{ groups['broker'] | map('extract', hostvars, ['private_ip']) | join(',') }}"
+    srv_host_list: "{{ groups['broker'] | map('extract', hostvars, ['private_ip']) | join(',') if srv_component in groups else None }}"
   roles:
     - { role: local_process/gen_secFile/create_jwt_token, 
         user_roles_list: "{{ brkr_super_user_roles_list_str }}",
@@ -56,7 +56,7 @@
     cleanLocalSecStaging: "true"
     showLocalCmdOutput: true
     srv_component: 'functions_worker'
-    srv_host_list: "{{ groups['functions_worker']|join(',') }}"
+    srv_host_list: "{{ groups['functions_worker']|join(',') if srv_component in groups else None }}"
     jwtTokenOnly: false
     brokerOnly: false
   roles:
@@ -94,7 +94,7 @@
   vars:
     showLocalCmdOutput: true
     srv_component: 'adminConsole'
-    srv_host_list: "{{ groups['adminConsole']|join(',') }}"
+    srv_host_list: "{{ groups['adminConsole']|join(',') if srv_component in groups else None }}"
     jwtTokenOnly: false
     brokerOnly: false
   roles:

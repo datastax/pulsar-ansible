@@ -3,6 +3,12 @@
 # Collect and get server gclog files
 # -------------------------------------------
 #
+- name: "[{{ srv_component }}] Find gclog file"
+  find:
+    paths: "{{ tgt_pulsar_gc_log_homedir }}"
+    patterns: "{{ gclog_filename }}"
+  register: srv_gclog_file
+
 - name: "[{{ srv_component }}] Copy Gclog file to the temporary remote folder (to avoid checksum mismatch error)"
   copy:
     src: "{{ tgt_pulsar_gc_log_homedir }}/{{ gclog_filename }}"
@@ -10,9 +16,13 @@
     owner: "{{ pulsar_user }}"
     group: "{{ pulsar_user_group }}"
     remote_src: true
+  with_items:
+    - "{{ srv_gclog_file.files }}"
 
 - name: "[{{ srv_component }}] Copy Gclog file to local"
   fetch:
-    src: "{{ tgt_collected_srvfiles_homedir }}/{{ srv_component }}/{{ gclog_filename }}"
+    src: "{{ tgt_collected_srvfiles_homedir }}/{{ srv_component }}/{{ item.path | split('/') | last }}"
     dest: "{{ local_collected_srvfiles_homedir }}/{{ bkup_subfolder }}/gclog/{{ srv_component }}/{{ inventory_hostname }}/"
     flat: yes
+  with_items:
+    - "{{ srv_gclog_file.files }}"

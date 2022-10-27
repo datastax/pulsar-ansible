@@ -3,23 +3,17 @@
 # Create the temporary folder (and clean it if requested)
 # -------------------------------------------
 #
-- name: Create the temporary remote folder to hold the server files to be fetched (no need for config only)
+- name: "[{{ srv_component }}] Create the temporary remote folder to hold the server files to be fetched (no need for config only)"
   file:
     path: "{{ tgt_collected_srvfiles_homedir }}/{{ srv_component }}"
     state: directory
     owner: "{{ pulsar_user }}"
     group: "{{ pulsar_user_group }}"
     mode: "{{ file_permission_mode }}"
-  when: |
-    (file_types is not defined or 'all' in file_types or not 'cfg' in file_types) and
-    (srvhost_ptn is not defined or srvhost_ptn in private_ip)
-- name: If requested, clean up the remote folder content (likely from the previous run)
-  file:
-    state: absent
-    path: "{{ item }}"
-  with_fileglob:
-    - "{{ tgt_collected_srvfiles_homedir }}/{{ srv_component }}/*"
-  when: purge_tgt_tmp_file is defined and purge_tgt_tmp_file|bool
+
+- name: "[{{ srv_component }}] If requested, clean up the remote folder content (likely from the previous run)"
+  shell: "{% if sudo_needed|bool %}sudo -u {{ pulsar_user }} {% endif %} rm -rf {{ tgt_collected_srvfiles_homedir }}/{{ srv_component }}/*/*"
+  when: "purge_tgt_tmp_file is defined and purge_tgt_tmp_file|bool"
 
 #
 # Common settings for collecting thread dump and heap dump
@@ -27,24 +21,33 @@
 #
 - name: "[{{ srv_component }}] Get server PID file name"
   set_fact:
-    srvpid_file: "{% if srv_component|lower == 'bookkeeper' %}pulsar-bookie.pid{% else %}pulsar-{{ srv_component }}.pid{% endif %}"
+    srvpid_file: "{% if srv_component|lower == 'bookkeeper' %}pulsar-bookie.pid{% else %}pulsar-{{ srv_component | replace('_', '-') }}.pid{% endif %}"
   when: |
-    (file_types is not defined or 'all' in file_types or 'gclog' in file_types or 'thrdump' in file_types or 'heapdump' in file_types) and
-    (srvhost_ptn is not defined or srvhost_ptn in private_ip)
+    "(file_types is not defined or 'all' in file_types or 'gclog' in file_types or 'thrdump' in file_types or 'heapdump' in file_types)"
+
+- name: "[{{ srv_component }}] Check if server PID file exists"
+  stat:
+    path: "{{ tgt_pulsar_inst_dir }}/bin/{{ srvpid_file }}"
+  register: pulsar_srv_pid_file
+  when: |
+    "(file_types is not defined or 'all' in file_types or 'gclog' in file_types or 'thrdump' in file_types or 'heapdump' in file_types)"
+- debug: msg="[{{ srv_component }}] pulsar_srv_pid_file.stat.exists={{ pulsar_srv_pid_file.stat.exists }}"
+  when: |
+    "show_debug_msg|bool and
+     (file_types is not defined or 'all' in file_types or 'gclog' in file_types or 'thrdump' in file_types or 'heapdump' in file_types)"
 
 - name: "[{{ srv_component }}] Get server PID nubmer"
   shell: "cat {{ tgt_pulsar_inst_dir }}/bin/{{ srvpid_file }}"
   register: pidcat_cmd
   when: |
-    (file_types is not defined or 'all' in file_types or 'gclog' in file_types or 'thrdump' in file_types or 'heapdump' in file_types) and
-    (srvhost_ptn is not defined or srvhost_ptn in private_ip)
+    "pulsar_srv_pid_file.stat.exists|bool and
+     (file_types is not defined or 'all' in file_types or 'gclog' in file_types or 'thrdump' in file_types or 'heapdump' in file_types)"
 
 - name: "[{{ srv_component }}] Get the currrent time of the server"
   shell: "date +%F-%H%M%S"
   register: date_cmd
   when: |
-    (file_types is not defined or 'all' in file_types or 'gclog' in file_types or 'thrdump' in file_types or 'heapdump' in file_types) and
-    (srvhost_ptn is not defined or srvhost_ptn in private_ip)
+    "(file_types is not defined or 'all' in file_types or 'gclog' in file_types or 'thrdump' in file_types or 'heapdump' in file_types)"
 
 - name: "[{{ srv_component }}] Get server file name for gclog, thread dump and heap dump"
   set_fact:
@@ -52,8 +55,8 @@
     thrdump_filename: "{{ srv_component }}_{{ pidcat_cmd.stdout }}-thrdump_{{ date_cmd.stdout }}.txt"
     heapdump_filename: "{{ srv_component }}_{{ pidcat_cmd.stdout }}-heapdump_{{ date_cmd.stdout }}.hprof"
   when: |
-    (file_types is not defined or 'all' in file_types or 'gclog' in file_types or 'thrdump' in file_types or 'heapdump' in file_types) and
-    (srvhost_ptn is not defined or srvhost_ptn in private_ip)
+    "pulsar_srv_pid_file.stat.exists|bool and
+     (file_types is not defined or 'all' in file_types or 'gclog' in file_types or 'thrdump' in file_types or 'heapdump' in file_types)"
 
 
 #
@@ -63,8 +66,7 @@
 - include_role:
     name: pulsar/common/_fetch_srvFile/get_srvCfg
   when: 
-    (file_types is not defined or 'all' in file_types or 'cfg' in file_types) and
-    (srvhost_ptn is not defined or srvhost_ptn in private_ip)
+    "(file_types is not defined or 'all' in file_types or 'cfg' in file_types)"
 
 
 #
@@ -74,8 +76,7 @@
 - include_role:
     name: pulsar/common/_fetch_srvFile/get_srvLog
   when: 
-    (file_types is not defined or 'all' in file_types or 'log' in file_types) and
-    (srvhost_ptn is not defined or srvhost_ptn in private_ip)
+    (file_types is not defined or 'all' in file_types or 'log' in file_types)
 
 # 
 # Get the server GC log file
@@ -84,8 +85,8 @@
 - include_role:
     name: pulsar/common/_fetch_srvFile/get_srvGcLog
   when: 
-    (file_types is not defined or 'all' in file_types or 'gclog' in file_types) and 
-    (srvhost_ptn is not defined or srvhost_ptn in private_ip)
+    pulsar_srv_pid_file.stat.exists|bool and
+    (file_types is not defined or 'all' in file_types or 'gclog' in file_types)
 
 
 #
@@ -95,8 +96,8 @@
 - include_role:
     name: pulsar/common/_fetch_srvFile/get_srvThrdmp
   when: 
-    (file_types is not defined or 'all' in file_types or 'thrdump' in file_types) and 
-    (srvhost_ptn is not defined or srvhost_ptn in private_ip)
+    pulsar_srv_pid_file.stat.exists|bool and
+    (file_types is not defined or 'all' in file_types or 'thrdump' in file_types)
 
 
 #
@@ -106,6 +107,5 @@
 - include_role:
     name: pulsar/common/_fetch_srvFile/get_srvHeapdmp
   when: 
-    file_types is defined and 
-    ('all' in file_types or 'heapdump' in file_types) and 
-    (srvhost_ptn is not defined or srvhost_ptn in private_ip)
+    pulsar_srv_pid_file.stat.exists|bool and
+    file_types is defined and ('all' in file_types or 'heapdump' in file_types)

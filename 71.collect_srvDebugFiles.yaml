@@ -1,0 +1,42 @@
+---
+- hosts: pulsarClient
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  roles: 
+    # Enable "srv_select_criteria" variable for server selection
+    - { role: pulsar/common/pulsar_setGlobalVars }
+
+- hosts: pulsarServer
+  run_once: true
+  tasks:
+    - name: Set the current epoch time as a variable
+      set_fact: curEpochTime={{ ansible_date_time.iso8601 }}
+
+- hosts: localhost
+  gather_facts: true
+  connection: local
+  vars:
+    bkup_subfolder: "{{ hostvars[groups['pulsarServer'][0]]['curEpochTime'] }}"
+  tasks:
+    # - debug: "msg={{ srv_hosts | dict2items | subelements('value') }}"
+    # - debug: "msg={{ item.0.key }}/{{ item.1 }}"
+    #   loop: "{{ srv_hosts | dict2items | subelements('value') }}"
+    - name: Create local server debug folders for all server groups
+      include_role: 
+        name: local_process/setup_srvDebugDirForGrp
+      when: "groups[srv_component]|length > 0 and hostvars[groups[srv_component][0]]['srv_select_criteria']"
+      with_items: 
+        - "{{ hostvars[groups['pulsarServer'][0]]['srv_component_list'] }}"
+      loop_control:
+        loop_var: srv_component
+  
+- hosts: pulsarServer
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  vars:
+    bkup_subfolder: "{{ curEpochTime }}"
+    purge_tgt_tmp_file: true
+  roles:
+    - { role: pulsar/common/_fetch_srvFile, when: srv_select_criteria }

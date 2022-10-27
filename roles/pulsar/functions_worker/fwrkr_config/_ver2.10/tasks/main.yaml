@@ -6,7 +6,7 @@
 # -----------------------
 - name: Modify version 2.10 specific config settings for dedicated functions workers
   lineinfile:
-    path: "{{ funcs_worker_conf_file }}"
+    path: "{{ functions_worker_conf_file }}"
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items:
@@ -14,7 +14,7 @@
 
 - name: Comment out old version specific config settings for dedicated functions workers
   replace:
-    path: "{{ funcs_worker_conf_file }}"
+    path: "{{ functions_worker_conf_file }}"
     regexp: "{{ item.regexp }}"
     replace: "{{ item.replace }}"
   with_items:

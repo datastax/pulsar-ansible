@@ -1,7 +1,7 @@
 ---
 - name: Modify zookeeper config for customized settings
   lineinfile:
-    path: "{{ zk_conf_file }}"
+    path: "{{ zookeeper_conf_file }}"
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items:
@@ -13,7 +13,7 @@
 # Optional: to make it easy for running zookeeper commands
 - name: Modify zookeeper config to add 4lw words whitelist
   lineinfile:
-    path: "{{ zk_conf_file }}"
+    path: "{{ zookeeper_conf_file }}"
     line: "4lw.commands.whitelist={{ zk_cmd_white_list }}"
   when: zk_enable_4lw_cmd|bool
 
@@ -29,7 +29,7 @@
 #    start the zookeeper with it, but it has no effect.
 - name: Set "metricsProvider.httpPort" (version 2.8.0+ only)
   lineinfile:
-    path: "{{ zk_conf_file }}"
+    path: "{{ zookeeper_conf_file }}"
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items:
@@ -38,7 +38,7 @@
 
 - name: Modify zookeeper config file to add zookeeper node list
   lineinfile:
-    path: "{{ zk_conf_file }}"
+    path: "{{ zookeeper_conf_file }}"
     line: "server.{{ item.0 + 1 }}={{ item.1 }}"
   with_indexed_items:  
     - "{{ zkArrVar }}"
@@ -52,7 +52,7 @@
     mode: "{{ file_permission_mode }}"
 
 - name: Get zookeeper server ID
-  shell: grep {{ private_ip }} {{ zk_conf_file }} | awk -F'=' '{print $1}' | awk -F'.' '{print $2}'
+  shell: grep {{ private_ip }} {{ zookeeper_conf_file }} | awk -F'=' '{print $1}' | awk -F'.' '{print $2}'
   register: cmdoutput
 
 - name: Set fact of zookeeper server ID

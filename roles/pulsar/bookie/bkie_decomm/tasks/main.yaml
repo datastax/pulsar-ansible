@@ -1,0 +1,9 @@
+---
+# NOTE: this role can be ONLY executed on the node to be decommissioned (so we can skip providing the 'bookieId' parameter)
+#       otherwise, the 'bookieId' parameter must be provided
+- name: Assign bookies to racks
+  shell: "{% if sudo_needed|bool %}sudo -u {{ pulsar_user }} {% endif %}{{ srv_options|trim }} {{ tgt_pulsar_inst_dir }}/bin/bookkeeper shell decommissionbookie > /dev/null 2>&1"
+  ignore_errors: yes
+  register: bookie_decomm_cmd
+- debug: msg="bookie_decomm_cmd.failed - {{ bookie_decomm_cmd.failed }}"
+  when: show_debug_msg|bool

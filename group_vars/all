@@ -37,7 +37,8 @@ openjdk_ver: 11
 
 # - DataStax LunaStreaming release
 pulsarLS_ver_main: "2.10"
-pulsarLS_ver_secondary: "1.7"
+# pulsarLS_ver_secondary: "1.7"
+pulsarLS_ver_secondary: "2.2"
 pulsarLS_ver_signifant: "{{ pulsarLS_ver_main.split('.')[0] }}.{{ pulsarLS_ver_main.split('.')[1] }}"
 pulsarLS_ver: "{{ pulsarLS_ver_main }}.{{ pulsarLS_ver_secondary }}"
 # valid luna streaming binary options: "core" (Pulsar core), "" (base), "all (including all packages, I/O conenctors and message filters)"
@@ -96,6 +97,12 @@ pulsar_client_config_file: "{{ tgt_pulsar_inst_dir }}/conf/client.conf"
 # Configure rack awareness
 # -------------------------------------------
 #
+# whether or not to use customized message replication settings (E/Qw/Qa)
+force_message_rf_setting: false
+cust_ensemble_size: 4
+cust_write_quorum: 3
+cust_ack_quorum: 2
+
 config_rackAwareness: true
 enforceMinNumRackPerWQ: false # default false
 # NOTE: this HAS to be bigger than or equal to the available rack count. 
@@ -141,10 +148,22 @@ local_collected_srvfiles_homedir: collected_srv_files
 
 
 #
+# Auto-recovery related options. Valid values are
+# - disabled   : disable auto-recovery daemon 
+# - integrated : auto-recovery daemon as part of bookkeeper process
+# - dedicated  : dedicated auto-recovery daemon process on [sep]arated hosts from bookie hosts
+#   (NOTE: Does NOT support having auto-recovery and bookkeeper are separate processes sharing the same host)
+# -------------------------------------------
+autorecovery_option: "integrated"
+# autorecovery_option: "dedicated"
+
+
+#
 # Misc settigns 
 # -------------------------------------------
 #
 # commong JVM settings that applies to all Pulsar server components
+prod_jvm_setting: false
 common_jvm_settings: |
   PULSAR_EXTRA_OPTS="-XX:+PerfDisableSharedMem {{ component_pulsar_extra_opts | default('') }}"
   PULSAR_GC="-XX:+UseG1GC -XX:MaxGCPauseMillis=10 -XX:+HeapDumpOnOutOfMemoryError -XX:+ExitOnOutOfMemoryError {{ component_pulsar_gc | default('') }}"
@@ -154,7 +173,6 @@ common_jvm_settings: |
 # true:  use the (default) format for broker
 # false: use the format for bookkeeper
 zk_metadata_srv_format_broker: "false"
-
 
 #
 # Pulsar security settings

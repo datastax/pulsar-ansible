@@ -1,0 +1,303 @@
+---
+############################################
+#
+# Broker server list varialbes
+#
+#--------------------------------------------
+##
+# For each cluster, get a string for all pulsar borker nodes with web service listening ports, e.g.
+#   <broker_node_1>:8080,<broker_node_2>:8080,<broker_node_3>:8080
+#
+- name: Get "webSvcListStr" (IP:Port:Port) list into a (dictionary) variable
+  set_fact: 
+    webSvcListStr: |
+      {% set webSvcList = [] %}
+      {% for node in groups['broker'] %}
+      {%   if hostvars[node].contact_point == "yes" and hostvars[node].deploy_status != "remove" %}
+      {%     set ignored = webSvcList.append(hostvars[node].private_ip ~ ':' ~ hostvars[node].web_svc_port) %}
+      {%   endif %}
+      {% endfor %}
+      {{ webSvcList|join(',') }}
+  when: varList is defined and (varList == 'all' or varList == 'svcList')
+- debug: msg="webSvcListStr - {{ webSvcListStr|trim }}"
+  when: show_debug_msg|bool and varList is defined and (varList == 'all' or varList == 'svcList')
+
+
+##
+# For each cluster, get a string for all pulsar borker nodes with web service TLS listening ports, e.g.
+#   <broker_node_1>:8443,<broker_node_2>:8443,<broker_node_3>:8443
+#
+- name: Get "webSvcTlsListStr" (IP:Port:Port) list into a (dictionary) variable
+  set_fact: 
+    webSvcTlsListStr: |
+      {% set webSvcTlsList = [] %}
+      {% for node in groups['broker'] %}
+      {%   if hostvars[node].contact_point == "yes" and hostvars[node].deploy_status != "remove" %}
+      {%     set ignored = webSvcTlsList.append(hostvars[node].private_ip ~ ':' ~ hostvars[node].web_svc_port_tls) %}
+      {%   endif %}
+      {% endfor %}
+      {{ webSvcTlsList|join(',') }}
+  when: varList is defined and (varList == 'all' or varList == 'svcList')
+- debug: msg="webSvcTlsListStr - {{ webSvcTlsListStr|trim }}"
+  when: show_debug_msg|bool and varList is defined and (varList == 'all' or varList == 'svcList')
+
+##
+# For each cluster, get a string for all pulsar borker nodes with broker service listening ports, e.g.
+#   <broker_node_1>:6650,<broker_node_2>:6650,<broker_node_3>:6650
+#
+- name: Get "brokerSvcListStr" (IP:Port:Port) list into a (dictionary) variable
+  set_fact: 
+    brokerSvcListStr: |
+      {% set brokerSvcList = [] %}
+      {% for node in groups['broker'] %}
+      {%   if hostvars[node].contact_point == "yes" and hostvars[node].deploy_status != "remove" %}
+      {%     set ignored = brokerSvcList.append(hostvars[node].private_ip ~ ':' ~ hostvars[node].broker_svc_port) %}
+      {%   endif %}
+      {% endfor %}
+      {{ brokerSvcList|join(',') }}
+  when: varList is defined and (varList == 'all' or varList == 'svcList')
+- debug: msg="brokerSvcListStr - {{ brokerSvcListStr|trim }}"
+  when: show_debug_msg|bool and varList is defined and (varList == 'all' or varList == 'svcList')
+
+##
+# For each cluster, get a string for all pulsar borker nodes with broker service TLS listening ports, e.g.
+#   <broker_node_1>:6551,<broker_node_2>:6551,<broker_node_3>:6551
+#
+- name: Get "brokerSvcTlsListStr" (IP:Port:Port) list into a (dictionary) variable
+  set_fact: 
+    brokerSvcTlsListStr: |
+      {% set brokerSvcTlsList = [] %}
+      {% for node in groups['broker'] %}
+      {%   if hostvars[node].contact_point == "yes" and hostvars[node].deploy_status != "remove" %}
+      {%     set ignored = brokerSvcTlsList.append(hostvars[node].private_ip ~ ':' ~ hostvars[node].broker_svc_port_tls) %}
+      {%   endif %}
+      {% endfor %}
+      {{ brokerSvcTlsList|join(',') }}
+  when: varList is defined and (varList == 'all' or varList == 'svcList')
+- debug: msg="brokerSvcTlsListStr - {{ brokerSvcTlsListStr|trim }}"
+  when: show_debug_msg|bool and varList is defined and (varList == 'all' or varList == 'svcList')
+
+
+############################################
+#
+# Zookeeper server list varialbes
+#
+#--------------------------------------------
+##
+# For each cluster, get Zookeeper node list in main zookeeper configuration file, e.g.
+#   <zookeeper_node_1>:2888:3888
+#   <zookeeper_node_2>:2888:3888
+#   <zookeeper_node_3>:2888:3888
+#
+- name: Get "zookeeper" configuration (IP:Port:Port) list into a variable
+  set_fact: 
+    zkArrVar: |
+      {% set zklist = [] %}
+      {% for node in groups['zookeeper'] %}
+      {%   if hostvars[node].deploy_status != "remove" %}
+      {%     set ignored = zklist.append(hostvars[node].private_ip + ':2888:3888') %}
+      {%   endif %}
+      {% endfor %}
+      {{ zklist }}
+  when: varList is defined and (varList == 'all' or varList == 'svcList')
+- debug: msg="zkArrVar - {{ zkArrVar|trim }}"
+  when: show_debug_msg|bool and varList is defined and (varList == 'all' or varList == 'svcList')
+
+##
+# For Pulsar cluster version < 2.10 that has zookeeper being the only option as a metadata store
+# 
+# - For each cluster, get a string for all zookeeper nodes with listening ports, e.g.
+#   <zookeeper_node_1>:2181,<zookeeper_node_2>:2181,<zookeeper_node_3>:2181
+#
+- name: Get "zookeeper" string (IP:Port) into a variable
+  set_fact: 
+    zkListStrVar: |
+      {% set zklist = [] %}
+      {% for node in groups['zookeeper'] %}
+      {%   if hostvars[node].deploy_status != "remove" %}
+      {%     set ignored = zklist.append(hostvars[node].private_ip ~ ':' ~ hostvars[node].zk_clnt_port) %}
+      {%   endif %}
+      {% endfor %}
+      {{ zklist|join(',') }}
+  when: varList is defined and (varList == 'all' or varList == 'svcList')
+- debug: msg="zkListStrVar - {{ zkListStrVar|trim }}"
+  when: show_debug_msg|bool and varList is defined and (varList == 'all' or varList == 'svcList')
+
+##
+# For Pulsar cluster version 2.10+ that has options of using different metadata stores (e.g. zookeeper, etcd)
+# 
+# - For each cluster, get a string for all metadata store nodes with listening ports in the desired format, e.g.
+#   metadata-store:zk:<zk_node_1>:2181,metadata-store:zk:<zk_node_2>:2181,metadata-store:zk:<zk_node_3>:2181
+#
+# - This format is used by bookeepers and dedicated functions workers
+#
+- name: Get "zookeeper metadata store" string (metadata-store:zk:IP:Port) into a variable
+  set_fact: 
+    metaSvcZkListStrVar: |
+      {% set zklist = [] %}
+      {% for node in groups['zookeeper'] %}
+      {%   if hostvars[node].deploy_status != "remove" %}
+      {%     if zk_metadata_srv_format_broker is not defined or zk_metadata_srv_format_broker|bool  %}
+      {%       set ignored = zklist.append('metadata-store:zk:' ~ hostvars[node].private_ip ~ ':' ~ hostvars[node].zk_clnt_port) %}
+      {%     else  %}
+      {%       set ignored = zklist.append('metadata-store:zk://' ~ hostvars[node].private_ip ~ ':' ~ hostvars[node].zk_clnt_port ~ '/ledgers') %}
+      {%     endif %}
+      {%   endif %}
+      {% endfor %}
+      {{ zklist|join(',') }}
+  when: varList is defined and (varList == 'all' or varList == 'svcList')
+- debug: msg="metaSvcZkListStrVar - {{ metaSvcZkListStrVar|trim }}"
+  when: show_debug_msg|bool and varList is defined and (varList == 'all' or varList == 'svcList')
+
+##
+# For Pulsar cluster version 2.10+ that has options of using different metadata stores (e.g. zookeeper, etcd)
+# 
+# - For each cluster, get a string for all metadata store nodes with listening ports in the desired format, e.g.
+#   zk:<zk_node_1>:2181,zk:<zk_node_2>:2181,zk:<zk_node_3>:2181
+#
+# - This format is used by brokers
+#
+- name: Get "zookeeper metadata store" simplified string (zk:IP:Port) into a variable
+  set_fact: 
+    metaSvcZkListStrVar2: |
+      {% set zklist = [] %}
+      {% for node in groups['zookeeper'] %}
+      {%   if hostvars[node].deploy_status != "remove" %}
+      {%     if zk_metadata_srv_format_broker is not defined or zk_metadata_srv_format_broker|bool  %}
+      {%       set ignored = zklist.append('zk:' ~ hostvars[node].private_ip ~ ':' ~ hostvars[node].zk_clnt_port) %}
+      {%     else  %}
+      {%       set ignored = zklist.append('zk://' ~ hostvars[node].private_ip ~ ':' ~ hostvars[node].zk_clnt_port ~ '/ledgers') %}
+      {%     endif %}
+      {%   endif %}
+      {% endfor %}
+      {{ zklist|join(',') }}
+  when: varList is defined and (varList == 'all' or varList == 'svcList')
+- debug: msg="metaSvcZkListStrVar2 - {{ metaSvcZkListStrVar2|trim }}"
+  when: show_debug_msg|bool and varList is defined and (varList == 'all' or varList == 'svcList')
+
+
+############################################
+#
+# Server count and rack count related varialbes
+#
+#--------------------------------------------
+
+##
+# Node count per Pulsar server type
+#
+- name: Set the Pulsar server node count into a map variable
+  set_fact:
+    pulsarSrvNodeCntDict: |
+        {% set nodeCntDict = {} %}
+        {% set pulsar_srv_groups = ['zookeeper','bookkeeper','broker'] %}
+        {% for grp_name in pulsar_srv_groups %}
+        {%   set count = [0] %}
+        {%   for node in groups[grp_name] %}
+        {%     if hostvars[node].deploy_status != "remove" %}
+        {%       if count.append(count.pop() + 1) %}{% endif %}
+        {%     endif %}
+        {%   endfor %}
+        {%   set _ = nodeCntDict.update({grp_name:count.pop()}) %}
+        {% endfor %}
+        {{ nodeCntDict|trim|default({}) }}
+  when: varList is defined and (varList == 'all' or varList == 'srvCnt')
+- debug: 
+    var: pulsarSrvNodeCntDict
+  when: show_debug_msg|bool and varList is defined and (varList == 'all' or varList == 'svcCnt')
+
+##
+# Rack count per Pulsar server type
+#
+- name: Set the Pulsar server rack count into a map variable
+  set_fact:
+    pulsarSrvRackCntDict: |
+        {% set rackCntDict = {} %}
+        {% set pulsar_srv_groups = ['zookeeper','bookkeeper','broker'] %}
+        {% for grp_name in pulsar_srv_groups %}
+        {%   set rack_list = [] %}
+        {%   for node in groups[grp_name] %}
+        {%     if hostvars[node].deploy_status != "remove" %}
+        {%       set _ = rack_list.append(hostvars[node].rack_name) %}
+        {%     endif %}
+        {%   endfor %}
+        {%   set _ = rackCntDict.update({grp_name:rack_list|unique|length}) %}
+        {% endfor %}
+        {{ rackCntDict|trim|default({}) }}
+  when: varList is defined and (varList == 'all' or varList == 'srvCnt')
+- debug: 
+    var: pulsarSrvRackCntDict
+  when: show_debug_msg|bool and varList is defined and (varList == 'all' or varList == 'svcCnt')
+
+##
+# E/Qw/Qa
+#
+- name: Set ensemble size variable
+  set_fact:
+    ensemble_size: |
+      {% if force_message_rf_setting is defined and force_message_rf_setting|bool %}
+      {{ cust_ensemble_size }}
+      {% elif pulsarSrvNodeCntDict['bookkeeper']|int > 3 %}
+      4
+      {% else %}
+      {{ pulsarSrvNodeCntDict['bookkeeper']|int }}
+      {% endif %}
+  when: varList is defined and (varList == 'all' or varList == 'srvCnt')
+- debug: msg="ensemble_size={{ ensemble_size|trim }}"
+  when: show_debug_msg|bool and varList is defined and (varList == 'all' or varList == 'srvCnt')
+
+- name: Set write quorum variable
+  set_fact:
+    write_quorum_cnt: |
+      {% if force_message_rf_setting is defined and force_message_rf_setting|bool %}
+      {{ cust_write_quorum }}
+      {% elif pulsarSrvNodeCntDict['bookkeeper']|int > 3 %}
+      3
+      {% elif pulsarSrvNodeCntDict['bookkeeper']|int == 3 %}
+      2
+      {% else %}
+      {{ pulsarSrvNodeCntDict['bookkeeper']|int }}
+      {% endif %}
+  when: varList is defined and (varList == 'all' or varList == 'srvCnt')
+- debug: msg="write_quorum_cnt={{ write_quorum_cnt|trim }}"
+  when: show_debug_msg|bool and varList is defined and (varList == 'all' or varList == 'srvCnt')
+
+- name: Set ack quorum variables
+  set_fact:
+    ack_quorum_cnt: |
+      {% if force_message_rf_setting is defined and force_message_rf_setting|bool %}
+      {{ cust_ack_quorum }}
+      {% elif pulsarSrvNodeCntDict['bookkeeper']|int > 3 %}
+      2
+      {% elif pulsarSrvNodeCntDict['bookkeeper']|int == 3 %}
+      2
+      {% else %}
+      {{ pulsarSrvNodeCntDict['bookkeeper']|int }}
+      {% endif %}
+  when: varList is defined and (varList == 'all' or varList == 'srvCnt')
+- debug: msg="ack_quorum_cnt={{ ack_quorum_cnt|trim }}"
+  when: show_debug_msg|bool and varList is defined and (varList == 'all' or varList == 'srvCnt')
+
+
+############################################
+#
+# Misc global varialbes
+#
+#--------------------------------------------
+##
+# Pulsar server selection criteria (normal) - excluding hosts with deploy_status as 'remove'
+# - srv_types: select all hosts of a certain server type
+# - srvhost_ptn: select all hosts whose private ip/hostname has the specified name pattern
+# - rack_ptn: select all hosts whose rack name has the specified name pattern
+#
+- name: Set Pular server selection criteria (normal) into a variable
+  set_fact: 
+    srv_select_criteria: "{{ (deploy_status != 'remove') and (srv_types is not defined or srv_component in srv_types) and (srvhost_ptn is not defined or srvhost_ptn in private_ip) and (rack_ptn is not defined or rack_ptn in rack_name) }}"
+- debug: msg="srv_select_criteria - {{ srv_select_criteria|bool }}"
+  when: show_debug_msg|bool
+
+# This variable is ONLY used in host decomission related playbooks
+- name: Set Pular server selection criteria (deploy status as 'remove' only)into a variable
+  set_fact: 
+    srv_select_criteria_rmv: "{{ (deploy_status == 'remove') and (srv_types is not defined or srv_component in srv_types) and (srvhost_ptn is not defined or srvhost_ptn in private_ip) and (rack_ptn is not defined or rack_ptn in rack_name) }}"
+- debug: msg="srv_select_criteria_rmv - {{ srv_select_criteria_rmv|bool }}"
+  when: show_debug_msg|bool

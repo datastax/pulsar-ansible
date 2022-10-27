@@ -3,8 +3,26 @@
 # Collect and get server config files
 # -------------------------------------------
 #
+- name: "[{{ srv_component }}] Find config file"
+  find:
+    paths: "{{ tgt_pulsar_inst_dir }}/conf"
+    patterns: "{% if srv_component=='functions_worker' %}{{ srv_component }}.yml{% else %}{{ srv_component }}.conf{% endif %}"
+  register: srv_conf_file
+
+- name: "[{{ srv_component }}] Copy config file to the temporary remote folder"
+  copy:
+    src: "{{ item.path }}"
+    dest: "{{ tgt_collected_srvfiles_homedir }}/{{ srv_component }}/{{ item.path | split('/') | last }}"
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    remote_src: true
+  with_items:
+    - "{{ srv_conf_file.files }}"
+
 - name: "[{{ srv_component }}] Copy config file to local"
   fetch:
-    src: "{{ tgt_pulsar_inst_dir }}/conf/{{ srv_component }}.conf"
+    src: "{{ tgt_collected_srvfiles_homedir }}/{{ srv_component }}/{{ item.path | split('/') | last }}"
     dest: "{{ local_collected_srvfiles_homedir }}/{{ bkup_subfolder }}/config/{{ srv_component }}/{{ inventory_hostname }}/"
     flat: yes
+  with_items:
+    - "{{ srv_conf_file.files }}"

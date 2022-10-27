@@ -1,0 +1,17 @@
+---
+- hosts: pulsarClient
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  roles: 
+    # Enable "srv_select_criteria" variable for server selection
+    - { role: pulsar/common/pulsar_setGlobalVars }
+
+- hosts: pulsarServer
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  roles:
+    - { role: pulsar/common/pulsar_getSrvPidByPort, when: srv_select_criteria }
+    - { role: misc/_kill_svc_pids, 
+        when: srv_select_criteria and status_only is defined and not status_only|bool }

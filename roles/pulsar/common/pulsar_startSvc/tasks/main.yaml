@@ -2,21 +2,20 @@
 - name: Check if Pulsar server component ({{ srv_component }}) process ID file already exists
   stat:
     path: "{{ tgt_pulsar_inst_dir }}/bin/pulsar-{{ srv_component }}.pid"
-  register: srv_pid_stat
-- debug: msg="({{ srv_component }}) srv_pid_stat - {{ srv_pid_stat }}"
+  register: srv_pid_file
+- debug: msg="[{{ srv_component }}] srv_pid_file - {{ srv_pid_file }}"
   when: show_debug_msg|bool
 
 - name: Delete obsolete server component ({{ srv_component }}) process ID file
   file:
     path: "{{ tgt_pulsar_inst_dir }}/bin/pulsar-{{ srv_component }}.pid"
     state: absent
-  when: not srvStarted|trim|bool and srv_pid_stat.stat.exists
+  when: not srvStarted|trim|bool and srv_pid_file.stat.exists
 
 # - debug: msg="{{ srv_options|trim }}"
 #   when: show_debug_msg|bool
 - name: Start the Pulsar server component ({{ srv_component }}), if it is not running yet
-  # NOTE: replace "functions_worker" to "functions-worker"
-  shell: "{% if sudo_needed|bool %}sudo -u {{ pulsar_user }} {% endif %}{{ srv_options|trim|replace('\n',' ') }} {{ tgt_pulsar_inst_dir }}/bin/pulsar-daemon start {{ srv_component | replace('_', '-') }}"
+  shell: "export MALLOC_ARENA_MAX=4; export PULSAR_LOG_IMMEDIATE_FLUSH={{ immediate_flush }}; {% if sudo_needed|bool %}sudo -u {{ pulsar_user }} {% endif %}{{ srv_options|trim|replace('\n',' ') }} {{ tgt_pulsar_inst_dir }}/bin/pulsar-daemon start {{ srv_component_internal }}"
   when: not srvStarted|trim|bool
 
 - name: Wait until the Pulsar server component ({{ srv_component }}) is ready

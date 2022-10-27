@@ -1,17 +1,12 @@
 ---
 ##
-##  NOTE: DO not change the sequence of the tasks!
+##  This playbook is used to deploy a Pulsar cluster according to the predefined cluster topology
 ##
 
 #########################
-#
-# Validity check for the specified host inventory file- hosts: localhost
-- hosts: localhost
-  connection: local
-  gather_facts: true
-  roles: 
-    - { role: misc/_check_hostInvValidity }
-
+# PreWork
+# -----------------------
+##
 # Install Java and Pulsar binaries
 - hosts: LSCluster
   any_errors_fatal: true
@@ -26,17 +21,26 @@
   become: "{{ sudo_needed }}"
   become_method: sudo
   roles: 
+    # Set global variables to be used in other tasks/roles
+    - { role: pulsar/common/pulsar_setGlobalVars, varList: 'all' }
     # Prepare for Pulsar binary installation, including
     # - create Pulsar user and group
     # - prepare binary folder structure
     # - etc.
-    - { role: pulsar/common/pulsar_prepBinary, when: deploy_status=="add"}
+    - { role: pulsar/common/pulsar_prepBinary, when: srv_select_criteria }
     # Get Pulsar binary tarball file of the target version to the server host machine
-    - { role: pulsar/common/pulsar_getBinary, when: deploy_status=="add" }
+    - { role: pulsar/common/pulsar_getBinary, when: srv_select_criteria }
     # Install Pulsar binary
     # - "keep_newer_files: yes" means not to overwrite existing Pulsar files
-    - { role: pulsar/common/pulsar_instBinary, keep_newer_files: yes, when: deploy_status=="add" }
-
+    - { role: pulsar/common/pulsar_instBinary, keep_newer_files: yes, when: srv_select_criteria }
+    
+- hosts: pulsarServer
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  roles: 
+    # Set Pulsar server log immediate_flush behavior
+    - { role: pulsar/common/pulsar_immediateLogFlush, when: srv_select_criteria }
 
 ## 
 # This step is not needed when DS LS release option is base or all.
@@ -50,82 +54,28 @@
   tasks:
     - name: Copy the nar file needed for broker side message filtering
       include_role:
-        name: pulsar/broker/_deploy_msg_filter_package
-      when: deploy_status=="add" and enable_srvside_msg_filtering|bool and 
-            pulsarLS_bin_opt=="core"
-
-
-#########################
-# PreWork
-# -----------------------
-# - When bookie rack-awareness is needed, check the validity of 
-#   the rack-awareness related configuration settings
-- hosts: pulsarServer
-  gather_facts: true
-  any_errors_fatal: true
-  become: "{{ sudo_needed }}"
-  become_method: sudo
-  run_once: true
-  roles: 
-    - { role: pulsar/common/pulsar_bkieRackMinNumCheck }
-
-# - Get zookeeper list in deseried formats and save them in variables
-#   They are needed in later steps for Pulsar configurations
-- hosts: zookeeper
-  gather_facts: true
-  any_errors_fatal: true
-  become: "{{ sudo_needed }}"
-  become_method: sudo
-  run_once: true
-  roles: 
-    - { role: pulsar/zookeeper/_pre_zkArrListVar }
-
-# - Get broker list in deseried formats and save them in variables
-#   They are needed in later steps for Pulsar configurations
-- hosts: broker
-  gather_facts: true
-  any_errors_fatal: true
-  become: "{{ sudo_needed }}"
-  become_method: sudo
-  run_once: true
-  roles: 
-    - { role: pulsar/broker/_pre_brokerListVar }
-
-# - Update Pulsar component log flush behavior
-- hosts: pulsarClient
-  any_errors_fatal: true
-  become: "{{ sudo_needed }}"
-  become_method: sudo
-  tasks:
-  - name: Update Pulsar log flush behavior 
-    lineinfile:
-      dest: "{{ tgt_pulsar_inst_dir }}/conf/log4j2.yaml"
-      state: present
-      regexp: "^\\s*immediateFlush:"
-      line: "      immediateFlush: true"
-    when: immediate_flush is defined and immediate_flush|bool
+        name: pulsar/broker/brkr_deploy_msgFilterPkg
+      when: srv_select_criteria and enable_srvside_msg_filtering|bool and pulsarLS_bin_opt=="core"
 
 
 #########################
 # Zookeeper Related
 # -----------------------
-# - Configure and start zookeepers
 - hosts: zookeeper
   any_errors_fatal: true
   become: "{{ sudo_needed }}"
   become_method: sudo
   vars:
     srvStarted: true
-    srv_component: 'zookeeper'
     srv_ports: ["{{ zk_clnt_port }}"]
   roles: 
     # Config zookeeper (zookeeper.conf)
-    - { role: pulsar/common/pulsar_srvBreadCrumb, pulsar_vm_type: "{{ srv_component }}", when: deploy_status=="add" }
-    - { role: pulsar/zookeeper/zkpr_config, when: deploy_status=="add" }
+    - { role: pulsar/common/pulsar_srvBreadCrumb, pulsar_vm_type: "{{ srv_component }}", when: srv_select_criteria }
+    - { role: pulsar/zookeeper/zkpr_config, when: srv_select_criteria }
     # Check the current status of zookeepers
-    - { role: misc/_check_svc_status, when: deploy_status=="add" }
+    - { role: misc/_check_svc_status, when: srv_select_criteria }
     # Start zookepers
-    - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ zk_jvm_options|trim|replace('\n',' ') }}", when: deploy_status=="add" }
+    - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ zk_jvm_options|trim|replace('\n',' ') }}", when: srv_select_criteria }
 
 # - Initialzie Pulsar cluster metadata after zookeepers are up and running
 - hosts: zookeeper
@@ -134,13 +84,13 @@
   become_method: sudo
   run_once: true
   roles: 
-    - { role: pulsar/zookeeper/zkpr_initMetadata, srv_options: "{{ zk_jvm_options_b|trim|replace('\n',' ') }}", when: isScaling|bool }
+    - { role: pulsar/zookeeper/zkpr_initMetadata, srv_options: "{{ zk_jvm_options_b|trim|replace('\n',' ') }}", 
+        when: srv_select_criteria }
 
 
 #########################
 # Bookkeeper Related
 # -----------------------
-# - Configure and start bookkeepers
 - hosts: bookkeeper
   gather_facts: true
   any_errors_fatal: true
@@ -148,16 +98,15 @@
   become_method: sudo
   vars:
     srvStarted: true
-    srv_component: 'bookie'
     srv_ports: ["{{ bookie_listening_port }}"]
   roles: 
     # Config bookkeeper (bookkeeper.conf)
-    - { role: pulsar/common/pulsar_srvBreadCrumb, pulsar_vm_type: "{{ srv_component }}", when: deploy_status=="add" }
-    - { role: pulsar/bookie/bkie_config, when: deploy_status=="add" }
+    - { role: pulsar/common/pulsar_srvBreadCrumb, pulsar_vm_type: "{{ srv_component }}", when: srv_select_criteria }
+    - { role: pulsar/bookie/bkie_config, when: srv_select_criteria }
     # Check the current status of bookies
-    - { role: misc/_check_svc_status, when: deploy_status=="add" }
+    - { role: misc/_check_svc_status, when: srv_select_criteria }
     # Start bookies
-    - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ bookie_jvm_options|trim|replace('\n',' ') }}", when: deploy_status=="add" }
+    - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ bookie_jvm_options|trim|replace('\n',' ') }}", when: srv_select_criteria }
 
 # - Sanity test of whether bookies are up and running properly
 - hosts: bookkeeper
@@ -166,13 +115,13 @@
   become_method: sudo
   run_once: true
   roles:
-    - { role: pulsar/bookie/bkie_sanityCheck, srv_options: "{{ bookie_jvm_options_b|trim|replace('\n',' ') }}", when: isScaling|bool }
+    - { role: pulsar/bookie/bkie_sanityCheck, srv_options: "{{ bookie_jvm_options_b|trim|replace('\n',' ') }}", 
+        when: srv_select_criteria }
 
 
 #########################
 # Broker Related
 # -----------------------
-# - Configure brokers
 - hosts: broker
   gather_facts: true
   any_errors_fatal: true
@@ -181,7 +130,6 @@
   vars:
     hostNameStr2: "{{ private_ip | replace('.', '-') }}"
     srvStarted: true
-    srv_component: 'broker'
     srv_key_name: "{{ srv_component }}.{{ hostNameStr2 }}.key-pk8.pem"
     srv_cert_name: "{{ srv_component }}.{{ hostNameStr2 }}.crt.pem"
     srv_ports: [
@@ -190,12 +138,12 @@
       ]
   roles: 
     # Config broker (broker.conf)
-    - { role: pulsar/common/pulsar_srvBreadCrumb, pulsar_vm_type: "{{ srv_component }}", when: deploy_status=="add" }
-    - { role: pulsar/broker/brkr_config, when: deploy_status=="add" }
+    - { role: pulsar/common/pulsar_srvBreadCrumb, pulsar_vm_type: "{{ srv_component }}", when: srv_select_criteria }
+    - { role: pulsar/broker/brkr_config, when: srv_select_criteria }
     # Check the current status of brokers
-    - { role: misc/_check_svc_status, when: deploy_status=="add" }
+    - { role: misc/_check_svc_status, when: srv_select_criteria }
     # Start brokers
-    - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ broker_jvm_options|trim|replace('\n',' ') }}", when: deploy_status=="add" }
+    - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ broker_jvm_options|trim|replace('\n',' ') }}", when: srv_select_criteria }
 
 # - Initialzie transaction coordinator metadata when needed
 - hosts: broker
@@ -205,8 +153,66 @@
   run_once: true
   roles: 
     - { role: pulsar/broker/brkr_initTransMeta, srv_options: "{{ broker_jvm_options|trim|replace('\n',' ') }}", 
-        when: enable_transaction|bool and deploy_status=="add" }
+        when: srv_select_criteria and enable_transaction|bool }
  
+
+#########################
+# Dedicated AutoRecovery Related
+# -----------------------
+- hosts: autorecovery
+  gather_facts: true
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  vars:
+    srvStarted: true
+    srv_ports: ["{{ autorecovery_stats_port }}"]
+  roles: 
+    # Config bookkeeper (bookkeeper.conf)
+    - { role: pulsar/common/pulsar_srvBreadCrumb, pulsar_vm_type: "{{ srv_component }}", 
+        when: srv_select_criteria and autorecovery_option=="dedicated" }
+    - { role: pulsar/autorecovery/ar_config, 
+        when: srv_select_criteria and autorecovery_option=="dedicated" }
+    # Check the current status of bookies
+    - { role: misc/_check_svc_status, 
+        when: srv_select_criteria and autorecovery_option=="dedicated" }
+    # Start bookies
+    - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ autorecovery_jvm_options|trim|replace('\n',' ') }}", 
+        when: srv_select_criteria and autorecovery_option=="dedicated" }
+
+
+#########################
+# Dedicated Functions Worker Related
+# -----------------------
+# NOTE: this ansible playbook ONLY supports running dedicated function
+#       workers, aka, not as part of the brokers
+#
+- hosts: functions_worker
+  gather_facts: true
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  vars:
+    hostNameStr2: "{{ private_ip | replace('.', '-') }}"
+    srvStarted: true
+    srv_key_name: "{{ srv_component }}.{{ hostNameStr2 }}.key-pk8.pem"
+    srv_cert_name: "{{ srv_component }}.{{ hostNameStr2 }}.crt.pem"
+    srv_ports: [
+        "{% if enable_fwrkr_tls is defined and enable_fwrkr_tls|bool %}{{ funcs_worker_port_tls }}{% else %}{{ funcs_worker_port }}{% endif %}",
+      ]
+  roles: 
+    # Config functions worker (functions_worker.yml)
+    - { role: pulsar/common/pulsar_srvBreadCrumb, pulsar_vm_type: "{{ srv_component }}", 
+        when: srv_select_criteria and deploy_functions_worker=='dedicated' }
+    - { role: pulsar/functions_worker/fwrkr_config, 
+        when: srv_select_criteria and deploy_functions_worker=='dedicated' }
+    # Check the current status of functions worker
+    - { role: misc/_check_svc_status, 
+        when: srv_select_criteria and deploy_functions_worker=='dedicated' }
+    # Start functions worker
+    - { role: pulsar/common/pulsar_startSvc, srv_options: "{{ funcs_worker_jvm_options|trim|replace('\n',' ') }}", 
+       when: srv_select_criteria and deploy_functions_worker=='dedicated' }
+
 
 #########################
 # Configure Pular clients
@@ -218,7 +224,7 @@
   become_method: sudo
   roles:
     # Config Pulsar client (client.conf)
-    - { role: pulsar/client/clnt_config, when: deploy_status=="add"  }
+    - { role: pulsar/client/clnt_config, when: srv_select_criteria  }
 
 
 #########################
@@ -228,4 +234,4 @@
 - hosts: pulsarClient
   any_errors_fatal: true
   roles:
-    - { role: misc/_update_profile, when: deploy_status=="add"  }
+    - { role: misc/_update_profile, when: srv_select_criteria  }

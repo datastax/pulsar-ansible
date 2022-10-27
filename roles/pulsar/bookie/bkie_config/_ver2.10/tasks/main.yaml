@@ -6,7 +6,7 @@
 # -----------------------
 - name: Modify version 2.10 specific bookkeeper config settings
   lineinfile:
-    path: "{{ bookie_conf_file }}"
+    path: "{{ bookkeeper_conf_file }}"
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items:
@@ -14,7 +14,7 @@
 
 - name: Comment out old version specific bookkeeper config settings
   replace:
-    path: "{{ bookie_conf_file }}"
+    path: "{{ bookkeeper_conf_file }}"
     regexp: "{{ item.regexp }}"
     replace: "{{ item.replace }}"
   with_items:

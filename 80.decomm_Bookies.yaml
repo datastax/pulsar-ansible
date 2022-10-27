@@ -1,0 +1,38 @@
+---
+##
+##  This playbook is used to decommission bookkeeper nodes from the cluster
+##
+
+- hosts: bookkeeper
+  gather_facts: true
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  vars:
+    srvStarted: true
+    srv_ports: ["{{ bookie_listening_port }}"]
+    srv_options: "{{ bookie_jvm_options_b }}"
+  roles:
+    # Enable "srv_select_criteria" variable for server selection
+    - { role: pulsar/common/pulsar_setGlobalVars }
+    # Check the current status of bookies
+    - { role: misc/_check_svc_status, when: srv_select_criteria_rmv }
+    # Stop bookies
+    - { role: pulsar/common/pulsar_stopSvc, when: srv_select_criteria_rmv }
+    # Decommission bookies
+    - { role: pulsar/bookie/bkie_decomm, when: srv_select_criteria_rmv }
+  post_tasks:
+    # Verify that the removed bookie doesn't show up in the cluster's current bookie list
+    - name: Verify the bookie has been from the Pulsar cluster's bookie list
+      shell: "{% if sudo_needed|bool %}sudo -u {{ pulsar_user }} {% endif %}{{ srv_options|trim }} {{ tgt_pulsar_inst_dir }}/bin/pulsar-admin bookies list-bookies | grep -c \"{{ private_ip }}:{{ bookie_listening_port }}\" || true"
+      register: bookie_list_chk_cmd
+      when: srv_select_criteria_rmv
+    - debug: msg="bookie_list_chk_cmd - {{ bookie_list_chk_cmd }}"
+      when: srv_select_criteria_rmv and show_debug_msg|bool 
+    - name: Double check whether the bookie is successfully decommissioned from the cluster
+      assert:
+        that: not bookie_list_chk_cmd.failed|bool and bookie_list_chk_cmd.stdout|int==0
+        fail_msg: "[srv_component] Failed to decommission bookie ({{ private_ip }}) from the cluster"
+      when: srv_select_criteria_rmv
+
+    

@@ -7,3 +7,4 @@
   with_items:
     - { regexp: "^webServiceUrl=", line: "webServiceUrl=http://{{ hostvars[groups['broker'][0]]['webSvcListStr']|trim }}" }
     - { regexp: "^brokerServiceUrl=", line: "brokerServiceUrl=pulsar://{{ hostvars[groups['broker'][0]]['brokerSvcListStr']|trim }}" }
+    - { regexp: "^customCommandFactories=", line: "customCommandFactories=jms" }

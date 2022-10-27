@@ -2,20 +2,17 @@
 - name: Check if Pulsar's server component ({{ srv_component }}) process ID file already exists
   stat:
     path: "{{ tgt_pulsar_inst_dir }}/bin/pulsar-{{ srv_component }}.pid"
-  register: srv_pid_stat
-- debug: msg="({{ srv_component }}) srv_pid_stat - {{ srv_pid_stat }}"
+  register: srv_pid_file
+- debug: msg="({{ srv_component }}) srv_pid_file - {{ srv_pid_file }}"
   when: show_debug_msg|bool
 
-# this is needed because in Pulsar, the bookkeeper service name is 'bookie', but the configuration file name starts with 'bookkeeper'
-- set_fact:
-    srv_component2: "{% if srv_component == 'bookie' %}bookkeeper{% else %}{{ srv_component }}{% endif %}"
 # - set_fact:
-#     get_pid_cmd: "ps -ef | grep -v grep | grep pulsar | grep -E \"{{ srv_component2 | replace('_', '-') }}.(conf|yaml)\" | awk '{print $2}'"
+#     get_pid_cmd: "ps -ef | grep -v grep | grep pulsar | grep -E \"{{ srv_component | replace('_', '-') }}.(conf|yaml)\" | awk '{print $2}'"
 # - debug: msg="[{{ srv_component2 }}] -- {{ get_pid_cmd }} "
 #   when: show_debug_msg|bool
 
-- name: Get the actual running server component ({{ srv_component }}) process PID 
-  shell: "{% if sudo_needed|bool %}sudo -u {{ pulsar_user }} {% endif %}ps -ef | grep -v grep | grep pulsar | grep -E \"{{ srv_component2 | replace('_', '-') }}.(conf|yaml)\" | awk '{print $2}'"
+- name: Get the server process IDs of the running server component ({{ srv_component }})
+  shell: "{% if sudo_needed|bool %}sudo -u {{ pulsar_user }} {% endif %}ps -ef | grep -v grep | grep pulsar | grep -E \"{{ srv_component }}.(conf|yaml)\" | awk '{print $2}'"
   register: pids_of_server
 - debug: msg="pids_of_server - {{ pids_of_server.stdout_lines }}"
   when: show_debug_msg|bool
@@ -34,12 +31,11 @@
   with_items:
     - "{{ pids_of_server.stdout_lines }}"
   when: |
-    srvStarted|trim|bool and not srv_pid_stat.stat.exists and 
+    srvStarted|trim|bool and not srv_pid_file.stat.exists and 
     not pids_of_server.failed|bool and pids_of_server.stdout_lines|length > 0
 
 - name: Stop the Pulsar server component ({{ srv_component }}), if it is already running
-  # NOTE: replace "functions_worker" to "functions-worker"
-  shell: "{% if sudo_needed|bool %}sudo -u {{ pulsar_user }} {% endif %}{{ tgt_pulsar_inst_dir }}/bin/pulsar-daemon stop {{ srv_component | replace('_', '-') }}"
+  shell: "{% if sudo_needed|bool %}sudo -u {{ pulsar_user }} {% endif %}{{ tgt_pulsar_inst_dir }}/bin/pulsar-daemon stop {{ srv_component_internal }}"
   when: srvStarted|trim|bool
 
 - name: Wait until the Pulsar server component ({{ srv_component }}) is gone

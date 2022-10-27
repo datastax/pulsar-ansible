@@ -41,7 +41,6 @@
       with_items:
         - { regexp: "<PULSAR_ADMIN_CMD>", line: "{{ tgt_pulsar_inst_dir }}/bin/pulsar-admin" }
 
-
 - hosts: broker
   any_errors_fatal: true
   become: "{{ sudo_needed }}"

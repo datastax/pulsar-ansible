@@ -1,30 +1,35 @@
 ---
-- name: Check existene of the mandatory groups - zookeeper, bookkeeper, and broker
-  assert: 
-    that: false
-    fail_msg: "Missing or empty groups - 'zookeeper', 'bookkeeper', and 'broker'. Server hosts are expected in these groups!"
-  when: ('zookeeper' not in groups) and
-        (inventory_hostname not in groups['zookeeper']|default([])) and
-        ('bookkeeper' not in groups) and
-        (inventory_hostname not in groups['bookkeeper']|default([])) and
-        ('broker' not in groups) and
-        (inventory_hostname not in groups['broker']|default([]))
-
+- name: Zookeeper node existence check 
+  assert:
+    that: (groups[item] is defined and (groups[item]|length>0))
+    fail_msg: "{{ item }} nodes are mandatory!"
+  with_items: 
+    - 'zookeeper'
+    - 'bookkeeper'
+    - 'broker'
+  
+# When 'auto-recovery' hosts are listed in the host inventory file, it assumes to use dedicated auto-recovery daemon. 
+# Make sure the global variable setting is in sync with it.
+- name: "Auto-recovery node validity check"
+  assert:
+    that: ( ( (groups['autorecovery'] is defined and groups['autorecovery']|length>0) and 
+              (autorecovery_option is defined and autorecovery_option == 'dedicated') ) or
+            ( (groups['autorecovery'] is not defined or groups['autorecovery']|length==0) and 
+              (autorecovery_option is defined and autorecovery_option != 'dedicated') ) )
+    fail_msg: "Inocrrect combination of the global variable 'auto-recovery' and the actual 'autorecovery' host inventory host setup!"
+ 
 - name: Check mandatory global variables
   assert: 
-    that: false
+    that: cluster_name is defined and use_dns_name is defined
     fail_msg: "Missing the mandatory global variables - 'cluster_name' and 'use_dns_name'!"
-  when: (cluster_name is not defined) and 
-        (use_dns_name is not defined)
+  
+- set_fact: |
+    deployStatusExists="{{ 'undefined' not in groups['pulsarServer'] | map('extract', hostvars) | map(attribute='deploy_status', default='undefined') | list }}"
+    srvComponentExists="{{ 'undefined' not in groups['pulsarServer'] | map('extract', hostvars) | map(attribute='srv_component', default='undefined') | list }}"
+    srvComponentIntExists="{{ 'undefined' not in groups['pulsarServer'] | map('extract', hostvars) | map(attribute='srv_component_internal', default='undefined') | list }}"
+    srvComponentListExists="{{ 'undefined' not in groups['pulsarServer'] | map('extract', hostvars) | map(attribute='srv_component_list', default='undefined') | list }}"
 
-- name: Check mandatory group variables for zookeeper, bookkeeper, and broker
+- name: Check mandatory variables for pulsarServer groups (zookeeper, bookkeeper, broker, autorecovery, and functions_worker). Stop execution if the check faile!
   assert: 
-    that: false
-    fail_msg: "Missing the mandatory group level variables - 'isScaling' and 'deploy_status'. Please make sure using the bash script ('bash/buildAnsiHostInvFile.sh') to automatically generate the host inventory file based on the cluster topology raw definition file!"
-  when: (hostvars[groups['zookeeper'][0]]['isScaling'] is not defined) and 
-        (hostvars[groups['zookeeper'][0]]['deploy_statsu'] is not defined) and
-        (hostvars[groups['bookkeeper'][0]]['isScaling'] is not defined) and
-        (hostvars[groups['bookkeeper'][0]]['deploy_statsu'] is not defined) and
-        (hostvars[groups['broker'][0]]['isScaling'] is not defined) and
-        (hostvars[groups['broker'][0]]['deploy_statsu'] is not defined)
-    
+    that: deployStatusExists|bool and srvComponentExists|bool and srvComponentIntExists|bool and srvComponentListExists|bool
+    fail_msg: "Missing the mandatory group level variables - 'deploy_status', and 'srv_component'. Please make sure using the bash script ('bash/buildAnsiHostInvFile.sh') to automatically generate the host inventory file based on the cluster topology raw definition file!"

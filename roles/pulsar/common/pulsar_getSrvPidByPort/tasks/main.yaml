@@ -1,0 +1,17 @@
+---
+- set_fact:
+    ps_conf_file_search_str: "{{ vars[srv_component + '_conf_file'].split('/')[-1] }}"
+
+- name: "[{{ srv_component }}] Get the server process IDs (and user IDs) of the running server component"
+  shell: "{% if sudo_needed|bool %}sudo -u {{ pulsar_user }} {% endif %}ps -ef | grep -v grep | grep pulsar | grep -E \"{{ ps_conf_file_search_str }}\" | awk '{print $2,$1}'"
+  register: pscmd
+- debug: msg="[{{ srv_component }}] pscmd.failed - {{ pscmd.failed }}"
+  when: show_debug_msg|bool
+
+- name: "[{{ srv_component }}] Get the PID and UID"
+  set_fact:
+    srv_pid_num: "{% if pscmd.failed|default('false') or pscmd.stdout|length==0 %}-1{% else %}{{ pscmd.stdout.split(' ')[0] }}{% endif %}"
+    srv_pid_user: "{% if pscmd.failed|default('false') or pscmd.stdout|length==0 %}N/A{% else %}{{ pscmd.stdout.split(' ')[1] }}{% endif %}"
+- debug: msg="[{{ srv_component }}] srv_pid_num={{ srv_pid_num }}, srv_pid_user={{ srv_pid_user }}"
+  when: show_debug_msg|bool
+

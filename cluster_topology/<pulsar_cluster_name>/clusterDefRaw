@@ -1,0 +1,32 @@
+# Pulsar cluster raw definition file
+# -----------------------------------
+# > each line represents a server host in this cluster
+# > each server host line has the following fields
+#    0) internal facing server ip or hostname
+#    1) external facing server ip or hostname
+#       * if empty, the same as the internal facing ip or hostname
+#    2) server type: what purpose of this host machine in the Pulsar cluster
+#       in theory, one host machine can be used for multiple purposes (esp for lower environment)
+#       * possible values: zookeeper, bookkeeper, broker, functions_worker, autorecovery, standAloneClient, adminConsole, heartBeat
+#    3) region name
+#    4) availability zone name
+#    5) [broker only] contact point (yes/no): whether to be used as the contact point for a Pulsar client
+#    6) host machine deployment status. Possible values: 
+#       - (empty value/not set): node either already in the cluster or to be added 
+#       - 'remove': remove node from the cluster
+# -----------------------------------
+<zookeeper_node_ip_1>,,zookeeper,region1,az1,,
+<zookeeper_node_ip_2>,,zookeeper,region1,az2,,
+<zookeeper_node_ip_3>,,zookeeper,region1,az3,,
+<bookkeeper_node_ip_1>,,bookkeeper,region1,az1,,
+<bookkeeper_node_ip_2>,,bookkeeper,region1,az2,,
+<bookkeeper_node_ip_3>,,bookkeeper,region1,az3,,
+<broker_node_ip_1>,,broker,region1,az1,yes,
+<broker_node_ip_2>,,broker,region1,az2,,
+<broker_node_ip_3>,,broker,region1,az3,,
+<autorecovery_node_ip_1>,,autorecovery,region1,az1,,
+<functions_worker_node_ip_1>,,functions_worker,region1,az1,,
+<pulsar_client_node_ip_1>,,standAloneClient,region1,az1,,
+<pulsar_client_node_ip_2>,,standAloneClient,region1,az1,,
+<adminconsole_node_ip_1>,,adminConsole,region1,az1,,
+<heartbeat_node_ip_1>,,heartBeat,region1,az1,,

@@ -7,5 +7,5 @@
   set_fact:
     cur_pulsar_ver: "{{ pulsar_ver_output.stdout_lines[0].split(':') | last | trim }}"
 
-- debug: msg="cur_pulsar_ver - {{ cur_pulsar_ver }}"
+- debug: msg="current Pulsar version - {{ cur_pulsar_ver }}; target Pulsar version - {{ pulsarLS_ver }}"
   when: show_debug_msg|bool

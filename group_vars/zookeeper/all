@@ -2,9 +2,9 @@
 #  Zookeeper related settings
 # -------------------------------------------
 #
-zk_conf_file: "{{ tgt_pulsar_inst_dir }}/conf/zookeeper.conf"
-pulsar_mem_zk: "-Xms1g -Xmx1g -XX:MaxDirectMemorySize=2g"
-pulsar_mem_zk_b: "-Xms1g -Xmx1g"
+zookeeper_conf_file: "{{ tgt_pulsar_inst_dir }}/conf/zookeeper.conf"
+pulsar_mem_zk: "{% if prod_jvm_setting|bool %}-Xms1g -Xmx1g -XX:MaxDirectMemorySize=2g{% else %}-Xms512m -Xmx512m{% endif %}"
+pulsar_mem_zk_b: "{% if prod_jvm_setting|bool %}-Xms1g -Xmx1g{% else %}-Xms512m -Xmx512m{% endif %}"
 
 zk_clnt_port: 2181
 zk_admin_srv_enable: true

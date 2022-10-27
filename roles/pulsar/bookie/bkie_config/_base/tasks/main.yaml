@@ -16,10 +16,9 @@
     - "{{ tgt_pulsar_bookie_journal_data_homedirs }}"
     - "{{ tgt_pulsar_bookie_ledger_data_homedirs }}"
 
-#- debug: msg={{ hostvars[groups['cluster_srv'][0]]['zkstrDict']|trim }}
 - name: Modify bookkeeper config file for mandatory settings
   lineinfile:
-    path: "{{ bookie_conf_file }}"
+    path: "{{ bookkeeper_conf_file }}"
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items:
@@ -29,21 +28,22 @@
     - { regexp: "^prometheusStatsHttpPort=", line: "prometheusStatsHttpPort={{ bookie_stats_port }}" }
     - { regexp: "^(#\\s?)?journalDirectories=", line: "journalDirectories={{ tgt_pulsar_bookie_journal_data_homedirs | join(',') }}" }
     - { regexp: "^ledgerDirectories=", line: "ledgerDirectories={{ tgt_pulsar_bookie_ledger_data_homedirs | join(',') }}" }
-
+    # Enable/disable autoRecovery daemon as part of bookkeeper process
+    - { regexp: "^autoRecoveryDaemonEnabled=", 
+        line: "autoRecoveryDaemonEnabled={% if autorecovery_option is defined and autorecovery_option=='integrated' %}true{% else %}false{% endif %}" }
+    
 - name: Modify bookkeeper config file for rack-awareness related settings
   lineinfile:
-    path: "{{ bookie_conf_file }}"
+    path: "{{ bookkeeper_conf_file }}"
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items:
-    # "autoRecoveryDaemonEnabled" being true is needed in order for RackawareEnsemblePlacementPolicy to take effect
-    - { regexp: "^autoRecoveryDaemonEnabled=", line: "autoRecoveryDaemonEnabled=true" }
     - { regexp: "^(#\\s?)?ensemblePlacementPolicy=", line: "ensemblePlacementPolicy=org.apache.bookkeeper.client.RackawareEnsemblePlacementPolicy" }
   when: config_rackAwareness is defined and config_rackAwareness|bool
 
 - name: Modify Pulsar bookkeeper config file for misc settings
   lineinfile:
-    path: "{{ bookie_conf_file }}"
+    path: "{{ bookkeeper_conf_file }}"
     regexp: "^(#\\s?)?{{ item.key }}="
     line: "{{ item.key }}={{ item.value }}"
   with_items:
