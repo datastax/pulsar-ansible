@@ -1,0 +1,16 @@
+---
+# - Start the HeartBeat server
+- hosts: heartBeat
+  gather_facts: true
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  vars:
+    srvStarted: true
+    srv_component: 'heartBeat'
+    srv_ports: ["{{ hb_listen_port }}"]
+  roles:
+    # Check the current status of the HeartBeat
+    - { role: misc/_check_svc_status }
+    # Start AdminConsole application server
+    - { role: heartbeat/hb_startHbSvc }

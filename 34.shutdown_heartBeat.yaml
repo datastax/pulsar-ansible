@@ -1,0 +1,24 @@
+---
+# Stop and clean up HeartBeat
+- hosts: heartBeat
+  any_errors_fatal: true
+  become: "{{ sudo_needed }}"
+  become_method: sudo
+  vars:
+    srvStarted: true
+    srv_component: 'heartBeat'
+    srv_ports: ["{{ hb_listen_port }}"]
+  roles:
+    # Check the current status of the AdminConsole application server
+    - { role: misc/_check_svc_status }
+    # Stop the AdminConsole application server
+    - { role: heartbeat/hb_stopHbSvc }
+  post_tasks:
+    - name: If requested, clean-up HeartBeat binary and log files
+      file:
+        path: "{{ item }}"
+        state: absent
+      with_items:
+        - "{{ tgt_heartBeat_inst_dir }}"
+        - "{{ tgt_heartBeat_sec_dir }}"
+      when: purge_heartBeat is defined and purge_heartBeat|bool
