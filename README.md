@@ -93,7 +93,7 @@ cluster_topology
    └── clusterDefRaw
 ```
  
-Basically, each cluster must have a corresponding subfolder (with the name as the cluster name) under folder **cluster_topology**. Each cluster's subfolder has a text file, ***clusterDefRaw***that defines this cluster's topology.
+Basically, each cluster must have a corresponding subfolder (with the name as the cluster name) under folder **cluster_topology**. Each cluster's subfolder has a text file, ***clusterDefRaw*** that defines this cluster's topology.
  
 ## 2.1. Cluster Topology Raw Definition File
  
