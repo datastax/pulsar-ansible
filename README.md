@@ -129,6 +129,7 @@ An example of a topology raw definition file for a cluster with 3 zookeepers, 3 
 ```
 
 Please **NOTE** that,
+
 Currently this framework ONLY supports having different Pulsar server types on separate host machines. Sharing multiple server types on the same host machine will cause the execution failure of some playbooks.
  
 ## 2.2. Auto-gen of Ansible Host Inventory File
@@ -139,7 +140,7 @@ Once the cluster topology raw definition file for a cluster is in place, we can 
 $ bash/buildAnsiHostInvFile.sh -clstrName <cluster_name> -hostDns [true|false]
 ```
  
-**NOTE** that
+Please **NOTE** that,
  
 1) The specified cluster name must match a subfolder name of the ***cluster_topology*** folder.
 2) If the server IP is used in the topology raw definition file,
