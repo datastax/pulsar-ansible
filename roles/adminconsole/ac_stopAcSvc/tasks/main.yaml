@@ -1,7 +1,7 @@
 ---
 - name: Kill the AdminConsole application server process(es)
   include_role:
-    role: misc/_kill_svc_pids
+    role: misc/_kill_svc_pname
   vars:
     srv_process_name: "node"
 

@@ -74,10 +74,17 @@ CLUSTER_NAME="<current_Pulsar_cluster_name>"
 2) **run_automation.sh**: This script is used to execute a specific Ansible playbook with possible extra variables. The usage of this script is as below:
 ```
 $ run_automation.sh -h
-$ run_automation.sh <ansible_playbook_yaml_file> [--extra-vars '"var1=value1 var2=value2 ..."']
+$ run_automation.sh <ansible_playbook_yaml_file> [--extra-vars '"var1=value1 var2=value2 ..."'] [-l]
 ```
  
-**NOTE**: if the ansible-playbook takes extra ansible variables using "--extra-vars" option, the double-quoted variables must be wrapped within a pair of single-quotes when passing into the *run_automation.sh* bash script.
+Please **NOTE** that,
+1) If the ansible-playbook takes extra ansible variables using "--extra-vars" option, the double-quoted variables must be wrapped within a pair of single-quotes when passing into the *run_automation.sh* bash script.
+2) "-l" option is provided, the execution log of the specified Ansible playbook will be recorded in the following folder
+```
+automation_exec_logs/
+└── <current_date>
+    └── <playbook_name>.yaml_<exec_start_time>.log
+```
  
 # 2. Cluster Topology Definition and Auto-gen of Ansible Host Inventory File
  
@@ -129,8 +136,7 @@ An example of a topology raw definition file for a cluster with 3 zookeepers, 3 
 ```
 
 Please **NOTE** that,
-
-Currently this framework ONLY supports having different Pulsar server types on separate host machines. Sharing multiple server types on the same host machine will cause the execution failure of some playbooks.
+1) Currently this framework ONLY supports having different Pulsar server types on separate host machines. Sharing multiple server types on the same host machine will cause the execution failure of some playbooks.
  
 ## 2.2. Auto-gen of Ansible Host Inventory File
  
@@ -141,7 +147,6 @@ $ bash/buildAnsiHostInvFile.sh -clstrName <cluster_name> -hostDns [true|false]
 ```
  
 Please **NOTE** that,
- 
 1) The specified cluster name must match a subfolder name of the ***cluster_topology*** folder.
 2) If the server IP is used in the topology raw definition file,
    * "-hostDns" parameter must have value 'false'.
@@ -240,9 +245,11 @@ The automation framework in this repo supports deploying a secured Pulsar cluste
 * Authorization
 * Client-to-broker TLS encryption
  
-When the above security features are enabled, they need certain files to be prepared in advance such as the JWT token files, TLS private keys, public certificates, and etc. This playbook is used to generate these security related files locally (on the Ansible controller machine). The generated local files are located under the following directories:
+When the above security features are enabled, they need certain files to be prepared in advance such as the JWT token files, TLS private keys, public certificates, etc. This playbook is used to generate these security related files locally (on the Ansible controller machine). The generated local files are located under the following directories:
 * bash/security/authentication/jwt/staging
 * bash/security/inransit_encryption/staging
+
+**NOTE**: This playbook has one runtime variable, **cleanLocalSecStaging** (possible values: true or false), that controls whether to clean up the local staging areas before generating the security related files. When setting to true, any previously created security files will be first removed.
  
 Please **NOTE** that,
 1) When security features are enabled, this playbook needs to be executed before running the playbook of *02.deploy_pulsarCluster.yaml* (for cluster deployment)
@@ -476,7 +483,6 @@ collected_srv_files
 This playbook is used to decommission bookkeeper nodes from the Pulsar cluster. Decommissioning is a safe approach to remove a bookkeeper node from a Pulsar cluster without causing potential data and performance issues.
  
 Please **NOTE** that,
- 
 1) Only bookkeeper nodes with ***deploy_status=remove*** (as below) in the host inventory file would be decommissioned. Otherwise, this playbook is a no-op.
 ```
 [bookkeeper]
