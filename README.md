@@ -102,16 +102,16 @@ The topology raw definition file is a text file that has a series of lines and e
 ```
 0) internal facing server ip or hostname
 1) external facing server ip or hostname
-  * if empty, the same as the internal facing ip or hostname
+   * if empty, the same as the internal facing ip or hostname
 2) server type: what purpose of this host machine in the Pulsar cluster
-  in theory, one host machine can be used for multiple purposes (esp for lower environment)
-  * possible values: zookeeper, bookkeeper, broker, functions_worker, autorecovery, standAloneClient, adminConsole, heartBeat
-  * use '+' to specify multiple purposes (e.g. zookeeper+bookkeeper+broker)
+   in theory, one host machine can be used for multiple purposes (esp for lower environment)
+   * possible values: zookeeper, bookkeeper, broker, functions_worker, autorecovery, standAloneClient, adminConsole, heartBeat
+   * use '+' to specify multiple purposes (e.g. zookeeper+bookkeeper+broker)
 3) region name
 4) availability zone name
 5) [broker only] contact point (yes/no): whether to be used as the contact point for a Pulsar client
 6) host machine deployment status. Possible values:
-  - (empty value/not set): node either already in the cluster or to be added
+   - (empty value/not set): node either already in the cluster or to be added
    - 'remove': remove node from the cluster
 ```
  
