@@ -13,7 +13,7 @@
   become_method: sudo
   roles: 
     # Set global variables to be used in other tasks/roles
-    - { role: pulsar/common/pulsar_setGlobalVars }
+    - { role: pulsar/common/pulsar_setGlobalVars, varList: 'all' }
 
 
 #########################

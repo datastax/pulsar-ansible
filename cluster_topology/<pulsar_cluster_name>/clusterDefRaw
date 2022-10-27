@@ -8,7 +8,6 @@
 #    2) server type: what purpose of this host machine in the Pulsar cluster
 #       in theory, one host machine can be used for multiple purposes (esp for lower environment)
 #       * possible values: zookeeper, bookkeeper, broker, functions_worker, autorecovery, standAloneClient, adminConsole, heartBeat
-#       * use '+' to specify multiple purposes (e.g. zookeeper+bookkeeper+broker)
 #    3) region name
 #    4) availability zone name
 #    5) [broker only] contact point (yes/no): whether to be used as the contact point for a Pulsar client

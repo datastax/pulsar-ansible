@@ -128,9 +128,7 @@ while read LINE || [ -n "${LINE}" ]; do
             externalIp=${internalIp}
         fi 
         
-        providedHostTypeListStr=${FIELDS[2]}
-        IFS='+' read -r -a providedHostTypeArr <<< "${providedHostTypeListStr}"
-        
+        hostType=${FIELDS[2]}        
         region=${FIELDS[3]}
         aZone=${FIELDS[4]}
         brokerCP=${FIELDS[5]}
@@ -138,22 +136,27 @@ while read LINE || [ -n "${LINE}" ]; do
 
         debugMsg "internalIp=${internalIp}"
         debugMsg "externalIp=${externalIp}"
-        debugMsg "hostTypeListStr=${providedHostTypeListStr}"
-        debugMsg "hostTypeListArr=${providedHostTypeArr[*]}"
+        debugMsg "hostType=${hostType}"
         debugMsg "region=${region}"
         debugMsg "aZone=${aZone}"
         debugMsg "brokerCP=${brokerCP}"
         debugMsg "deployStatus=${deployStatus}"
         
-        if [[ -z "${internalIp// }"||  -z "${providedHostTypeListStr// }" || -z "${region// }" || -z "${aZone// }" ]]; then
+        if [[ -z "${internalIp// }"||  -z "${hostType// }" || -z "${region// }" || -z "${aZone// }" ]]; then
             echo "[ERROR] Invalid server host defintion line: \"${LINE}\". Mandatory fields must not be empty!" 
             exit 50
         fi
 
-        if [[ "${providedHostTypeListStr}" =~ "broker" ]]; then
+        if ! [[ "${validHostTypeArr[*]}" =~ "${hostType// }" ]]; then
+            echo "[ERROR] Invalid server host type at line \"${LINE}\"." 
+            echo "        must be one of the following values: \"${validPulsarSrvHostTypeListStr}\""
+            exit 60
+        fi
+
+        if [[ "${hostType}" =~ "broker" ]]; then
             if ! [[ -z "${brokerCP// }" || "${brokerCP// }" == "yes" || "${brokerCP// }" == "no" ]]; then
                 echo "[ERROR] Broker contact point filed must be 'yes' or 'no' (line:  \"${LINE}\")." 
-                exit 60
+                exit 70
             elif [[ -z "${brokerCP// }" ]]; then
                 brokerCP="no"
             fi
@@ -161,26 +164,19 @@ while read LINE || [ -n "${LINE}" ]; do
 
         if ! [[ -z "${deployStatus// }" || "${validDeployStatusArr[*]}" =~ "${deployStatus}" ]]; then
             echo "[ERROR] Invalid server deployment status (line: \"${LINE}\"). Must be empty or one of the following: \""${validDeployStatusArr[*]}"\"" 
-            exit 70
+            exit 80
         fi
 
-        for hostType in "${providedHostTypeArr[@]}"; do
-            if ! [[ "${validHostTypeArr[*]}" =~ "${hostType}" ]]; then
-                echo "[ERROR] Invalid pulsar server type (line: \"${LINE}\")." 
-                exit 80
-            fi
-
-            internalHostIpMap[${hostType}]+="${internalIp} "
-            externalHostIpMap[${hostType}]+="${externalIp} "
-            regionMap[${hostType}]+="${region} "
-            azMap[${hostType}]+="${aZone} "
-            if [[ "${hostType}" == "broker" ]]; then
-                brokerCPMap[${hostType}]+="${brokerCP} "
-            else
-                brokerCPMap[${hostType}]+=" "
-            fi
-            deployStatusMap[${hostType}]+="${deployStatus} "
-        done
+        internalHostIpMap[${hostType}]+="${internalIp} "
+        externalHostIpMap[${hostType}]+="${externalIp} "
+        regionMap[${hostType}]+="${region} "
+        azMap[${hostType}]+="${aZone} "
+        if [[ "${hostType}" == "broker" ]]; then
+            brokerCPMap[${hostType}]+="${brokerCP} "
+        else
+            brokerCPMap[${hostType}]+=" "
+        fi
+        deployStatusMap[${hostType}]+="${deployStatus} "
     fi
 
 done < ${clstTopFile}

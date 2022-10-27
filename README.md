@@ -106,7 +106,6 @@ The topology raw definition file is a text file that has a series of lines and e
 2) server type: what purpose of this host machine in the Pulsar cluster
    in theory, one host machine can be used for multiple purposes (esp for lower environment)
    * possible values: zookeeper, bookkeeper, broker, functions_worker, autorecovery, standAloneClient, adminConsole, heartBeat
-   * use '+' to specify multiple purposes (e.g. zookeeper+bookkeeper+broker)
 3) region name
 4) availability zone name
 5) [broker only] contact point (yes/no): whether to be used as the contact point for a Pulsar client
@@ -128,6 +127,9 @@ An example of a topology raw definition file for a cluster with 3 zookeepers, 3 
 <broker_node_ip_2>,,broker,region1,az2,,
 <broker_node_ip_3>,,broker,region1,az3,,
 ```
+
+Please **NOTE** that,
+Currently this framework ONLY supports having different Pulsar server types on separate host machines. Sharing multiple server types on the same host machine will cause the execution failure of some playbooks.
  
 ## 2.2. Auto-gen of Ansible Host Inventory File
  
