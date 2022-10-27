@@ -22,3 +22,6 @@ heartBeat_download_url: "{{ heartBeat_download_url_base }}/{{ heartBeat_ver }}/{
 #
 tgt_pkg_heartBeat_dir: "{{ tgt_pkg_homedir }}/pulsar_heart_beat"
 tgt_heartBeat_inst_dir: /opt/pulsarHeartBeat
+
+# - HeartBeat listending port for Prometheus metrics (DO NOT change it. This is a constant)
+hb_listen_port: 8080

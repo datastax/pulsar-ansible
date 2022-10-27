@@ -1,0 +1,15 @@
+---
+- name: Kill the HeartBeat application server process(es)
+  include_role:
+    role: misc/_kill_svc_pids
+  vars:
+    srv_process_name: "pulsar-heartbeat"
+
+- name: Wait until HeartBeat application server is gone
+  wait_for:
+    host: "{{ private_ip }}"
+    port: "{{ hb_listen_port }}"
+    state: stopped
+    delay: 2
+    timeout: 120
+  when: srvStarted|trim|bool
