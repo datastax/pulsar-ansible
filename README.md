@@ -384,6 +384,14 @@ ok: [IP3] => {
    "msg": "[broker] srv_pid_num=23281, srv_pid_user=pulsar"
 }
 ```
+
+In order to kill the server processes, we have to explicitly specify the runtime variable as false, as below. If the runtime variable is not specified, this playbook only returns the server status.
+
+```
+--extra-vars "status_only=false" (as a parameter of the Ansible playbook file)
+or
+--extra-vars '"status_only=false"' (as a parameter of the 'run_automation.sh' file)
+```
  
 ## 4.15. 71.collect_srvDebugFiles.yaml
  
