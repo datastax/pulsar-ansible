@@ -141,8 +141,8 @@ $ bash/buildAnsiHostInvFile.sh -clstrName <cluster_name> -hostDns [true|false]
  
 1) The specified cluster name must match a subfolder name of the ***cluster_topology*** folder.
 2) If the server IP is used in the topology raw definition file,
-  1) "-hostDns" parameter must have value 'false'.
-  2) Otherwise, it must have value 'true'.
+   * "-hostDns" parameter must have value 'false'.
+   * Otherwise, it must have value 'true'.
  
 The automatically generated host inventory file name has the following naming convention:
 **hosts_<cluster_name>.ini**
