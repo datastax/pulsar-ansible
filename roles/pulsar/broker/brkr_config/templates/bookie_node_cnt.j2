@@ -1,5 +1,0 @@
-{% set count = [0] %}
-{% for node in groups['bookkeeper'] %}
-{%   if count.append(count.pop() + 1) %}{% endif %}
-{% endfor %}
-{{ count.pop() }}
