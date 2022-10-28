@@ -1,7 +1,3 @@
-##
-##  NOTE: For cluster deployment, this step is needed to make sure basic
-##        pre-conditions are met !
-##
 ###
 # Copyright DataStax, Inc.
 #
@@ -20,6 +16,12 @@
 
 
 ---
+
+##
+##  NOTE: For cluster deployment, this step is needed to make sure basic
+##        pre-conditions are met !
+##
+
 ##
 # Basic validity check for the specified host inventory file
 # - zookeper/broker/bookkeeper groups can't be empty
