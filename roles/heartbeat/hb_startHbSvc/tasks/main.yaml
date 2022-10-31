@@ -2,8 +2,8 @@
 - name: Start HeartBeat if it is not running yet
   ## NOTE: Do NOT use Ansible "become_user"! Otherwise, ansible will fail to write .async file under /home/{{ pulsar_user }}
   # become_user: "{{ pulsar_user }}"
-  shell: cd {{ tgt_heartBeat_inst_dir }}; export PULSAR_OPS_MONITOR_CFG=./runtime.yaml; nohup ./{{ heartBeat_bin_name.split('.gz')[0] }} >/dev/null 2>&1 &
-#  shell: "cd {{ tgt_adminConsole_inst_dir }}/server/; export NODE_EXTRA_CA_CERTS={% if enable_brkr_tls is defined and enable_brkr_tls|bool %}{{ tgt_adminConsole_sec_dir }}/tls/rootca/{{ public_cacert_name }}{% else %}  {% endif %}; nohup npm start 2>&1 &"
+  # Also, export GOPS_CONFIG_DIR=... is requirement to redirect GOLANG GOPS output 
+  shell: cd {{ tgt_heartBeat_inst_dir }}; {% if sudo_needed|bool %}sudo -u {{ pulsar_user }} {% endif %} -- bash -c 'cd {{ tgt_heartBeat_inst_dir }}; export PULSAR_OPS_MONITOR_CFG=./runtime.yaml; export GOPS_CONFIG_DIR={{ hb_gops_tempdir }}; nohup ./{{ heartBeat_bin_name.split('.gz')[0] }} >/dev/null 2>&1 &'
   # Async shell execution with a very large number
   async: 3153600000 # 100 years
   register: hb_startSvc_cmdcat
@@ -14,7 +14,7 @@
 - name: Wait until HeartBeat is ready
   wait_for:
     host: "{{ private_ip }}"
-    port: "{{ ac_listen_port }}"
+    port: "{{ hb_listen_port }}"
     delay: 2
     timeout: 120
   when: not srvStarted|trim|bool

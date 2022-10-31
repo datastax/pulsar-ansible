@@ -1,20 +1,3 @@
-###
-# Copyright DataStax, Inc.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-###
-
-
 #
 # Software binary release and version
 # -------------------------------------------
@@ -39,6 +22,10 @@ heartBeat_download_url: "{{ heartBeat_download_url_base }}/{{ heartBeat_ver }}/{
 #
 tgt_pkg_heartBeat_dir: "{{ tgt_pkg_homedir }}/pulsar_heart_beat"
 tgt_heartBeat_inst_dir: /opt/pulsarHeartBeat
+tgt_heartBeat_sec_dir: "{{ tgt_heartBeat_inst_dir }}/security"
 
 # - HeartBeat listending port for Prometheus metrics (DO NOT change it. This is a constant)
 hb_listen_port: 8080
+# Set the GOLANG output temp directory to prevent runtime permission errors in HeartBeat
+# See for env options: https://github.com/google/gops/blob/31f906129ddd78d8be8db50f2e7e8ecc987d7b6d/internal/internal.go#L20
+hb_gops_tempdir: "/tmp/golang"
