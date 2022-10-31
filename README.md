@@ -266,7 +266,7 @@ When rack-awareness is enabled, this playbook is used to assign bookkeeper nodes
  
 This playbook is used to deploy DataStax Pulsar AdminConsole [link](https://github.com/datastax/pulsar-admin-console), a graphical Web UI for a set of administrative tasks for interacting with a Pulsar cluster.
  
-## 4.7. deploy_heartBeat.yaml
+## 4.7. 11.deploy_heartBeat.yaml
  
 **TBD** (HeartBeat with security enabled).
  
@@ -279,9 +279,11 @@ This playbook does the following tasks:
 3) Uses a default HeartBeat template file, replaces variables as defined in group_vars/heartBeat/all file
 4) Starts the HeartBeat process.
 
-Note - Output from HeartBeat is redirected to /dev/null, so no output files are created.
+Note - Output from HeartBeat is redirected to **/dev/null**, no output files are created. Additionally, topic subscription for HeartBeat's consumer is hardcoded to **"latency-measure"**.  Please ensure to create the topics and subscriptions in clusters where auto creation is NOT enabled.
 
-To check the status HeartBeat: Checking for a running process or if Prometheus metrics are enabled in the **all** file, ping the Prometheus port, for example curl http://hostname:8080/metrics 
+To check the status HeartBeat: Checking for a running process or if Prometheus metrics are enabled in the **all** file, ping the Prometheus port, for example "curl http://hostname:8080/metrics"
+
+The default template configuration file shows examples of parameters for topics, messages size, and test run frequents, and other items.
  
 ## 4.8. 20.update_clientSetting.yaml
  
