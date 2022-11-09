@@ -15,7 +15,7 @@
   - [4.4. 02.deploy_pulsarCluster.yaml](#44-02deploy_pulsarclusteryaml)
   - [4.5. 03.assign_bookieRackaware.yaml](#45-03assign_bookierackawareyaml)
   - [4.6. 10.deploy_adminConsole.yaml](#46-10deploy_adminconsoleyaml)
-  - [4.7. deploy_heartBeat.yaml](#47-deploy_heartbeatyaml)
+  - [4.7. 11.deploy_heartBeat.yaml](#47-11deploy_heartbeatyaml)
   - [4.8. 20.update_clientSetting.yaml](#48-20update_clientsettingyaml)
   - [4.9. 21.restart_pulsarCluster_with_configChg.yaml](#49-21restart_pulsarcluster_with_configchgyaml)
   - [4.10. 22.update_pulsarCluster_version.yaml](#410-22update_pulsarcluster_versionyaml)
@@ -268,7 +268,7 @@ This playbook is used to deploy DataStax Pulsar AdminConsole [link](https://gith
  
 ## 4.7. 11.deploy_heartBeat.yaml
  
-**TBD** (HeartBeat with security enabled).
+**TBD** (HeartBeat with security enabled is not complete).
  
 This playbook is used to deploy DataStax Pulsar Heartbeat [link](https://github.com/datastax/pulsar-heartbeat), an availability and end-to-end performance tracking tool for a Pulsar cluster.
 
@@ -281,7 +281,7 @@ This playbook does the following tasks:
 
 Note - Output from HeartBeat is redirected to **/dev/null**, no output files are created. Additionally, topic subscription for HeartBeat's consumer is hardcoded to **"latency-measure"**.  Please ensure to create the topics and subscriptions in clusters where auto creation is NOT enabled.
 
-To check the status HeartBeat: Checking for a running process or if Prometheus metrics are enabled in the **all** file, ping the Prometheus port, for example "curl http://hostname:8080/metrics"
+To check the status HeartBeat: Checking for a running process or if Prometheus metrics are enabled in the HeartBeat **all** file, ping the Prometheus port, for example "curl http://hostname:8080/metrics"
 
 The default template configuration file shows examples of parameters for topics, messages size, and test run frequents, and other items.
  

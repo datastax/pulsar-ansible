@@ -3,7 +3,7 @@
 # -------------------------------------------
 #
 # - HeartBeat release
-heartBeat_ver: "1.0.13"
+heartBeat_ver: "1.0.14"
 heartBeat_bin_name: "pulsar-heartbeat-{{ heartBeat_ver }}-linux-amd64.gz"
 
 
