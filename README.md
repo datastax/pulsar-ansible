@@ -22,12 +22,13 @@
   - [4.11. 23.manual_autorecovery_op.yaml](#411-23manual_autorecovery_opyaml)
   - [4.12. 31.shutdown_pulsarCluster.yaml and 31.start_pulsarCluster.yaml](#412-31shutdown_pulsarclusteryaml-and-31start_pulsarclusteryaml)
   - [4.13. 32.shutdown_adminConsole.yaml and 33.start_adminConsole.yaml](#413-32shutdown_adminconsoleyaml-and-33start_adminconsoleyaml)
-  - [4.14. 70.collect_srvStatus_with_kill.yaml](#414-70collect_srvstatus_with_killyaml)
-  - [4.15. 71.collect_srvDebugFiles.yaml](#415-71collect_srvdebugfilesyaml)
-    - [4.15.1. Local folder structure for the collected debug files](#4151-local-folder-structure-for-the-collected-debug-files)
-  - [4.16. 80.decomm_Bookies.yaml](#416-80decomm_bookiesyaml)
-  - [4.17. 90.buildAcl.sh](#417-90buildaclsh)
-  - [4.18. 91.setup_georep.sh](#418-91setup_georepsh)
+  - [4.14. 34.shutdown_heartBeat.yaml and 35.start_heartBeat.yaml](#414-34shutdown_heartbeatyaml-and-35start_heartbeatyaml)
+  - [4.15. 70.collect_srvStatus_with_kill.yaml](#415-70collect_srvstatus_with_killyaml)
+  - [4.16. 71.collect_srvDebugFiles.yaml](#416-71collect_srvdebugfilesyaml)
+    - [4.16.1. Local folder structure for the collected debug files](#4161-local-folder-structure-for-the-collected-debug-files)
+  - [4.17. 80.decomm_Bookies.yaml](#417-80decomm_bookiesyaml)
+  - [4.18. 90.buildAcl.sh](#418-90buildaclsh)
+  - [4.19. 91.setup_georep.sh](#419-91setup_georepsh)
 - [5. Customize Cluster Deployment](#5-customize-cluster-deployment)
   - [5.1. Download or copy Pulsar release binary](#51-download-or-copy-pulsar-release-binary)
   - [5.2. Customize Pulsar JVM settings, gclog, log directory, and data Directory](#52-customize-pulsar-jvm-settings-gclog-log-directory-and-data-directory)
@@ -37,6 +38,8 @@
   - [5.6. Security](#56-security)
   - [5.7. Transaction Support](#57-transaction-support)
   - [5.8. Broker Ensemble Size (E), Write Quorum(Qw), and Ack Quorum(Qa)](#58-broker-ensemble-size-e-write-quorumqw-and-ack-quorumqa)
+
+---
 
 # 1. Overview
  
@@ -79,6 +82,8 @@ $ run_automation.sh <ansible_playbook_yaml_file> [--extra-vars '"var1=value1 var
  
 **NOTE**: if the ansible-playbook takes extra ansible variables using "--extra-vars" option, the double-quoted variables must be wrapped within a pair of single-quotes when passing into the *run_automation.sh* bash script.
  
+---
+
 # 2. Cluster Topology Definition and Auto-gen of Ansible Host Inventory File
  
 You can use the automation scripts in this repo to deploy multiple clusters, each with its unique topology. Based on the topology, each cluster-to-be-deployed has its own Ansible host inventory file which can be automatically generated using a bash script.
@@ -146,6 +151,8 @@ $ bash/buildAnsiHostInvFile.sh -clstrName <cluster_name> -hostDns [true|false]
  
 The automatically generated host inventory file name has the following naming convention:
 **hosts_<cluster_name>.ini**
+
+---
  
 # 3. Global Ansible Variables
  
@@ -154,13 +161,13 @@ The automatically generated host inventory file name has the following naming co
 Many of the global Ansible variables are defined in Ansible **group_vars**.
 * Some variables are applicable to all server components (zookeepers, brokers, etc.) and they will be defined in file **group_vars/all**.
 * Other variables are only specific to a certain server component, and they will be defined in server component specific files as in **group_vars/<server_component>/all**. Below is the supported server component type
- * adminConsole
- * autorecovery
- * bookkeeper
- * broker
- * functions_worker
- * heartBeat
- * zookeeper
+    * adminConsole
+    * autorecovery
+    * bookkeeper
+    * broker
+    * functions_worker
+    * heartBeat
+    * zookeeper
  
 ## 3.2. Derived/Computed global variables
  
@@ -180,7 +187,6 @@ Since these categories of the derived/computed global variables are for differen
 * **svcList**: only cluster metadata related variables are derived/computed
 * **svcCnt** : only server host count related variables are derived/computed
 * **all**    : all variables are derived/computed
-**NOTE**: the server host selection related variables are always derived/computed because it is used in almost all major Ansible playbooks
  
 ```
 - hosts: <host_inventory_group>
@@ -188,6 +194,11 @@ Since these categories of the derived/computed global variables are for differen
  roles:
    - { role: pulsar/common/pulsar_setGlobalVars, varList: '[all|svcList|svcCnt]' }
 ```
+
+Please **NOTE** that,
+1) The server host selection related variables are always derived/computed because it is used in almost all major Ansible playbooks
+
+---
  
 # 4. Ansible Playbooks
  
@@ -199,7 +210,7 @@ The automation framework in this repo allows executing (almost) all Ansible play
  
 **srv_select_criteria**, which is determined by the following runtime variables. When multiple runtime variables are provided, they're AND-ed together to get the final selection criteria.
 * *srv_types*: the server hosts with certain types (zookeeper, bookkeeper, broker, etc.) will be selected.
- * multiple server types are possible by using a comma separated server type list
+    * multiple server types are possible by using a comma separated server type list
 * *srvhost_ptn*: the server hosts whose names match certain patterns will be selected
 * *rack_ptn*: the server hosts whose rack identifiers match certain patterns will be selected
  
@@ -209,7 +220,7 @@ or
 --extra-vars '"srv_types=<comma_sperated_server_type_list> srvhost_ptn=<server_host_name_pattern> rack_ptn=<rack_name_pattern>"' (as a parameter of the 'run_automation.sh' file)
 ```
  
-**For example**The following script collects a set of files (for debug purposes) from all bookkeepers in region1 whose name includes a substring of '10'.
+**For example**, the following script collects a set of files (for debug purposes) from all bookkeepers in region1 whose name includes a substring of '10'.
 ```
 $ run_automation.sh collect_srvDebugFiles --extra-vars '"srv_types=bookkeeper srvhost_ptn=10 rack_ptn=region1"'
 ```
@@ -268,20 +279,20 @@ This playbook is used to deploy DataStax Pulsar AdminConsole [link](https://gith
  
 ## 4.7. 11.deploy_heartBeat.yaml
  
-**TBD** (HeartBeat with security enabled is not complete).
+**TBD** (Heartbeat with security enabled is not complete).
  
 This playbook is used to deploy DataStax Pulsar Heartbeat [link](https://github.com/datastax/pulsar-heartbeat), an availability and end-to-end performance tracking tool for a Pulsar cluster.
 
 This playbook does the following tasks:
  
-1) (optional) Download Pulsar HeartBeat release binary and extract to a specified target directory
-2) Install Pulsar HeartBeat in the target directory with default config file.
-3) Uses a default HeartBeat template file, replaces variables as defined in group_vars/heartBeat/all file
-4) Starts the HeartBeat process.
+1) (optional) Download Pulsar Heartbeat release binary and extract to a specified target directory
+2) Install Pulsar Heartbeat in the target directory with default config file.
+3) Uses a default Heartbeat template file, replaces variables as defined in group_vars/heartBeat/all file
+4) Starts the Heartbeat process.
 
-Note - Output from HeartBeat is redirected to **/dev/null**, no output files are created. Additionally, topic subscription for HeartBeat's consumer is hardcoded to **"latency-measure"**.  Please ensure to create the topics and subscriptions in clusters where auto creation is NOT enabled.
+Note - Output from Heartbeat is redirected to **/dev/null**, no output files are created. Additionally, topic subscription for Heartbeat's consumer is hardcoded to **"latency-measure"**.  Please ensure to create the topics and subscriptions in clusters where auto creation is NOT enabled.
 
-To check the status HeartBeat: Checking for a running process or if Prometheus metrics are enabled in the HeartBeat **all** file, ping the Prometheus port, for example "curl http://hostname:8080/metrics"
+To check the status Heartbeat: Checking for a running process or if Prometheus metrics are enabled in the Heartbeat **all** file, ping the Prometheus port, for example "curl http://hostname:8080/metrics"
 
 The default template configuration file shows examples of parameters for topics, messages size, and test run frequents, and other items.
  
@@ -330,7 +341,8 @@ This playbook supports updating (upgrading or downgrading) Pulsar versions for a
 Please **NOTE** that,
 1) Version change of a Pulsar cluster can be dangerous. Please **ALWAYS** fully test the procedure in a lower environment before applying in production. It is possible that this automation framework needs to be tweaked in order to support the newer version Pulsar release upgrade.
 2) Pulsar version changes on the server hosts in the cluster always happen in serial mode as one by one.
-  1) But for Pulsar client hosts, the version update can happen on multiple hosts at the same time.
+    * For Pulsar client hosts, the version update can happen on multiple hosts at the same time.
+
 When running this playbook, the following global variable (*group_vars/all*) defines the **target** cluster version. The **current** cluster version will be automatically detected by the scripts. If the target version is the same as the current version, this playbook execution will be executed
 ```
 pulsarLS_ver_main: "2.10"
@@ -367,8 +379,19 @@ Similarly, these playbooks are used to shut down and start AdminConsole processe
 or
 --extra-vars '"purge_adminConsole=[true|false]"' (as a parameter of the 'run_automation.sh' file)
 ```
+
+## 4.14. 34.shutdown_heartBeat.yaml and 35.start_heartBeat.yaml
+
+These playbooks are used to shut down and start Heartbeat process.
+
+NOTE: the "shutdown" playbook has a runtime variable, purge_heartBeat (possible values: true or false), that controls whether to purge Pulsar Heartbeat binary and data files after the server process is shut down.
+
+--extra-vars "purge_heartBeat=[true|false]" (as a parameter of the Ansible playbook file)
+or
+--extra-vars '"purge_heartBeat=[true|false]"' (as a parameter of the 'run_automation.sh' file)
+
  
-## 4.14. 70.collect_srvStatus_with_kill.yaml
+## 4.15. 70.collect_srvStatus_with_kill.yaml
  
 This playbook is used to collect the current status of Pulsar servers, in particular the PID of the Pulsar server process and the owning user of the process. If needed, this playbook can also force kill the server process.
  
@@ -395,7 +418,7 @@ ok: [IP3] => {
 }
 ```
  
-## 4.15. 71.collect_srvDebugFiles.yaml
+## 4.16. 71.collect_srvDebugFiles.yaml
  
 Sometimes when there are server side issues (e.g. unexpected errors, performance degradation, etc.), it would be very helpful to collect a set of server side files for deeper analysis. This playbook is used to achieve this goal.
  
@@ -426,7 +449,7 @@ Please **NOTE** that,
  
 If you only want to collect the debug files from only a limited set of Pulsar servers, you can always use the global derived/computed variable, ***srv_select_criteria***, to achieve that.
  
-### 4.15.1. Local folder structure for the collected debug files
+### 4.16.1. Local folder structure for the collected debug files
  
 All the debug files that are collected from various Pulsar server hosts will be collectively put in a sub-folder under **collected_srv_files**. The sub-folder name is a date-time string that corresponds to the Ansible playbook execution time. Further down, the sub-folder structure is as below.
  
@@ -473,7 +496,7 @@ collected_srv_files
            └── ...
 ```
  
-## 4.16. 80.decomm_Bookies.yaml
+## 4.17. 80.decomm_Bookies.yaml
  
 This playbook is used to decommission bookkeeper nodes from the Pulsar cluster. Decommissioning is a safe approach to remove a bookkeeper node from a Pulsar cluster without causing potential data and performance issues.
  
@@ -493,7 +516,7 @@ This is in turn determined by the cluster topology raw definition file, as below
  
 **TBD**: *This script only supports running the command of decommissioning a bookkeeper node from that server host on which that bookkeeper node is running. This doesn't require the command to provide a bookkeeper ID. However, it is possible to run the decommissioning command on another server host which requires providing the bookkeeper ID as the command parameter. This is a current limitation of this framework.*
  
-## 4.17. 90.buildAcl.sh
+## 4.18. 90.buildAcl.sh
  
 This bash script is used to grant user access privileges to the Pulsar cluster (e.g. produce or consume messages from a topic or a namespace) based on a list of predefined access control list (ACL) requirements.
  
@@ -515,18 +538,18 @@ The description of the fields is as below:
 ```
 0) user role name
 1) acl operation
-  * possible values: grant, revoke
+    * possible values: grant, revoke
 2) resource type
-  * possible values: topic, namespace, ns-subscription, tp-subscription
+    * possible values: topic, namespace, ns-subscription, tp-subscription
 3) resource name, e.g. namespace name, topic name, subscription name
 4) acl action (only relevant when resource name is topic or namespace)
-  * possible values: produce, consume, sources, sinks, functions, packages
-  * can have multiple values using '+' to concatenate
+    * possible values: produce, consume, sources, sinks, functions, packages
+    * can have multiple values using '+' to concatenate
 ```
  
 Based on the above raw ACL permission request list, the bash script will translate them into a series of pulsar-admin commands which will be executed by a dependent Ansible script, **exec_AclPermControl.yaml**.
  
-## 4.18. 91.setup_georep.sh
+## 4.19. 91.setup_georep.sh
  
 The bash script is used to set up the geo-replication between 2 Pulsar clusters.
  
@@ -537,10 +560,10 @@ As the first step of this script, it calls an Ansible script, **georep_getClstrC
 Using the fetched security files, the bash script calls Pulsar REST APIs to do the following tasks
 1) In each of the Pulsar clusters, create a cluster metadata locally that represents the remote Pulsar cluster
 2) In both Pulsar clusters, create the same set of Pulsar tenants, with the following metadata
-  1) The tenant admin name is: ***<tenant_name>-admin***
-  2) Allowed Pulsar cluster names: the name of the two Pulsar clusters to be geo-replication enabled
+    * The tenant admin name is: ***<tenant_name>-admin***
+    * Allowed Pulsar cluster names: the name of the two Pulsar clusters to be geo-replication enabled
 3) In both Pulsar clusters, create the same set of Pulsar namespaces, with the following metadata
-  1) Replication cluster names: the name of the two Pulsar clusters to be geo-replication enabled
+    * Replication cluster names: the name of the two Pulsar clusters to be geo-replication enabled
  
 For the above 2nd and 3rd steps, if the specified tenants and/or namespaces already exist, the script can update existing tenants and/or namespace if the bash input parameter, *-forceTntNsUpdate*, has a value of 'true'
  
@@ -551,20 +574,12 @@ The script gets the tenant list and namespace list from the bash input parameter
  
 **TBD**: *This script currently ONLY supports the two Pulsar clusters that have the security features enabled: JWT token authentication, authorization, and client-to-broker TLS encryption. This is recommended for production deployment. However, for a DEV environment when two Pulsar clusters have no security features are enabled, this script may fail. (We need to improve this in the future version)*
 
-## 4.19. 34.shutdown_heartBeat.yaml and 35.start_heartBeat.yaml
- 
-These playbooks are used to shut down and start HeartBeat process.
- 
-**NOTE**: the "shutdown" playbook has a runtime variable, **purge_heartBeat** (possible values: true or false), that controls whether to purge Pulsar HeartBeat binary and data files after the server process is shut down.
-```
---extra-vars "purge_heartBeat=[true|false]" (as a parameter of the Ansible playbook file)
-or
---extra-vars '"purge_heartBeat=[true|false]"' (as a parameter of the 'run_automation.sh' file)
-``` 
 # 5. Customize Cluster Deployment
 The cluster deployment using this automation framework is highly customizable via Ansible variables, both at the cluster level (*group_vars/all*) and at the individual server component level (*group_vars/<component_type>/all*).
 It is not feasible (and not necessary) to list the details of all possible customization in this document. Below simply list several important customization that the scripts can do.
+
 ## 5.1. Download or copy Pulsar release binary
+
 The script supports 2 ways of getting the Pulsar release binary to the remote host machines
 * Download directly from the internet, or
 * Copy it from the Ansible controller machine
@@ -575,7 +590,9 @@ local_bin_homedir: "/local/path/on/ansible/controller"
 ```
  
 The *local_bin_homedir* is the local folder on the Ansible controller machine (where the playbooks are executed). When the 'internet_download' option is set to false, the deployment script assumes the Pulsar binary release (of the matching version) exists locally. Otherwise, it stops the execution with an error.
+
 ## 5.2. Customize Pulsar JVM settings, gclog, log directory, and data Directory
+
 The default Pulsar settings for Pulsar server JVM, including GC log directory, Pulsar server log directory, and Pulsar server data directories, are likely not suitable for production deployment. The scripts allow whether to use customized settings for each of the Pulsar server components: zookeepers, bookkeepers, brokers.
 This behavior is controlled first by global level variables (*group_vars/all*)
 ```
@@ -601,10 +618,12 @@ pulsar_mem_broker: "{% if prod_jvm_setting|bool %}-Xms4g -Xmx4g -XX:MaxDirectMem
 ```
  
 ## 5.3. Functions Worker
+
 The automation framework supports several ways of deploying Pulsar functions worker
 * Do not deploy functions workers at all
 * Deploy functions workers as part of brokers
 * Deploy functions workers on dedicated host machines
+
 This behavior is controlled by the following global variable (*group_vars/all*):
 ```
 # Possible values: "none", "shared", and "dedicated"
@@ -623,7 +642,9 @@ This behavior is controlled by the following global variable (*group_vars/all*):
 # Possible values: "disabled", "integrated", "dedicated"
 autorecovery_option: "dedicated"
 ```
+
 ## 5.5. Bookkeeper rack awareness
+
 When bookkeeper host machines are distributed among several availability zones, it is recommended to enable Pulsar rack awareness setup.
 This automation framework supports this via the following global variable (*group_vars/all*):
 ```
@@ -635,11 +656,14 @@ minNumRackPerWQ: 2
 ```
  
 When bookkeeper rack awareness is enabled, Ansible playbook **03.assign_bookieRackaware.yaml** must be executed in order to assign bookkeepers to right racks.
+
 ## 5.6. Security
+
 This automation framework supports whether to enable the following Pulsar built-in security features:
 * JWT token based authentication
 * Pulsar built-in authorization
 * Client-to-broker and broker-to-broker in-transit communication TLS encryption
+
 There are a set of global variable (*group_vars/all*) to control the security related behaviors, such as the certificate expiration days, Pulsar cluster admin JWT token names, etc.
 ```
 # - Whether or not to enable Pulsar JWT authentication and authorization
@@ -648,16 +672,21 @@ enable_brkr_authNZ: true
 enable_brkr_tls: true
 ... a lot more ...
 ```
+
 Please **NOTE** that,
 1) The certificates generated by the scripts in this script are using ***self-signed*** root CAs. This is usually not the case for production deployment. For real production deployment within an enterprise, the way of generating Pulsar JWT tokens and/or TLS certificates needs to follow the actual security management procedure and/or policy.
 2) The script currently only supports enabling security features for Pulsar brokers and functions workers. The support for enabling security features for the other Pulsar server components, zookeepers and bookkeepers, is still NOT in place yet.
+
 ## 5.7. Transaction Support
+
 Pulsar transaction support has been introduced since version 2.7, but it is not ready for production usage until version 2.10. Therefore, depending on the Pulsar version to be deployed, the scripts can control whether a Pulsar transaction is enabled.
 This behavior is controlled by the following broker level variable (*group_vars/broker/all*)
 ```
 enable_transaction: true
 ```
+
 ## 5.8. Broker Ensemble Size (E), Write Quorum(Qw), and Ack Quorum(Qa)
+
 The broker setting of E/Qw/Qa is critical for message write and read performance.
 This automation framework allows explicit setting of E/Qw/Qa via global variables (*group_vars/all*), as below:
 ```
