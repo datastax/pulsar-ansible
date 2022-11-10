@@ -28,6 +28,7 @@
   - [4.16. 80.decomm_Bookies.yaml](#416-80decomm_bookiesyaml)
   - [4.17. 90.buildAcl.sh](#417-90buildaclsh)
   - [4.18. 91.setup_georep.sh](#418-91setup_georepsh)
+  - [4.19. 34.shutdown_heartBeat.yaml and 35.start_heartBeat.yaml](#419-34shutdown_heartbeatyaml-and-35start_heartbeatyaml)
 - [5. Customize Cluster Deployment](#5-customize-cluster-deployment)
   - [5.1. Download or copy Pulsar release binary](#51-download-or-copy-pulsar-release-binary)
   - [5.2. Customize Pulsar JVM settings, gclog, log directory, and data Directory](#52-customize-pulsar-jvm-settings-gclog-log-directory-and-data-directory)
