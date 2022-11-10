@@ -14,3 +14,4 @@ cluster_topology/MyCluster1
 hosts_*.ini
 automation_exec_logs/*
 bash/buildAnsiHostInvFile.sh.bkup_share_host
+.vscode/ltex.dictionary.en-US.txt

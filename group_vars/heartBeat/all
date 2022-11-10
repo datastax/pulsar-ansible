@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ###
+
+
 #
 # Software binary release and version
 # -------------------------------------------
@@ -39,7 +41,7 @@ tgt_pkg_heartBeat_dir: "{{ tgt_pkg_homedir }}/pulsar_heart_beat"
 tgt_heartBeat_inst_dir: /opt/pulsarHeartBeat
 tgt_heartBeat_sec_dir: "{{ tgt_heartBeat_inst_dir }}/security"
 
-# - HeartBeat listending port for Prometheus metrics (DO NOT change it. This is a constant)
+# - HeartBeat listening port for Prometheus metrics (DO NOT change it. This is a constant)
 hb_listen_port: 8080
 # Set the GOLANG output temp directory to prevent runtime permission errors in HeartBeat
 # See for env options: https://github.com/google/gops/blob/31f906129ddd78d8be8db50f2e7e8ecc987d7b6d/internal/internal.go#L20

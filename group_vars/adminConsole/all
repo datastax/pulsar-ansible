@@ -52,7 +52,7 @@ tgt_pkg_adminConsole_dir: "{{ tgt_pkg_homedir }}/pulsar_admin_console"
 tgt_adminConsole_inst_dir: "/opt/pulsarAdminConsole"
 tgt_adminConsole_sec_dir: "{{ tgt_adminConsole_inst_dir }}/security"
 
-# - AdminConsole listending port (DO NOT change it. This is a constant)
+# - AdminConsole listening port (DO NOT change it. This is a constant)
 ac_listen_port: 6454
 
 # - Setting authorization mode for AdminConsole
