@@ -1,0 +1,82 @@
+# This is a sample configuration for the Pulsar Heartbeat
+# For all configuration options, see ./src/cfg/config.go
+---
+name: <<home_cluster>> # Pulsar cluster name, required
+tokenFilePath: # path to pulsar jwt, takes precedence over token, if both present
+token: # pulsar jwt
+trustStore: # path to tls truststore
+prometheusConfig:
+  port: ":<<hb_Listen_Port>>"
+  exposeMetrics: true
+slackConfig:
+  alertUrl: # required for slack integration to work
+# Comment out tokenOAuthConfig is not used, otherwise PH 1.0.14 will not run correctly 
+#tokenOAuthConfig:
+#  ClientID: # "example-client"
+#  ClientSecret: # "example-client-secret"
+#  TokenURL: # "<token-endpoint of oauth2 provider>"
+sitesConfig:
+  sites:
+opsGenieConfig:
+  intervalSeconds: 180
+  heartbeatKey: # GenieKey key for heartbeat
+  alertKey: # GenieKey api key to generate alerts or incidents
+pulsarAdminRestConfig:
+  intervalSeconds: 120
+  Token: # pulsar jwt, required for pulsarAdminRestConfig to work
+  clusters:
+  - name: <<home_cluster>>
+    url: <<broker_WebSvc_List_Str>>
+    alertPolicy:
+      Ceiling: 10
+      MovingWindowSeconds: 30
+      CeilingInMovingWindow: 10
+pulsarTopicConfig:
+  - latencyBudgetMs: 360
+    intervalSeconds: 30
+    pulsarUrl: <<broker_Svc_List_Str>>
+    topicName: persistent://public/default/reserved-cluster-monitoring
+    #    payloadSizes: ["15B","10B","2B"]
+    payloadSizes: ["115KB"]
+    numberOfMessages: 10
+    alertPolicy:
+      Ceiling: 30
+      MovingWindowSeconds: 600
+      CeilingInMovingWindow: 5
+#  - latencyBudgetMs: 360
+#    intervalSeconds: 10
+#    pulsarUrl: <<broker_Svc_List_Str>>
+#    adminUrl: <<broker_WebSvc_List_Str>>
+#    topicName: persistent://public/default/reserved-cluster-ptopic
+    #    payloadSizes: ["15B","10B","2B"]
+#    payloadSizes: ["5KB"]
+#    numberOfMessages: 10
+#    numberOfPartitions: 4
+#    alertPolicy:
+#      Ceiling: 30
+#      MovingWindowSeconds: 600
+#      CeilingInMovingWindow: 5
+analyticsConfig:
+  apiKey:
+  ingestionURL:
+  insightsWriteKey:
+  insightsAccountId: ""
+k8sConfig:
+  enabled: false
+  pulsarNamespace: default
+brokersConfig:
+  intervalSeconds: 15
+  inclusterRestURL: <<broker_WebSvc_List_Str>>
+  alertPolicy:
+    Ceiling: 5
+    MovingWindowSeconds: 600
+    CeilingInMovingWindow: 8
+#webSocketConfig:
+#  - latencyBudgetMs: 640
+#    name: <<home_cluster>>WebSocket
+#    intervalSeconds: 60
+#    cluster: <<home_cluster>>
+#    topicName: persistent/public/default/test-topic234
+#    scheme: "wss://"
+#    port: "8500"
+#    urlQueryParams: "token="

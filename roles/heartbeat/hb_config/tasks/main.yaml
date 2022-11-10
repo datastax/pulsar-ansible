@@ -13,21 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ###
-
-
 ---
-- name: Copy Pulsar HeartBeat runtime config (runtime.yaml) template
-  template:
-    src: templates/hb_runtime.yaml.tmp
-    dest: "{{ tgt_heartBeat_inst_dir }}/runtime.yaml"
-    owner: "{{ pulsar_user }}"
-    group: "{{ pulsar_user_group }}"
-    mode: "{{ file_permission_mode_noexec }}"
+# HeartBeat base configuration (non-security)
+- include_role:
+    name: heartbeat/hb_config/_base
 
-# - name: Replace Pulsar HeartBeat config setting placeholders with cluster specific information
-#   replace:
-#       path: "{{ tgt_heartBeat_inst_dir }}/runtime.yaml"
-#       regexp: "{{ item.regexp }}"
-#       replace: "{{ item.line }}"
-#   with_items:
-#     - { regexp: '<<home_cluster>>', line: "{{ cluster_name }}" }
+# HeartBeat security related configuration
+- include_role:
+    name: heartbeat/hb_config/_security
+  vars:
+    hb_https_cert_file: "{{ tgt_heartBeat_sec_dir }}/tls/server/heartBeat.{{ (hostvars[groups['heartBeat'][0]]['private_ip'])|trim|replace('.','-') }}.crt.pem"
+    hb_https_key_file: "{{ tgt_heartBeat_sec_dir }}/tls/server/heartBeat.{{ (hostvars[groups['heartBeat'][0]]['private_ip'])|trim|replace('.','-') }}.key-pk8.pem"
+    hb_https_public_ca_file: "{{ tgt_heartBeat_sec_dir }}/tls/rootca/{{ public_cacert_name }}"
+  when: enable_hb_security is defined and enable_hb_security|bool

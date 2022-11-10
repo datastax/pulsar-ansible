@@ -1,0 +1,72 @@
+###
+# Copyright DataStax, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+###
+---
+#########################
+# Create broker security related folders for client connection on Pular HeartBeat hosts
+# ------------------------
+- name: If broker authN is enabled, create JWT token related security folders on Pulsar HeartBeat hosts (used for connecting to brokers)
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    mode: "{{ file_permission_mode }}"
+  with_items:
+    - "{{ tgt_heartBeat_sec_dir }}/jwt/token"
+  when: enable_brkr_authNZ is defined and enable_brkr_authNZ|bool
+
+- name: If broker TLS is enabled, create TLS certificate related security folders on Pulsar HeartBeat hosts (used for connecting to brokers)
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    mode: "{{ file_permission_mode }}"
+  with_items:
+    - "{{ tgt_heartBeat_sec_dir }}/tls/rootca"
+    - "{{ tgt_heartBeat_sec_dir }}/tls/server"
+  when: enable_hb_https is defined and enable_hb_https|bool
+
+
+#########################
+# Copy locally generated security files to Pulsar client hosts
+# ------------------------
+- name: If broker authN is enabled, copy JWT token file to Pulsar HeartBeat host (used for connecting to brokers)
+  copy:
+    src: "{{ item.src_file }}/"
+    dest: "{{ item.dest_file }}"
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+  with_items:
+    - { src_file: "{{ local_jwt_src_homedir }}/token/{{ cluster_name }}/brokers/{{ brkr_super_user_roles[0] }}.jwt", 
+        dest_file: "{{ tgt_heartBeat_sec_dir }}/jwt/token/brkr_super_user.jwt" }
+  when: enable_brkr_authNZ is defined and enable_brkr_authNZ|bool
+
+- name: If TLS is enabled, copy the trusted TLS certificate to Pulsar HeartBeat host (used for connecting to brokers)
+  copy:
+    src: "{{ item.src_file }}/"
+    dest: "{{ item.dest_file }}"
+    owner: "{{ pulsar_user }}"
+    group: "{{ pulsar_user_group }}"
+    force: "{{ force_tgt_ac_tls_certs }}"
+  with_items:
+    - { src_file: "{{ local_tls_src_homedir }}/certs/{{ cluster_name }}/{{ srv_component }}s/heartBeat.{{ (hostvars[groups['heartBeat'][0]]['private_ip'])|trim|replace('.','-') }}.key-pk8.pem",
+        dest_file: "{{ hb_https_key_file }}" }
+    - { src_file: "{{ local_tls_src_homedir }}/certs/{{ cluster_name }}/{{ srv_component }}s/heartBeat.{{ (hostvars[groups['heartBeat'][0]]['private_ip'])|trim|replace('.','-') }}.crt.pem",
+        dest_file: "{{ hb_https_cert_file }}" }
+    - { src_file: "{{ local_tls_src_homedir }}/certs/{{ srv_component}}_{{ public_cacert_name }}",
+        dest_file: "{{ hb_https_public_ca_file }}" }
+  when: enable_hb_https is defined and enable_hb_https|bool
