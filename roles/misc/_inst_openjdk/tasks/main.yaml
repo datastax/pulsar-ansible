@@ -16,8 +16,14 @@
 
 
 ---
+- name: Print ansible_distribution fact on managed hosts
+  debug:
+    msg: Managed hosts running on {{ ansible_facts['distribution'] }}
+  tags:
+    - jdk_install
+    
 # Ubuntu/APT installation
-- name: Install OpenJDK Java
+- name: Install Python and OpenJDK Java on Ubuntu
   apt:
     name: "{{ item }}"
     state: present
@@ -25,3 +31,18 @@
   with_items:
     - python-apt
     - openjdk-{{ openjdk_ver }}-jdk
+  tags:
+    - jdk_install
+  when: ansible_facts['distribution'] == "Ubuntu"
+    
+# RedHat/DNF installation
+- name: Install Python 3.8 and OpenJDK Java on RedHat
+  dnf:
+    name:
+      - python38
+      - java-{{ openjdk_ver }}-openjdk
+    state: present
+    update_cache: yes
+  tags:
+    - jdk_install
+  when: ansible_facts['distribution'] == "RedHat"
