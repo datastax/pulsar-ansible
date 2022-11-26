@@ -39,6 +39,7 @@
   - [5.7. Transaction Support](#57-transaction-support)
   - [5.8. Broker Ensemble Size (E), Write Quorum(Qw), and Ack Quorum(Qa)](#58-broker-ensemble-size-e-write-quorumqw-and-ack-quorumqa)
 
+
 ---
 
 # 1. Overview
@@ -600,7 +601,7 @@ customize_jvm: true
 customize_logdir: true
 customize_gc_logdir: true
 customize_datadir: true
-prod_jvm_setting: [true|false]
+prod_jvm_setting: true
 ```
 Please **NOTE** that if the ***prod_jvm_setting*** variable is set to true, it demands more JVM heap size and direct memory settings which in turn requires the underlying host machine has enough CPU and memory resources.
 
