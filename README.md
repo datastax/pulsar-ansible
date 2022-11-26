@@ -11,24 +11,24 @@
 - [4. Ansible Playbooks](#4-ansible-playbooks)
   - [4.1. Server selection (derived/computed) global variable](#41-server-selection-derivedcomputed-global-variable)
   - [4.2. 00.sanityCheck.yaml](#42-00sanitycheckyaml)
-  - [4.3. 01.create_secFiles.yaml](#43-01create_secfilesyaml)
-  - [4.4. 02.deploy_pulsarCluster.yaml](#44-02deploy_pulsarclusteryaml)
-  - [4.5. 03.assign_bookieRackaware.yaml](#45-03assign_bookierackawareyaml)
-  - [4.6. 10.deploy_adminConsole.yaml](#46-10deploy_adminconsoleyaml)
-  - [4.7. 11.deploy_heartBeat.yaml](#47-11deploy_heartbeatyaml)
-  - [4.8. 20.update_clientSetting.yaml](#48-20update_clientsettingyaml)
-  - [4.9. 21.restart_pulsarCluster_with_configChg.yaml](#49-21restart_pulsarcluster_with_configchgyaml)
-  - [4.10. 22.update_pulsarCluster_version.yaml](#410-22update_pulsarcluster_versionyaml)
-  - [4.11. 23.manual_autorecovery_op.yaml](#411-23manual_autorecovery_opyaml)
-  - [4.12. 31.shutdown_pulsarCluster.yaml and 31.start_pulsarCluster.yaml](#412-31shutdown_pulsarclusteryaml-and-31start_pulsarclusteryaml)
-  - [4.13. 32.shutdown_adminConsole.yaml and 33.start_adminConsole.yaml](#413-32shutdown_adminconsoleyaml-and-33start_adminconsoleyaml)
-  - [4.14. 34.shutdown_heartBeat.yaml and 35.start_heartBeat.yaml](#414-34shutdown_heartbeatyaml-and-35start_heartbeatyaml)
-  - [4.15. 70.collect_srvStatus_with_kill.yaml](#415-70collect_srvstatus_with_killyaml)
-  - [4.16. 71.collect_srvDebugFiles.yaml](#416-71collect_srvdebugfilesyaml)
+  - [4.3. 01.create\_secFiles.yaml](#43-01create_secfilesyaml)
+  - [4.4. 02.deploy\_pulsarCluster.yaml](#44-02deploy_pulsarclusteryaml)
+  - [4.5. 03.assign\_bookieRackaware.yaml](#45-03assign_bookierackawareyaml)
+  - [4.6. 10.deploy\_adminConsole.yaml](#46-10deploy_adminconsoleyaml)
+  - [4.7. 11.deploy\_heartBeat.yaml](#47-11deploy_heartbeatyaml)
+  - [4.8. 20.update\_clientSetting.yaml](#48-20update_clientsettingyaml)
+  - [4.9. 21.restart\_pulsarCluster\_with\_configChg.yaml](#49-21restart_pulsarcluster_with_configchgyaml)
+  - [4.10. 22.update\_pulsarCluster\_version.yaml](#410-22update_pulsarcluster_versionyaml)
+  - [4.11. 23.manual\_autorecovery\_op.yaml](#411-23manual_autorecovery_opyaml)
+  - [4.12. 31.shutdown\_pulsarCluster.yaml and 31.start\_pulsarCluster.yaml](#412-31shutdown_pulsarclusteryaml-and-31start_pulsarclusteryaml)
+  - [4.13. 32.shutdown\_adminConsole.yaml and 33.start\_adminConsole.yaml](#413-32shutdown_adminconsoleyaml-and-33start_adminconsoleyaml)
+  - [4.14. 34.shutdown\_heartBeat.yaml and 35.start\_heartBeat.yaml](#414-34shutdown_heartbeatyaml-and-35start_heartbeatyaml)
+  - [4.15. 70.collect\_srvStatus\_with\_kill.yaml](#415-70collect_srvstatus_with_killyaml)
+  - [4.16. 71.collect\_srvDebugFiles.yaml](#416-71collect_srvdebugfilesyaml)
     - [4.16.1. Local folder structure for the collected debug files](#4161-local-folder-structure-for-the-collected-debug-files)
-  - [4.17. 80.decomm_Bookies.yaml](#417-80decomm_bookiesyaml)
+  - [4.17. 80.decomm\_Bookies.yaml](#417-80decomm_bookiesyaml)
   - [4.18. 90.buildAcl.sh](#418-90buildaclsh)
-  - [4.19. 91.setup_georep.sh](#419-91setup_georepsh)
+  - [4.19. 91.setup\_georep.sh](#419-91setup_georepsh)
 - [5. Customize Cluster Deployment](#5-customize-cluster-deployment)
   - [5.1. Download or copy Pulsar release binary](#51-download-or-copy-pulsar-release-binary)
   - [5.2. Customize Pulsar JVM settings, gclog, log directory, and data Directory](#52-customize-pulsar-jvm-settings-gclog-log-directory-and-data-directory)
@@ -594,27 +594,34 @@ The *local_bin_homedir* is the local folder on the Ansible controller machine (w
 ## 5.2. Customize Pulsar JVM settings, gclog, log directory, and data Directory
 
 The default Pulsar settings for Pulsar server JVM, including GC log directory, Pulsar server log directory, and Pulsar server data directories, are likely not suitable for production deployment. The scripts allow whether to use customized settings for each of the Pulsar server components: zookeepers, bookkeepers, brokers.
-This behavior is controlled first by global level variables (*group_vars/all*)
+This behavior is controlled first by the following global level variables (*group_vars/all*)
 ```
 customize_jvm: true
 customize_logdir: true
 customize_gc_logdir: true
 customize_datadir: true
+prod_jvm_setting: [true|false]
 ```
- 
+Please **NOTE** that if the ***prod_jvm_setting*** variable is set to true, it demands more JVM heap size and direct memory settings which in turn requires the underlying host machine has enough CPU and memory resources.
+
 Some JVM settings, including the gclog, are common to all Pulsar components and therefore set in *group_vars/all* file as well.
- 
-```
-prod_jvm_setting: false
+```yaml
 common_jvm_settings: |
  PULSAR_EXTRA_OPTS="-XX:+PerfDisableSharedMem {{ component_pulsar_extra_opts | default('') }}"
  PULSAR_GC="-XX:+UseG1GC -XX:MaxGCPauseMillis=10 -XX:+HeapDumpOnOutOfMemoryError -XX:+ExitOnOutOfMemoryError {{ component_pulsar_gc | default('') }}"
  PULSAR_GC_LOG="-Xlog:gc*,safepoint:{{ tgt_pulsar_gc_log_homedir }}/pulsar_gc_%p.log:time,uptime,tags:filecount=10,filesize=20M"
 ```
  
-Other than the generic, common settings, each server component also has its unique settings that are controlled by component level variables in *group_vars/<server_component>/all* file. For example, other than the common JVM settings as above, a broker may have its own JVM heap and direct memory size setting as below:
+Other than the above common settings, each server component also has its own JVM related settings that are set in component level variables in *group_vars/<server_component>/all* file. For example, other than the common JVM settings as above, a broker may have its own JVM heap and direct memory size settings, heap dump directory, broker log directory, etc, as below:
 ```
 pulsar_mem_broker: "{% if prod_jvm_setting|bool %}-Xms4g -Xmx4g -XX:MaxDirectMemorySize=8g{% else %}-Xms1g -Xmx1g{% endif %}"
+
+component_pulsar_extra_opts: ""
+component_pulsar_gc: "-XX:HeapDumpPath={{ tgt_pulsar_log_homedir }}/broker"
+broker_jvm_options: > 
+  {% if customize_jvm is defined and customize_jvm|bool %}PULSAR_MEM="{{ pulsar_mem_broker }}"{% endif %}
+  {{ common_jvm_settings }}
+  PULSAR_LOG_DIR="{{ tgt_pulsar_log_homedir }}/broker"
 ```
  
 ## 5.3. Functions Worker

@@ -21,7 +21,7 @@
 #
 broker_conf_file: "{{ tgt_pulsar_inst_dir }}/conf/broker.conf"
 broker_func_worker_file: "{{ tgt_pulsar_inst_dir }}/conf/functions_worker.yml"
-pulsar_mem_broker: "{% if prod_jvm_setting|bool %}-Xms4g -Xmx4g -XX:MaxDirectMemorySize=8g{% else %}-Xms1g -Xmx1g{% endif %}"
+pulsar_mem_broker: "{% if prod_jvm_setting|bool %}-Xms12g -Xmx12g -XX:MaxDirectMemorySize=12g{% else %}-Xms1g -Xmx1g{% endif %}"
 #pulsar_mem_broker: "-Xms5g -Xmx5g -XX:MaxDirectMemorySize=5g"
 
 broker_svc_port: 6650
@@ -123,29 +123,30 @@ misc_broker_config_dict: {
   , loadBalancerNamespaceBundleMaxSessions: 0 # default 1000, disable bundle split based on cons, prod count
   , maxMessagePublishBufferSizeInMB: 500
   , bookkeeperClientExposeStatsToPrometheus: true
-  , bookkeeper_waitTimeoutOnBackpressureMs: 50 # back pressure setting,
-
-  # disable eager caching, restore the default value, use the cache for tailing reads only for subscriptions that are not backlogged
-  , managedLedgerCursorBackloggedThreshold: 1000
-  , cacheEvictionByMarkDeletedPosition: false
 
   # configure a smaller managed ledger cache, this is the main trigger of OODM
   # this is the logical size of the memory used by the cache 
   # the actual DirectMemory used by the JVM due to the cache is X times bigger than this value
   # this is due to how Netty pools memory 
   , managedLedgerCacheSizeMB: 512
-  
+
   #----------------------------------------------------------------------
   # Sometimes especially with custom build, there might be some settings
   # not generally available in the official Pulsar build yet. Put these
-  # settings below as experimental features. For builds that don't support
-  # these settings, just leave them as is and they won't have any impact
+  # settings below as experimental features.
+  #
+  # For builds that don't support these settings, just leave them as is and
+  # they will be ignored.
   #----------------------------------------------------------------------
   , dispatchThrottlingForFilteredEntriesEnabled: 'true'
 
-  # enable the new feature that prevents to perform too many reads from storage and cache
-  # 100 MB seem enough for the 11a/b scenario
+  , bookkeeper_waitTimeoutOnBackpressureMs: 50    # back pressure setting
+
+  # prevents to perform too many reads from storage and cache
   , managedLedgerMaxReadsInFlightSizeInMB: 100
+
+  # Use the cache for tailing reads only for subscriptions that are not backlogged
+  , cacheEvictionByMarkDeletedPosition: false
 
   # configuration for caching data read by backlogged cursors
   , managedLedgerMinimumBacklogCursorsForCaching: 4

@@ -20,7 +20,7 @@
 # -------------------------------------------
 #
 bookkeeper_conf_file: "{{ tgt_pulsar_inst_dir }}/conf/bookkeeper.conf"
-pulsar_mem_bookie: "{% if prod_jvm_setting|bool %}-Xms4g -Xmx4g -XX:MaxDirectMemorySize=4g{% else %}-Xms1g -Xmx1g -XX:MaxDirectMemorySize=1g{% endif %}"
+pulsar_mem_bookie: "{% if prod_jvm_setting|bool %}-Xms6g -Xmx6g -XX:MaxDirectMemorySize=6g{% else %}-Xms1g -Xmx1g{% endif %}"
 pulsar_mem_bookie_b: "{% if prod_jvm_setting|bool %}-Xms1g -Xmx1g{% else %}-Xms512m -Xmx512m{% endif %}"
 
 bookie_listening_port: 3181
@@ -128,9 +128,12 @@ misc_bookie_config_dict: {
   # - Back Pressure
   , maxPendingReadRequestsPerThread: 10000
 
+  #----------------------------------------------------------------------
   # Sometimes especially with custom build, there might be some settings
   # not generally available in the official Pulsar build yet. Put these
   # settings below as experimental features. For builds that don't support
+  # these settings, just leave them as is and they won't have any impact
+  #----------------------------------------------------------------------
   , maxAddsInProgressLimit: 10000
   , maxReadsInProgressLimit: 10000
   , closeChannelOnResponseTimeout: 'true'
