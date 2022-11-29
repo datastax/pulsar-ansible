@@ -180,7 +180,7 @@ autorecovery_option: "integrated"
 # -------------------------------------------
 #
 # commong JVM settings that applies to all Pulsar server components
-prod_jvm_setting: false
+prod_jvm_setting: true
 common_jvm_settings: |
   PULSAR_EXTRA_OPTS="-XX:+PerfDisableSharedMem {{ component_pulsar_extra_opts | default('') }}"
   PULSAR_GC="-XX:+UseG1GC -XX:MaxGCPauseMillis=10 -XX:+HeapDumpOnOutOfMemoryError -XX:+ExitOnOutOfMemoryError {{ component_pulsar_gc | default('') }}"

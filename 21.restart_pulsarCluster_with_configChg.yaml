@@ -36,8 +36,7 @@
   roles: 
     # Set global variables to be used in other tasks/roles
     # - Not needed for restart only
-    - { role: pulsar/common/pulsar_setGlobalVars, varList: 'all',
-        when: with_cfg_upd is defined and with_cfg_upd|bool }
+    - { role: pulsar/common/pulsar_setGlobalVars, varList: 'all' }
 
 - hosts: pulsarServer
   any_errors_fatal: true
