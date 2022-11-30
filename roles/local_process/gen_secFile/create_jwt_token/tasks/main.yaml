@@ -30,6 +30,8 @@
       -clst_name {{ cluster_name}} \
       -host_type {{ srv_component }} \
       -user_list {{ user_roles_list }}
+  environment:
+    whichPulsar: "{{ pulsar_controller_node_bin }}"
   register: jwtTokenShell
 - debug: msg="({{ srv_component }}) jwtTokenShell.failed - {{ jwtTokenShell.failed }}"
   when: show_debug_msg|bool and showLocalCmdOutput|bool

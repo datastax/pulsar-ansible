@@ -24,14 +24,14 @@
 #
 #
 
-
-# Check if "pulsar" executable is available
-whichPulsar=$(which pulsar)
-if [[ "${whichPulsar}" == "" || "${whichPulsar}" == *"not found"* ]]; then
-  echo "Can't find \"pulsar\" executable which is necessary to create JWT tokens"
-  exit 10
-fi
-
+if [[ -z "${whichPulsar}" ]]; then
+    # Check if "pulsar" executable is available
+    whichPulsar=$(which pulsar)
+    if [[ "${whichPulsar}" == "" || "${whichPulsar}" == *"not found"* ]]; then
+        echo "Can't find \"pulsar\" executable which is necessary to create JWT tokens"
+        exit 10
+    fi
+fi 
 usage() {
    echo
    echo "Usage: genUserJwtToken.sh [-h] [-r] \
