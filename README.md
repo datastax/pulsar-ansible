@@ -67,7 +67,7 @@ $ ansible-playbook -i <host_inventory_file> <playbook_name> [--extra-vars "..."]
  
 However, since the scripts can be used to deploy multiple Pulsar clusters, different sets of SSH keys and users may be used. In order to simplify the execution of the Ansible playbooks across multiple Pulsar clusters, the following two convenience bash scripts are used:
  
-1) **senenv_automation.sh**: This script defines several environment variables to be used in the next step
+1) **setenv_automation.sh**: This script defines several environment variables to be used in the next step
 ```
 ANSI_SSH_PRIV_KEY="<ssh_private_key_file_path>"
 ANSI_SSH_USER="<ssh_user_name>"
